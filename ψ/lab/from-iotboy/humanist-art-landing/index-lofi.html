@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>humanist.art — for thinking and building</title>
+<style>
+  /* ── reset ─────────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #0a0a0a;
+    color: #d4d4d4;
+    font-family: "IBM Plex Mono", "JetBrains Mono", "Berkeley Mono", "SF Mono", "Menlo", monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  a { color: inherit; }
+
+  /* ── ASCII-dotted backdrop (lo-fi vibe) ────────────────────────────── */
+  /* Two layers: fine dot grid + larger feature stations to mimic the
+     framed pictures + ball + shelf in the reference image. */
+  .scene {
+    position: fixed; inset: 0;
+    z-index: 0;
+    background-color: #0a0a0a;
+    background-image:
+      /* fine dot grid — every 6px */
+      radial-gradient(circle at 1px 1px, rgba(212,212,212,0.10) 1px, transparent 0);
+    background-size: 6px 6px;
+  }
+
+  /* Big disco-ball halo — the round monochrome pattern in reference. */
+  .scene::before {
+    content: "";
+    position: absolute;
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background-image:
+      radial-gradient(circle at 2px 2px, rgba(212,212,212,0.45) 1.4px, transparent 0);
+    background-size: 8px 8px;
+    mask: radial-gradient(circle, black 60%, transparent 72%);
+    -webkit-mask: radial-gradient(circle, black 60%, transparent 72%);
+    opacity: 0.85;
+  }
+
+  /* Two "framed pictures" left-side column — pure CSS box outlines. */
+  .scene::after {
+    content: "";
+    position: absolute;
+    top: 6%;
+    left: 4%;
+    width: 140px; height: 80px;
+    border: 2px dotted rgba(212,212,212,0.35);
+    box-shadow:
+      0 100px 0 -2px rgba(0,0,0,0),
+      170px 0 0 -2px transparent,
+      0 110px 0 0 rgba(0,0,0,0);
+    background-image:
+      linear-gradient(45deg, transparent 48%, rgba(212,212,212,0.18) 48%, rgba(212,212,212,0.18) 52%, transparent 52%);
+    background-size: 8px 8px;
+  }
+
+  /* ── now-playing chip (top-left, like the reference's track strip) ── */
+  .nowplaying {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(212,212,212,0.10);
+    color: #a3a3a3;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .nowplaying b { color: #f5f5f5; font-weight: 600; }
+  .nowplaying .dot { color: #ff8c5a; }
+  .nowplaying .right {
+    margin-left: auto;
+    color: #737373;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  /* ── main hero — pixel boy + statement ─────────────────────────────── */
+  main {
+    position: relative;
+    z-index: 1;
+    min-height: calc(100vh - 100px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 32px;
+    padding: 60px 64px 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .lead h1 {
+    font-family: "Iowan Old Style", "Tiempos Text", "Palatino Linotype", "Georgia", serif;
+    font-size: clamp(28px, 4.2vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: #f5f5f5;
+    font-weight: 400;
+    margin: 0 0 18px;
+    max-width: 18ch;
+  }
+  .lead p.dek {
+    font-style: italic;
+    color: #a3a3a3;
+    max-width: 36ch;
+    margin: 0 0 32px;
+    font-family: "Iowan Old Style", serif;
+    font-size: 16px;
+  }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border: 1px solid #d4d4d4;
+    background: transparent;
+    color: #f5f5f5;
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .cta.primary { background: #ff8c5a; border-color: #ff8c5a; color: #0a0a0a; }
+  .cta.primary:hover { filter: brightness(1.1); }
+  .cta:hover { border-color: #ff8c5a; color: #ff8c5a; }
+
+  /* ── pixel-boy (CSS-only sprite using box-shadow grid) ─────────────── */
+  /* 16 × 16 cell grid, each cell 12px. Skin = #ff8c5a, hair = #66c0ff,
+     eye = #0a0a0a. Drawn entirely as box-shadow on a single 12×12 square. */
+  .stage {
+    position: relative;
+    height: 480px;
+    display: grid;
+    place-items: end center;
+  }
+  .pixelboy {
+    --p: 14px;
+    width: var(--p); height: var(--p);
+    transform: translateY(-40px);
+    background: transparent;
+    box-shadow:
+      /* row 1 (hair top) */
+      calc(5*var(--p)) calc(2*var(--p)) #66c0ff,
+      calc(6*var(--p)) calc(2*var(--p)) #66c0ff,
+      calc(7*var(--p)) calc(2*var(--p)) #66c0ff,
+      calc(8*var(--p)) calc(2*var(--p)) #66c0ff,
+      calc(9*var(--p)) calc(2*var(--p)) #66c0ff,
+      calc(10*var(--p)) calc(2*var(--p)) #66c0ff,
+      /* row 2 (hair) */
+      calc(4*var(--p)) calc(3*var(--p)) #66c0ff,
+      calc(5*var(--p)) calc(3*var(--p)) #66c0ff,
+      calc(6*var(--p)) calc(3*var(--p)) #66c0ff,
+      calc(7*var(--p)) calc(3*var(--p)) #66c0ff,
+      calc(8*var(--p)) calc(3*var(--p)) #66c0ff,
+      calc(9*var(--p)) calc(3*var(--p)) #66c0ff,
+      calc(10*var(--p)) calc(3*var(--p)) #66c0ff,
+      calc(11*var(--p)) calc(3*var(--p)) #66c0ff,
+      /* row 3 (face top + headphone band) */
+      calc(3*var(--p)) calc(4*var(--p)) #66c0ff,
+      calc(4*var(--p)) calc(4*var(--p)) #ff8c5a,
+      calc(5*var(--p)) calc(4*var(--p)) #ff8c5a,
+      calc(6*var(--p)) calc(4*var(--p)) #ff8c5a,
+      calc(7*var(--p)) calc(4*var(--p)) #ff8c5a,
+      calc(8*var(--p)) calc(4*var(--p)) #ff8c5a,
+      calc(9*var(--p)) calc(4*var(--p)) #ff8c5a,
+      calc(10*var(--p)) calc(4*var(--p)) #ff8c5a,
+      calc(11*var(--p)) calc(4*var(--p)) #66c0ff,
+      /* row 4 (eyes line) */
+      calc(3*var(--p)) calc(5*var(--p)) #66c0ff,
+      calc(4*var(--p)) calc(5*var(--p)) #ff8c5a,
+      calc(5*var(--p)) calc(5*var(--p)) #0a0a0a,
+      calc(6*var(--p)) calc(5*var(--p)) #ff8c5a,
+      calc(7*var(--p)) calc(5*var(--p)) #ff8c5a,
+      calc(8*var(--p)) calc(5*var(--p)) #ff8c5a,
+      calc(9*var(--p)) calc(5*var(--p)) #0a0a0a,
+      calc(10*var(--p)) calc(5*var(--p)) #ff8c5a,
+      calc(11*var(--p)) calc(5*var(--p)) #66c0ff,
+      /* row 5 (cheek + smile) */
+      calc(3*var(--p)) calc(6*var(--p)) #66c0ff,
+      calc(4*var(--p)) calc(6*var(--p)) #ff8c5a,
+      calc(5*var(--p)) calc(6*var(--p)) #ff8c5a,
+      calc(6*var(--p)) calc(6*var(--p)) #ff8c5a,
+      calc(7*var(--p)) calc(6*var(--p)) #d96b3c,
+      calc(8*var(--p)) calc(6*var(--p)) #d96b3c,
+      calc(9*var(--p)) calc(6*var(--p)) #ff8c5a,
+      calc(10*var(--p)) calc(6*var(--p)) #ff8c5a,
+      calc(11*var(--p)) calc(6*var(--p)) #66c0ff,
+      /* row 6 (chin) */
+      calc(4*var(--p)) calc(7*var(--p)) #ff8c5a,
+      calc(5*var(--p)) calc(7*var(--p)) #ff8c5a,
+      calc(6*var(--p)) calc(7*var(--p)) #ff8c5a,
+      calc(7*var(--p)) calc(7*var(--p)) #ff8c5a,
+      calc(8*var(--p)) calc(7*var(--p)) #ff8c5a,
+      calc(9*var(--p)) calc(7*var(--p)) #ff8c5a,
+      calc(10*var(--p)) calc(7*var(--p)) #ff8c5a,
+      /* row 7 (neck) */
+      calc(5*var(--p)) calc(8*var(--p)) #d96b3c,
+      calc(6*var(--p)) calc(8*var(--p)) #d96b3c,
+      calc(7*var(--p)) calc(8*var(--p)) #ff8c5a,
+      calc(8*var(--p)) calc(8*var(--p)) #ff8c5a,
+      calc(9*var(--p)) calc(8*var(--p)) #d96b3c,
+      calc(10*var(--p)) calc(8*var(--p)) #d96b3c,
+      /* row 8-9 (body) */
+      calc(3*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(4*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(5*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(6*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(7*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(8*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(9*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(10*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(11*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(12*var(--p)) calc(9*var(--p)) #ff8c5a,
+      calc(2*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(3*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(4*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(5*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(6*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(7*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(8*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(9*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(10*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(11*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(12*var(--p)) calc(10*var(--p)) #ff8c5a,
+      calc(13*var(--p)) calc(10*var(--p)) #ff8c5a,
+      /* row 11 (legs gap) */
+      calc(4*var(--p)) calc(11*var(--p)) #ff8c5a,
+      calc(5*var(--p)) calc(11*var(--p)) #ff8c5a,
+      calc(6*var(--p)) calc(11*var(--p)) #ff8c5a,
+      calc(9*var(--p)) calc(11*var(--p)) #ff8c5a,
+      calc(10*var(--p)) calc(11*var(--p)) #ff8c5a,
+      calc(11*var(--p)) calc(11*var(--p)) #ff8c5a;
+  }
+
+  /* ── footer ─────────────────────────────────────────────────────────── */
+  footer {
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid rgba(212,212,212,0.10);
+    padding: 18px 32px;
+    color: #737373;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+  footer .dot { color: #ff8c5a; }
+
+  /* ── responsive ────────────────────────────────────────────────────── */
+  @media (max-width: 760px) {
+    .scene::before { width: 200px; height: 200px; top: 6%; }
+    main { grid-template-columns: 1fr; padding: 40px 24px 60px; gap: 16px; }
+    .stage { height: 320px; }
+    .pixelboy { --p: 11px; transform: translateY(-20px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true"></div>
+
+<div class="nowplaying">
+  <span>humanist.art</span>
+  <span class="dot">▸</span>
+  <b>music for thinking and building</b>
+  <span class="right">live · 09 may 2026</span>
+</div>
+
+<main>
+  <div class="lead">
+    <h1>The form your answer takes is the form you live by.</h1>
+    <p class="dek">One choice. One vote. AI cannot drink beer with your friend. It can only free you to do so.</p>
+    <div class="cta-row">
+      <a class="cta primary" href="/vote">▸ Cast your vote</a>
+      <a class="cta" href="/manifesto">Read the manifesto</a>
+    </div>
+  </div>
+
+  <div class="stage" aria-hidden="true">
+    <div class="pixelboy"></div>
+  </div>
+</main>
+
+<footer>
+  <span>humanist.art / 2026</span>
+  <span><span class="dot">●</span> est. ben seretan vibe · iotboy build</span>
+</footer>
+
+</body>
+</html>

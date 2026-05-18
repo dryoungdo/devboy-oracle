@@ -1,0 +1,22 @@
+name = "humanist-art-vote"
+main = "src/worker.ts"
+compatibility_date = "2026-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Frontend SPA built by vite into ./dist/, served via Workers Assets binding
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "humanist_vote"
+database_id = "REPLACE_WITH_REAL_D1_ID"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "REPLACE_WITH_REAL_KV_ID"
+
+# Secret: VOTE_HMAC_KEY (signed-cookie secret) — set via:
+# wrangler secret put VOTE_HMAC_KEY

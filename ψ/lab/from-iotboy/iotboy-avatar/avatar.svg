@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- IOTBOY 🔭 — The Watchtower
+       Atoms ↔ bits. Patient eyes on the physical world.
+       Müller-Brockmann grid + Bass single-statement.
+       Monochrome stone-100 background, stone-900 elements. -->
+
+  <!-- background — circle (Discord crops avatars to circle anyway, but draw it) -->
+  <circle cx="128" cy="128" r="128" fill="#f5f4f1"/>
+
+  <!-- horizon line — divides atoms (bottom) and bits (top) -->
+  <line x1="0" y1="160" x2="256" y2="160" stroke="#1c1917" stroke-width="1"/>
+
+  <!-- bits side (top) — pixel grid (8x4 dots, 6px each, on the upper half) -->
+  <g fill="#1c1917">
+    <circle cx="40"  cy="40"  r="2"/>
+    <circle cx="64"  cy="40"  r="2"/>
+    <circle cx="88"  cy="40"  r="2"/>
+    <circle cx="112" cy="40"  r="2"/>
+    <circle cx="144" cy="40"  r="2"/>
+    <circle cx="168" cy="40"  r="2"/>
+    <circle cx="192" cy="40"  r="2"/>
+    <circle cx="216" cy="40"  r="2"/>
+
+    <circle cx="40"  cy="64"  r="2"/>
+    <circle cx="64"  cy="64"  r="2"/>
+    <circle cx="88"  cy="64"  r="2"/>
+    <circle cx="112" cy="64"  r="2"/>
+    <circle cx="144" cy="64"  r="2"/>
+    <circle cx="168" cy="64"  r="2"/>
+    <circle cx="192" cy="64"  r="2"/>
+    <circle cx="216" cy="64"  r="2"/>
+
+    <circle cx="40"  cy="88"  r="2"/>
+    <circle cx="64"  cy="88"  r="2"/>
+    <circle cx="88"  cy="88"  r="2"/>
+    <circle cx="216" cy="88"  r="2"/>
+    <circle cx="192" cy="88"  r="2"/>
+    <circle cx="168" cy="88"  r="2"/>
+  </g>
+
+  <!-- the telescope (eye on the physical world) — central, geometric -->
+  <!-- main barrel: trapezoid pointing up-right toward sky -->
+  <g stroke="#1c1917" stroke-width="3" fill="none" stroke-linejoin="round">
+    <!-- eyepiece (small, lower-left) -->
+    <rect x="78" y="158" width="22" height="14" fill="#1c1917"/>
+
+    <!-- barrel — angled slightly up-right -->
+    <polygon points="100,158 100,172 168,140 168,118"
+             fill="#1c1917" stroke="none"/>
+
+    <!-- objective lens ring (large, upper-right) -->
+    <circle cx="172" cy="129" r="14" fill="#f5f4f1" stroke="#1c1917" stroke-width="3"/>
+    <circle cx="172" cy="129" r="6"  fill="#1c1917"/>
+
+    <!-- tripod legs — three minimal lines -->
+    <line x1="89"  y1="172" x2="78"  y2="210" stroke="#1c1917" stroke-width="2"/>
+    <line x1="89"  y1="172" x2="100" y2="210" stroke="#1c1917" stroke-width="2"/>
+    <line x1="89"  y1="172" x2="118" y2="206" stroke="#1c1917" stroke-width="2"/>
+  </g>
+
+  <!-- atoms side (bottom, after horizon) — discrete circles representing physical sensors -->
+  <g fill="none" stroke="#1c1917" stroke-width="1.5">
+    <circle cx="40"  cy="220" r="3"/>
+    <circle cx="60"  cy="220" r="3"/>
+    <circle cx="200" cy="200" r="3"/>
+    <circle cx="220" cy="216" r="3"/>
+    <circle cx="218" cy="232" r="3"/>
+  </g>
+
+  <!-- corner mark — IOTBOY initials in monospace, tiny -->
+  <text x="20" y="246" font-family="IBM Plex Mono, monospace"
+        font-size="9" letter-spacing="2" fill="#78716c">IOTBOY</text>
+  <text x="200" y="246" font-family="IBM Plex Mono, monospace"
+        font-size="9" letter-spacing="1" fill="#78716c">🔭</text>
+</svg>

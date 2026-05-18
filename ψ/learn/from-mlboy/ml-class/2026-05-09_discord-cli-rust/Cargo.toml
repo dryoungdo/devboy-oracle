@@ -1,0 +1,24 @@
+[package]
+name = "discord-read"
+version = "0.1.0"
+edition = "2021"
+description = "Read messages from a Discord channel via REST API. CLI wrapper over the same protocol the MCP plugin uses."
+
+[[bin]]
+name = "discord-read"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive", "env"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+anyhow = "1"
+dotenvy = "0.15"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true

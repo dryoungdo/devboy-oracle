@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* Monochrome humanist palette — all stone-* (warm gray), no chroma */
+@theme {
+  --font-serif: "Iowan Old Style", "Tiempos Text", "Palatino", "Georgia", serif;
+  --font-sans: "Inter", "Söhne", "Helvetica Neue", system-ui, sans-serif;
+}
