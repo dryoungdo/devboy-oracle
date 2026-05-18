@@ -1,0 +1,16 @@
+# Minimal ESPHome firmware to exercise the toolchain
+# Target: generic ESP32 (esp32dev) — no real WiFi/MQTT, just compile-ready
+esphome:
+  name: iotboy-hello
+  friendly_name: IOTBOY Hello
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+  level: INFO
+
+# No api/ota/wifi here — class-time compile demo only.
+# Add wifi/api with secrets when ready to flash.

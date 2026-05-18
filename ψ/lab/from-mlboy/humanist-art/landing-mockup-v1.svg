@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <!-- braille-like dot field background -->
+    <pattern id="dots" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="0.5" fill="#ffffff" opacity="0.08"/>
+    </pattern>
+    <!-- warm core glow -->
+    <radialGradient id="heat" cx="50%" cy="55%" r="40%">
+      <stop offset="0" stop-color="#ffe7ba"/>
+      <stop offset="0.2" stop-color="#ff9a4a"/>
+      <stop offset="0.55" stop-color="#c43a14"/>
+      <stop offset="0.85" stop-color="#260903"/>
+      <stop offset="1" stop-color="#0a0a0a"/>
+    </radialGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <!-- canvas -->
+  <rect width="1280" height="720" fill="#0a0a0a"/>
+  <rect width="1280" height="720" fill="url(#dots)"/>
+
+  <!-- top mono bar -->
+  <text x="40" y="38" font-family="ui-monospace, 'JetBrains Mono', monospace"
+        font-size="13" fill="#cfcfcf">humanist.art</text>
+  <text x="155" y="38" font-family="ui-monospace, monospace" font-size="13" fill="#7a7a7a">
+    ⚒️  where humans build with art
+  </text>
+  <text x="1220" y="38" font-family="ui-monospace, monospace" font-size="13"
+        fill="#7a7a7a" text-anchor="end">2026 · live</text>
+
+  <!-- subtle workshop dot-art (left rack) -->
+  <g fill="#9a9a9a" opacity="0.55">
+    <rect x="80" y="200" width="3" height="3"/><rect x="86" y="200" width="3" height="3"/><rect x="92" y="200" width="3" height="3"/>
+    <rect x="80" y="206" width="3" height="3"/><rect x="92" y="206" width="3" height="3"/>
+    <rect x="80" y="212" width="3" height="3"/><rect x="86" y="212" width="3" height="3"/><rect x="92" y="212" width="3" height="3"/>
+    <rect x="80" y="218" width="3" height="3"/>
+    <rect x="80" y="224" width="3" height="3"/><rect x="86" y="224" width="3" height="3"/><rect x="92" y="224" width="3" height="3"/>
+    <rect x="80" y="260" width="3" height="3"/><rect x="86" y="260" width="3" height="3"/>
+    <rect x="80" y="266" width="3" height="3"/><rect x="92" y="266" width="3" height="3"/>
+    <rect x="80" y="272" width="3" height="3"/><rect x="86" y="272" width="3" height="3"/><rect x="92" y="272" width="3" height="3"/>
+  </g>
+
+  <!-- subtle workshop dot-art (right) -->
+  <g fill="#9a9a9a" opacity="0.55">
+    <rect x="1180" y="220" width="3" height="3"/><rect x="1186" y="220" width="3" height="3"/>
+    <rect x="1180" y="226" width="3" height="3"/><rect x="1192" y="226" width="3" height="3"/>
+    <rect x="1180" y="232" width="3" height="3"/><rect x="1186" y="232" width="3" height="3"/><rect x="1192" y="232" width="3" height="3"/>
+    <rect x="1180" y="238" width="3" height="3"/><rect x="1186" y="238" width="3" height="3"/>
+    <rect x="1180" y="244" width="3" height="3"/>
+  </g>
+
+  <!-- central crucible (humanist symbol — vessel + heat) -->
+  <!-- vessel outline rendered as dot-grid (ASCII feel) -->
+  <g fill="#cccccc" opacity="0.75">
+    <!-- rim -->
+    <g>
+    <rect x="540" y="280" width="3" height="3"/><rect x="548" y="280" width="3" height="3"/><rect x="556" y="280" width="3" height="3"/><rect x="564" y="280" width="3" height="3"/><rect x="572" y="280" width="3" height="3"/><rect x="580" y="280" width="3" height="3"/><rect x="588" y="280" width="3" height="3"/><rect x="596" y="280" width="3" height="3"/><rect x="604" y="280" width="3" height="3"/><rect x="612" y="280" width="3" height="3"/><rect x="620" y="280" width="3" height="3"/><rect x="628" y="280" width="3" height="3"/><rect x="636" y="280" width="3" height="3"/><rect x="644" y="280" width="3" height="3"/><rect x="652" y="280" width="3" height="3"/><rect x="660" y="280" width="3" height="3"/><rect x="668" y="280" width="3" height="3"/><rect x="676" y="280" width="3" height="3"/><rect x="684" y="280" width="3" height="3"/><rect x="692" y="280" width="3" height="3"/><rect x="700" y="280" width="3" height="3"/><rect x="708" y="280" width="3" height="3"/><rect x="716" y="280" width="3" height="3"/><rect x="724" y="280" width="3" height="3"/><rect x="732" y="280" width="3" height="3"/>
+    </g>
+    <!-- left wall (slight inward slope) -->
+    <rect x="544" y="310" width="3" height="3"/><rect x="546" y="340" width="3" height="3"/><rect x="548" y="370" width="3" height="3"/><rect x="552" y="400" width="3" height="3"/><rect x="556" y="430" width="3" height="3"/><rect x="560" y="460" width="3" height="3"/><rect x="565" y="490" width="3" height="3"/>
+    <!-- right wall -->
+    <rect x="730" y="310" width="3" height="3"/><rect x="728" y="340" width="3" height="3"/><rect x="726" y="370" width="3" height="3"/><rect x="722" y="400" width="3" height="3"/><rect x="718" y="430" width="3" height="3"/><rect x="714" y="460" width="3" height="3"/><rect x="709" y="490" width="3" height="3"/>
+    <!-- base -->
+    <g>
+    <rect x="572" y="510" width="3" height="3"/><rect x="580" y="510" width="3" height="3"/><rect x="588" y="510" width="3" height="3"/><rect x="596" y="510" width="3" height="3"/><rect x="604" y="510" width="3" height="3"/><rect x="612" y="510" width="3" height="3"/><rect x="620" y="510" width="3" height="3"/><rect x="628" y="510" width="3" height="3"/><rect x="636" y="510" width="3" height="3"/><rect x="644" y="510" width="3" height="3"/><rect x="652" y="510" width="3" height="3"/><rect x="660" y="510" width="3" height="3"/><rect x="668" y="510" width="3" height="3"/><rect x="676" y="510" width="3" height="3"/><rect x="684" y="510" width="3" height="3"/><rect x="692" y="510" width="3" height="3"/><rect x="700" y="510" width="3" height="3"/>
+    </g>
+  </g>
+
+  <!-- molten core (warm glow inside vessel) -->
+  <ellipse cx="640" cy="425" rx="120" ry="65" fill="url(#heat)" filter="url(#blur)" opacity="0.95"/>
+  <ellipse cx="640" cy="425" rx="48" ry="28" fill="#fff7e0" filter="url(#blur)" opacity="0.85"/>
+
+  <!-- rising sparks -->
+  <circle cx="600" cy="240" r="2" fill="#ffd380" opacity="0.8"/>
+  <circle cx="660" cy="220" r="1.7" fill="#ffb056" opacity="0.65"/>
+  <circle cx="635" cy="195" r="1.3" fill="#ffe9c4" opacity="0.5"/>
+  <circle cx="685" cy="200" r="1" fill="#ffd380" opacity="0.4"/>
+  <circle cx="610" cy="180" r="1.2" fill="#ffb056" opacity="0.4"/>
+
+  <!-- bottom mono caption -->
+  <text x="640" y="610" text-anchor="middle"
+        font-family="ui-monospace, 'JetBrains Mono', monospace"
+        font-size="22" fill="#dadada" letter-spacing="3">
+    color is heat. black-and-white is what survives the fire.
+  </text>
+  <text x="640" y="640" text-anchor="middle"
+        font-family="ui-monospace, monospace"
+        font-size="14" fill="#7a7a7a" letter-spacing="2">
+    the human is what remains.
+  </text>
+
+  <!-- bottom-right control hint (lofi-player feel) -->
+  <text x="1220" y="690" text-anchor="end"
+        font-family="ui-monospace, monospace" font-size="11" fill="#5a5a5a">
+    ▌ space · pause   ⏎ enter · build
+  </text>
+</svg>

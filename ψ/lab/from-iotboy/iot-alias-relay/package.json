@@ -1,0 +1,18 @@
+{
+  "name": "iot-alias-relay",
+  "version": "0.1.0",
+  "description": "IoT-shaped fork of webhook-relay-oss alias pattern. Maps opaque hardware IDs (MAC, ESP-NOW peer, sensor pin, mesh node) to human labels. MQTT topic preview included.",
+  "scripts": {
+    "dev": "bun --watch src/routes.ts",
+    "start": "bun src/routes.ts",
+    "schema:gen": "bunx drizzle-kit generate"
+  },
+  "dependencies": {
+    "elysia": "^1.4.0",
+    "drizzle-orm": "^0.36.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "drizzle-kit": "^0.28.0"
+  }
+}

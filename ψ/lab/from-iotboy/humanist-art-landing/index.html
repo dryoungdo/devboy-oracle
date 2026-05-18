@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>humanist.art</title>
+<meta name="description" content="One choice. One vote. The form your answer takes is the form you live by." />
+<style>
+  /* ── reset ─────────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #f5f4f1;             /* warm off-white, stone-100 */
+    color: #1c1917;                  /* near-black, stone-900 */
+    font-family: "Iowan Old Style", "Tiempos Text", "Palatino Linotype", "Georgia", serif;
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  /* monospace for matrix-vibe technical labels (Crouwel-modular feel) */
+  .mono, .mono * {
+    font-family: "IBM Plex Mono", "JetBrains Mono", "Berkeley Mono", "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ── 12-col grid (Müller-Brockmann) ────────────────────────────────── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ── matrix backdrop — monochrome dotted technical field ───────────── */
+  .matrix {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(28,25,23,0.08) 1px, transparent 0);
+    background-size: 16px 16px;
+    z-index: 0;
+  }
+
+  /* ── header rail — Vignelli 2-type-size restraint ──────────────────── */
+  header {
+    position: relative;
+    border-bottom: 1px solid #1c1917;
+    padding: 18px 0;
+    z-index: 1;
+    background: #f5f4f1;
+  }
+  header .grid > .left  { grid-column: 1 / span 6; }
+  header .grid > .right { grid-column: 7 / span 6; text-align: right; }
+  .brand { font-weight: 600; letter-spacing: -0.01em; }
+  .brand small { color: #57534e; font-weight: 400; margin-left: 8px; }
+
+  /* ── hero — Bass single-statement ──────────────────────────────────── */
+  main { position: relative; z-index: 1; }
+  .hero {
+    padding: 120px 0 80px;
+  }
+  .hero .grid > .lead { grid-column: 1 / span 12; }
+  .hero h1 {
+    font-size: clamp(40px, 8vw, 88px);
+    font-weight: 400;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin: 0 0 28px;
+    max-width: 16ch;
+  }
+  .hero p.dek {
+    font-size: 19px;
+    font-style: italic;
+    color: #44403c;
+    max-width: 42ch;
+    margin: 0 0 56px;
+  }
+  .hero .cta {
+    display: inline-block;
+    padding: 12px 28px;
+    border: 1px solid #1c1917;
+    background: #1c1917;
+    color: #f5f4f1;
+    text-decoration: none;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .hero .cta + .cta {
+    background: transparent; color: #1c1917; margin-left: 12px;
+  }
+
+  /* ── ledger — matrix-style data panel, but humane ──────────────────── */
+  .ledger {
+    border-top: 1px solid #1c1917;
+    padding: 64px 0;
+  }
+  .ledger .grid > .label { grid-column: 1 / span 3; color: #78716c; }
+  .ledger .grid > .body  { grid-column: 4 / span 9; }
+  .ledger h2 {
+    font-size: 24px; font-weight: 400; letter-spacing: -0.01em;
+    margin: 0 0 32px;
+  }
+  .ledger .row {
+    display: grid;
+    grid-template-columns: 32px 1fr 80px;
+    gap: 16px;
+    border-bottom: 1px solid #d6d3d1;
+    padding: 18px 0;
+    align-items: baseline;
+  }
+  .ledger .row:last-child { border-bottom: 0; }
+  .ledger .row .num { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: #78716c; }
+  .ledger .row .ttl { font-size: 19px; }
+  .ledger .row .met { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: #78716c; text-align: right; }
+
+  /* ── manifesto block ───────────────────────────────────────────────── */
+  .manifesto {
+    border-top: 1px solid #1c1917;
+    padding: 96px 0 64px;
+  }
+  .manifesto .grid > .body { grid-column: 3 / span 8; }
+  .manifesto blockquote {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+  }
+  .manifesto .author { color: #78716c; margin-top: 24px; }
+
+  /* ── footer — credits, where artist DNA is named honestly ─────────── */
+  footer {
+    border-top: 1px solid #1c1917;
+    padding: 32px 0 64px;
+    color: #57534e;
+  }
+  footer .grid > .col { grid-column: span 4; }
+  footer dl { margin: 0; }
+  footer dt { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #78716c; margin-bottom: 4px; }
+  footer dd { margin: 0 0 16px; font-size: 14px; }
+
+  /* ── responsive ────────────────────────────────────────────────────── */
+  @media (max-width: 760px) {
+    .grid { gap: 16px; padding: 0 20px; }
+    .hero { padding: 80px 0 40px; }
+    header .grid > .left, header .grid > .right { grid-column: 1 / -1; text-align: left; }
+    header .grid > .right { margin-top: 8px; }
+    .ledger .grid > .label, .ledger .grid > .body { grid-column: 1 / -1; }
+    .manifesto .grid > .body { grid-column: 1 / -1; }
+    footer .grid > .col { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="matrix" aria-hidden="true"></div>
+
+<header>
+  <div class="grid">
+    <div class="left mono"><span class="brand">humanist.art<small>— a place for the form your answer takes</small></span></div>
+    <div class="right mono">est. 2026 / one page / one question</div>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="grid">
+      <div class="lead">
+        <h1>The form your answer takes is the form you live by.</h1>
+        <p class="dek">One choice. One vote. AI cannot drink beer with your friend. It can only free you to do so.</p>
+        <a class="cta" href="/vote">Cast your vote →</a>
+        <a class="cta" href="/manifesto">Read the manifesto</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="ledger">
+    <div class="grid">
+      <div class="label mono">01 · ledger</div>
+      <div class="body">
+        <h2>What this place is.</h2>
+        <div class="row"><span class="num">01</span><span class="ttl">A single page</span><span class="met">monochrome</span></div>
+        <div class="row"><span class="num">02</span><span class="ttl">A single question, asked seriously</span><span class="met">/vote</span></div>
+        <div class="row"><span class="num">03</span><span class="ttl">A signed cookie. No login. No tracking.</span><span class="met">stateless</span></div>
+        <div class="row"><span class="num">04</span><span class="ttl">Counts revealed only after you vote</span><span class="met">honest</span></div>
+        <div class="row"><span class="num">05</span><span class="ttl">No content unless you ask</span><span class="met">restraint</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="manifesto">
+    <div class="grid">
+      <div class="body">
+        <blockquote>
+          We are tired of pages that move when you do nothing,
+          tired of carousels that perform for invisible audiences,
+          tired of color used to substitute for thought.
+          A page that asks a question, waits, and then listens —
+          this is the form a human site can take.
+        </blockquote>
+        <p class="author mono">— humanist.art, 2026</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="grid">
+    <div class="col">
+      <dl>
+        <dt>Type</dt>
+        <dd>Iowan Old Style (serif)<br/>IBM Plex Mono (caption)</dd>
+        <dt>Grid</dt>
+        <dd>12-col, 24px gutter — Müller-Brockmann</dd>
+      </dl>
+    </div>
+    <div class="col">
+      <dl>
+        <dt>Voice</dt>
+        <dd>Single-statement hero — Saul Bass</dd>
+        <dt>Restraint</dt>
+        <dd>Two type sizes, two values — Vignelli, Vignelli</dd>
+      </dl>
+    </div>
+    <div class="col">
+      <dl>
+        <dt>Made by</dt>
+        <dd>IOTBOY 🔭 of the DO fleet,<br/>Soul-Brews-Studio family</dd>
+        <dt>Source</dt>
+        <dd><a href="https://github.com/dryoungdo/iotboy">github.com/dryoungdo/iotboy</a></dd>
+      </dl>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
