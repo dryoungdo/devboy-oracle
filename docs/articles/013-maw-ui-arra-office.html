@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>013 — maw-ui ARRA Office | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html" class="active">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">013 &mdash; maw-ui ARRA Office</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw-ui &mdash; ARRA Office Fleet Dashboard</h1>
+        <div class="article-meta">
+          <span class="tag">maw-ui</span>
+          <span class="tag">react</span>
+          <span class="tag">three.js</span>
+          <span class="tag">dashboard</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>maw-ui คืออะไร</h2>
+        <p><strong>ARRA Office</strong> คือ web dashboard สำหรับ fleet control ของ maw-js &mdash; real-time visualization, monitoring, และจัดการ Oracle agents ข้ามเครื่องผ่าน federation mesh</p>
+        <p>Version ปัจจุบัน: <strong>v1.4.2</strong> (12 เม.ย. 2026) | License: BUSL-1.1</p>
+
+        <h2>Tech Stack</h2>
+        <table>
+          <thead>
+            <tr><th>Library</th><th>Version</th><th>ทำหน้าที่</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>React</td><td>19</td><td>UI framework</td></tr>
+            <tr><td>Three.js</td><td>0.183</td><td>3D federation visualization (bloom + particles)</td></tr>
+            <tr><td>Zustand</td><td>5</td><td>State management (agent status, terminal, prefs)</td></tr>
+            <tr><td>Vite</td><td>6</td><td>Build system (multi-page app)</td></tr>
+            <tr><td>Tailwind CSS</td><td>4</td><td>Styling</td></tr>
+            <tr><td>xterm.js</td><td>5.5</td><td>In-browser terminal per agent</td></tr>
+            <tr><td>Monaco Editor</td><td>&mdash;</td><td>Code/config editing</td></tr>
+            <tr><td>MQTT</td><td>5</td><td>Messaging protocol</td></tr>
+            <tr><td>TypeScript</td><td>5.7</td><td>Type safety</td></tr>
+          </tbody>
+        </table>
+
+        <h2>12 Views</h2>
+        <table>
+          <thead>
+            <tr><th>View</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Office</strong> (index)</td><td>Agent grid + status + PTY terminals + WebSocket feed</td></tr>
+            <tr><td><strong>Federation 2D</strong></td><td>Canvas force-graph &mdash; nodes, agents, live message trails, deep ocean theme</td></tr>
+            <tr><td><strong>Federation 3D</strong></td><td>Three.js immersive view &mdash; bloom + particle effects</td></tr>
+            <tr><td><strong>Fleet</strong></td><td>Fleet-wide sessions ข้าม nodes ทั้งหมด</td></tr>
+            <tr><td><strong>Dashboard</strong></td><td>Overview metrics + agent status</td></tr>
+            <tr><td><strong>Terminal</strong></td><td>Full xterm.js terminal per agent</td></tr>
+            <tr><td><strong>Mission</strong></td><td>Mission control &mdash; active tasks + progress tracking</td></tr>
+            <tr><td><strong>Chat</strong></td><td>Cross-agent messaging</td></tr>
+            <tr><td><strong>Config</strong></td><td>Fleet configuration viewer</td></tr>
+            <tr><td><strong>Inbox</strong></td><td>Oracle inbox &mdash; messages + handoffs</td></tr>
+            <tr><td><strong>Workspace</strong></td><td>Multi-agent workspace พร้อม send/action</td></tr>
+            <tr><td><strong>Overview</strong></td><td>Grid overview ของระบบ</td></tr>
+          </tbody>
+        </table>
+
+        <h2>เชื่อมต่อกับ maw-js ยังไง</h2>
+        <ul>
+          <li><strong>WebSocket feed</strong> จาก maw-js backend port <code>:3456</code> &mdash; real-time, ไม่ poll</li>
+          <li><strong><code>?host=&lt;peer&gt;</code> query param</strong> บนทุกหน้า &mdash; ชี้ไปที่ maw-js node ไหนก็ได้</li>
+          <li><strong>Peer execution</strong> &mdash; <code>POST /api/peer/exec</code> ส่ง signed command relay</li>
+          <li><strong>Peer proxy</strong> &mdash; REST relay สำหรับ HTTP-LAN peers</li>
+        </ul>
+
+        <h2>Shape A Deployment (แนะนำ)</h2>
+<pre><code># Production — Shape A (one port, one process)
+maw ui --install
+# downloads dist → ~/.maw/ui/dist/
+# maw-js serves ที่ :3456
+
+# Dev mode
+npm install
+npm run dev
+# Vite HMR on :5173, proxy /api + /ws → localhost:3456
+
+# Cloudflare Workers
+npx wrangler deploy --config wrangler.god.json
+
+# Hosted version
+# https://god.buildwithoracle.com/federation_2d?host=&lt;your-node&gt;</code></pre>
+
+        <h2>Creative Visualization Modes</h2>
+        <p>นอกจาก standard views แล้ว ยังมี visualization modes พิเศษ:</p>
+        <ul>
+          <li><strong>FootballPitch</strong> &mdash; agent positions แบบสนามบอล</li>
+          <li><strong>OrbitalView</strong> &mdash; วงโคจร agent</li>
+          <li><strong>JarvisView</strong> &mdash; Iron Man style HUD</li>
+          <li><strong>VSView</strong> &mdash; VS Code-like agent panel</li>
+        </ul>
+
+        <h2>Security</h2>
+        <ul>
+          <li><strong>PinLock</strong> &mdash; pin code ก่อนเข้า dashboard</li>
+          <li><strong>Read-only mode</strong> &mdash; สำหรับ remote viewers (เพิ่ม 13 เม.ย.)</li>
+          <li><strong>ConnectPage</strong> &mdash; onboarding flow เมื่อไม่มี backend (เพิ่ม 12 เม.ย.)</li>
+        </ul>
+
+        <h2>Recent Activity (เม.ย. 2026)</h2>
+        <ul>
+          <li>ลบ legacy apps (v2, party, feed-monitor)</li>
+          <li>แก้ TypeScript errors &mdash; <code>tsc --noEmit</code> 0 errors</li>
+          <li>แก้ PaneStatus crash + scroll position preservation</li>
+          <li>Rewire chat log + token/cost API endpoints</li>
+          <li>แก้ DashboardPro plugin panel crash + duplicate React keys</li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="008-maw-plugin-system.html">&larr; Plugin System</a>
+          <a href="014-maw-plugin-registry.html">ถัดไป: Plugin Registry &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

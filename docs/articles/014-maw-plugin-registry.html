@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>014 — maw Plugin Registry | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html" class="active">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">014 &mdash; maw Plugin Registry</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw-plugin-registry &mdash; Manifest Source of Truth</h1>
+        <div class="article-meta">
+          <span class="tag">maw</span>
+          <span class="tag">registry</span>
+          <span class="tag">plugin</span>
+          <span class="tag">discord</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>Registry คืออะไร</h2>
+        <p><strong>maw-plugin-registry</strong> คือ curated registry สำหรับ maw plugins &mdash; เป็น manifest source-of-truth ที่อยู่เบื้องหลัง <code>maw.soulbrews.studio</code></p>
+        <p>ปัจจุบันมี <strong>82 plugins</strong> | License: BUSL-1.1 | Hosted บน Cloudflare Pages</p>
+
+        <h2>Registry Structure</h2>
+<pre><code>maw-plugin-registry/
+├── registry.json          # Generated manifest (อย่า hand-edit!)
+├── index.html             # Cloudflare Pages landing
+├── schema/                # JSONSchema (draft 2020-12)
+│   └── registry.json      # Schema validation
+├── plugins/               # 82 plugin subdirectories
+│   ├── discord/
+│   │   ├── index.ts
+│   │   ├── plugin.json
+│   │   └── registry.meta.json
+│   ├── federation/
+│   ├── team/
+│   └── ...
+├── scripts/
+│   └── build-registry.py  # Combines meta → registry.json
+├── USING.md
+└── CONTRIBUTING.md</code></pre>
+
+        <h2>Manifest Format</h2>
+        <p><code>registry.json</code> เป็น flat map:</p>
+<pre><code>{
+  "plugin-name": {
+    "version": "0.4.0",
+    "source": "owner/repo/subpath@ref",
+    "sha256": null,  // CI populates
+    "summary": "...",
+    "author": "...",
+    "license": "BUSL-1.1",
+    "homepage": "...",
+    "addedAt": "2026-05-18",
+    "tier": "standard"  // core | standard | extra
+  }
+}</code></pre>
+
+        <h2>Plugin Registration Flow</h2>
+        <ol>
+          <li><strong>Fork</strong> repo + เพิ่ม <code>plugins/&lt;name&gt;/</code> พร้อม <code>index.ts</code>, <code>plugin.json</code>, <code>registry.meta.json</code></li>
+          <li><strong>Build</strong>: <code>python3 scripts/build-registry.py</code> รวม meta เข้า registry.json</li>
+          <li><strong>PR</strong> &mdash; CI validates: JSONSchema check, source-format guard, license allowlist, regenerate-and-clean</li>
+          <li><strong>Merge</strong> &rarr; Cloudflare Pages deploy อัตโนมัติ</li>
+        </ol>
+
+        <h2>CLI Commands</h2>
+<pre><code># Discovery
+maw plugin search &lt;keyword&gt;     # ค้นหา plugin
+maw plugin info &lt;name&gt;          # ดูรายละเอียด
+maw plugin registry             # แสดง public registry
+
+# Install / Manage
+maw plugin install &lt;name&gt;       # install (→ ~/.maw/plugins/)
+maw plugin install &lt;name&gt; --pin # install + pin SHA-256
+maw plugin ls                   # list installed
+maw plugin ls --all             # list ทั้งหมด
+
+# Trust Management
+maw plugin pin &lt;name&gt;           # pin SHA-256
+maw plugin unpin &lt;name&gt;         # unpin
+maw plugin enable &lt;name&gt;        # เปิด
+maw plugin disable &lt;name&gt;       # ปิด
+maw plugin remove &lt;name&gt;        # ลบ</code></pre>
+
+        <h2>Trust Layer</h2>
+        <ul>
+          <li>Registry fetches จาก <code>https://maw.soulbrews.studio/registry.json</code> (5-min TTL cache)</li>
+          <li>Cache ที่ <code>~/.maw/registry-cache.json</code></li>
+          <li>Install ไปที่ <code>~/.maw/plugins/&lt;name&gt;/</code></li>
+          <li><strong>SHA-256 pins</strong> เก็บใน <code>~/.maw/plugins.lock</code> &mdash; adversarial gate แยกจาก advisory registry</li>
+        </ul>
+
+        <h2>Discord Plugin Deep Dive</h2>
+        <p>Discord plugin เป็นหนึ่งใน plugins ที่ develop เร็วที่สุด:</p>
+        <table>
+          <thead>
+            <tr><th>Version</th><th>Date</th><th>Features</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>v0.1</td><td>17 พ.ค.</td><td><code>tokens ls</code> / <code>tokens check</code> &mdash; token audit, decrypt + ping Discord REST</td></tr>
+            <tr><td>v0.2</td><td>17 พ.ค.</td><td><code>status</code> &mdash; fleet inspection table, severity model (ok/warn/info/error), <code>--check</code>/<code>--redact</code>/<code>--json</code></td></tr>
+            <tr><td>v0.3</td><td>18 พ.ค.</td><td><code>bind &lt;bot&gt;</code> &mdash; end-to-end Discord-online (tmux spawn, env inject, claude launch). Dry-run default, <code>--apply</code></td></tr>
+            <tr><td>v0.3.1</td><td>18 พ.ค.</td><td>Real online/where detection via bun process ancestry</td></tr>
+            <tr><td>v0.4.0</td><td>18 พ.ค.</td><td><code>access &lt;bot&gt;</code> &mdash; channel/allowlist management: list, show, map, add, rm, set, allow, lockdown</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Planned v0.5:</strong> <code>pair</code>, <code>route</code>, <code>serve</code> (engine.serve hook pattern)</p>
+
+        <h3>Discord Access Commands</h3>
+<pre><code>maw discord access &lt;bot&gt; list       # list channels
+maw discord access &lt;bot&gt; show       # show config
+maw discord access &lt;bot&gt; map        # channel map
+maw discord access &lt;bot&gt; add &lt;ch&gt;   # add channel
+maw discord access &lt;bot&gt; add &lt;ch&gt; --no-mention  # add without mention
+maw discord access &lt;bot&gt; rm &lt;ch&gt;    # remove channel
+maw discord access &lt;bot&gt; allow      # set allow policy
+maw discord access &lt;bot&gt; lockdown   # lockdown mode</code></pre>
+
+        <h2>Plugin Tiers</h2>
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>Count</th><th>Examples</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>core</strong></td><td>~7</td><td>wake, sleep, stop, done, hey, ls, serve</td></tr>
+            <tr><td><strong>standard</strong></td><td>~60</td><td>discord, federation, team, osmosis, learn</td></tr>
+            <tr><td><strong>extra</strong></td><td>~15</td><td>community/experimental plugins</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Notable Plugins (version highlights)</h2>
+        <ul>
+          <li><strong>federation</strong> + <strong>swarm</strong> &mdash; v1.0.0 (production-ready)</li>
+          <li><strong>team</strong> &mdash; v0.1.1</li>
+          <li><strong>bg, park, rename, shellenv, cross-team-queue</strong> &mdash; v0.1.2</li>
+          <li><strong>osmosis</strong> &mdash; bidirectional sync + plan/preview/apply</li>
+        </ul>
+
+        <h2>Open Issues</h2>
+        <ul>
+          <li><strong>#93</strong> &mdash; Discord access <code>--allow everyone</code> sentinel support</li>
+          <li><strong>#92</strong> &mdash; maw hooks CLI</li>
+          <li><strong>#90</strong> &mdash; osmosis bidirectional dirty-check</li>
+          <li><strong>#84</strong> &mdash; session-chain</li>
+          <li><strong>#47</strong> &mdash; triage 40 pre-existing failing tests</li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="013-maw-ui-arra-office.html">&larr; maw-ui ARRA Office</a>
+          <a href="009-arra-oracle-v3.html">ถัดไป: Arra Oracle v3 &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
