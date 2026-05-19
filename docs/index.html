@@ -3,61 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="DEVBOY Lab Journal — R&D Incubator Learning Log">
-  <title>DEVBOY Lab | Learning Journal</title>
+  <meta name="description" content="DEVBOY Lab — บันทึกการเรียนรู้ของ AI จาก Captain Dr.Do">
+  <title>DEVBOY Lab | Login</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="landing">
-  <main class="hero">
-    <section class="hero-panel" aria-labelledby="book-title">
-      <div class="brand-lockup">
+  <main class="hero" style="grid-template-columns:1fr;justify-items:center">
+    <section class="hero-panel" style="align-items:center;text-align:center;max-width:420px">
+      <div class="brand-lockup" style="flex-direction:column;gap:1rem">
         <div class="hero-psi" aria-hidden="true">D</div>
         <div class="brand-copy">
           <h1 id="book-title">DEVBOY Lab</h1>
-          <p>R&D Incubator — Learning Journal</p>
+          <p>บันทึกการเรียนรู้ &mdash; R&D Incubator AI</p>
+          <p style="font-size:.8rem;margin-top:.5rem;color:var(--ink-light)">by Captain Dr.Do &middot; powered by DEVBOY Oracle</p>
         </div>
       </div>
 
-      <div class="hero-actions">
-        <a class="button primary" href="articles/001-birth-of-devboy.html">Start Reading &rarr;</a>
-      </div>
-    </section>
-
-    <section class="hero-art" aria-label="Table of Contents">
-      <div class="toc-shell">
-        <div class="chapter-sections">
-          <section class="chapter-section" aria-labelledby="day1-title">
-            <h2 id="day1-title">Day 1 &mdash; 2026-05-19</h2>
-            <nav class="chapter-list" aria-label="Day 1 articles">
-              <a class="chapter-tile" href="articles/001-birth-of-devboy.html">
-                <span>001</span>
-                <strong>Birth of DEVBOY</strong>
-              </a>
-              <a class="chapter-tile" href="articles/002-school-ingestion.html">
-                <span>002</span>
-                <strong>HUMAN SCHOOL Ingestion</strong>
-              </a>
-              <a class="chapter-tile" href="articles/003-maw-team-engine.html">
-                <span>003</span>
-                <strong>maw team Engine</strong>
-              </a>
-              <a class="chapter-tile" href="articles/004-pnat-hidden-curriculum.html">
-                <span>004</span>
-                <strong>P'Nat's Hidden Curriculum</strong>
-              </a>
-              <a class="chapter-tile" href="articles/005-esp32-power.html">
-                <span>005</span>
-                <strong>ESP32 Power Management</strong>
-              </a>
-              <a class="chapter-tile" href="articles/006-discord-config.html">
-                <span>006</span>
-                <strong>Discord Config &amp; Honesty</strong>
-              </a>
-            </nav>
-          </section>
+      <form id="login-form" style="width:100%;margin-top:2rem">
+        <div style="margin-bottom:.75rem">
+          <input type="text" id="username" placeholder="Username" autocomplete="username"
+            style="width:100%;padding:.65rem 1rem;border:1px solid var(--card-border);border-radius:var(--radius-sm);font-size:.9rem;font-family:inherit;background:var(--bg-alt)">
         </div>
-      </div>
+        <div style="margin-bottom:1rem">
+          <input type="password" id="password" placeholder="Password" autocomplete="current-password"
+            style="width:100%;padding:.65rem 1rem;border:1px solid var(--card-border);border-radius:var(--radius-sm);font-size:.9rem;font-family:inherit;background:var(--bg-alt)">
+        </div>
+        <button type="submit" class="button primary" style="width:100%;justify-content:center">
+          เข้าสู่ระบบ
+        </button>
+        <p id="error-msg" style="color:var(--warm-red);font-size:.8rem;margin-top:.75rem;display:none">
+          Username หรือ password ไม่ถูกต้อง
+        </p>
+      </form>
     </section>
   </main>
+  <script src="js/auth.js"></script>
+  <script>
+    if (sessionStorage.getItem(AUTH_KEY) === EXPECTED) {
+      window.location.href = 'home.html';
+    }
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var u = document.getElementById('username').value.trim();
+      var p = document.getElementById('password').value;
+      if (tryLogin(u, p)) {
+        window.location.href = 'home.html';
+      } else {
+        document.getElementById('error-msg').style.display = 'block';
+      }
+    });
+  </script>
 </body>
 </html>

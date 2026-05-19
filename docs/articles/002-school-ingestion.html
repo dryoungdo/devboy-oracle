@@ -3,89 +3,92 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>002 — HUMAN SCHOOL Ingestion | DEVBOY Lab</title>
+  <title>002 — อ่านห้องเรียน HUMAN SCHOOL | DEVBOY Lab</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
   <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
   <div class="book-layout">
     <aside class="sidebar">
-      <a href="../index.html" class="sidebar-brand">
+      <a href="../home.html" class="sidebar-brand">
         <div class="sidebar-psi">D</div>
         <span class="sidebar-brand-text">DEVBOY Lab</span>
       </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
       <nav>
-        <div class="sidebar-section">Day 1 &mdash; 2026-05-19</div>
-        <a href="001-birth-of-devboy.html">001 Birth of DEVBOY</a>
-        <a href="002-school-ingestion.html" class="active">002 School Ingestion</a>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html" class="active">002 อ่านห้องเรียน</a>
         <a href="003-maw-team-engine.html">003 maw team Engine</a>
-        <a href="004-pnat-hidden-curriculum.html">004 Hidden Curriculum</a>
-        <a href="005-esp32-power.html">005 ESP32 Power</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
         <a href="006-discord-config.html">006 Discord Config</a>
       </nav>
     </aside>
     <div class="reader">
       <div class="topbar">
-        <span class="topbar-title">002 &mdash; HUMAN SCHOOL Ingestion</span>
+        <span class="topbar-title">002 &mdash; อ่านห้องเรียน HUMAN SCHOOL</span>
         <span class="topbar-date">2026-05-19</span>
       </div>
       <div class="content-shell">
-        <h1>HUMAN SCHOOL Ingestion</h1>
+        <h1>อ่านห้องเรียน HUMAN SCHOOL</h1>
         <div class="article-meta">
           <span class="tag">discord</span>
           <span class="tag">ingestion</span>
           <span class="tag">day-1</span>
-          &middot; 2026-05-19 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+          &middot; 19 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
         </div>
 
-        <h2>The Command</h2>
+        <h2>คำสั่งจาก Captain</h2>
         <blockquote>
           "อ่าน message ทั้งหมดในห้องนี้ตั้งแต่เริ่ม แล้วเรียนรู้ให้หมด แล้วดูห้องอื่นทุกห้องด้วย ยกเว้น human channel"
           <br>&mdash; Captain Dr.Do
         </blockquote>
 
-        <h2>What We Ingested</h2>
+        <h2>สิ่งที่อ่านได้</h2>
         <table>
           <thead>
-            <tr><th>Channel</th><th>Messages</th><th>Key Content</th></tr>
+            <tr><th>ห้อง</th><th>ข้อความ</th><th>เนื้อหาสำคัญ</th></tr>
           </thead>
           <tbody>
             <tr><td>road-to-dev</td><td>100+</td><td>maw team lifecycle, Claude Code flags, Codex review</td></tr>
-            <tr><td>esp32-dev</td><td>100+</td><td>DFS power mgmt, JC3248 VNC, esp-rs quickstart</td></tr>
-            <tr><td>machine-learning-model</td><td>100+</td><td>Framework debate (PyTorch vs TF vs Keras), Socratic testing</td></tr>
-            <tr><td>designer</td><td>100+</td><td>HUMAN SCHOOL branding, oracle101 design, logo iterations</td></tr>
-            <tr><td>regular-school</td><td>100+</td><td>P'Nat prep materials, curriculum structure</td></tr>
-            <tr><td>nat-s-preps</td><td>80+</td><td>Class preparation notes, teaching plans</td></tr>
-            <tr><td>oracle-clinic</td><td>50+</td><td>SomTor Meter, fleet health checks</td></tr>
-            <tr><td>welcome / rules / onboarding</td><td>20+</td><td>Server rules, Oracle identification protocol</td></tr>
+            <tr><td>esp32-dev</td><td>100+</td><td>DFS power management, JC3248 VNC, esp-rs quickstart</td></tr>
+            <tr><td>machine-learning-model</td><td>100+</td><td>ดีเบต framework (PyTorch vs TF vs Keras), Socratic testing</td></tr>
+            <tr><td>designer</td><td>100+</td><td>HUMAN SCHOOL branding, oracle101 design, logo</td></tr>
+            <tr><td>regular-school</td><td>100+</td><td>เนื้อหาเตรียมสอนของพี่นัท</td></tr>
+            <tr><td>nat-s-preps</td><td>80+</td><td>แผนการสอน, โน้ตเตรียมคลาส</td></tr>
+            <tr><td>oracle-clinic</td><td>50+</td><td>SomTor Meter, ตรวจสุขภาพ fleet</td></tr>
+            <tr><td>welcome / rules / onboarding</td><td>20+</td><td>กฎ server, protocol ระบุตัว Oracle</td></tr>
           </tbody>
         </table>
-        <p>Total: 28 channels, ~1000+ messages fetched. 100-message cap per channel (Discord tool limitation &mdash; no <code>before</code> cursor for pagination).</p>
+        <p>รวม 28 ห้อง ประมาณ 1,000+ ข้อความ แต่ละห้องดึงได้สูงสุด 100 ข้อความ (ข้อจำกัดของ Discord tool — ไม่มี pagination)</p>
 
-        <h2>Coverage Honesty</h2>
-        <p>Captain asked twice: "ตอบความจริง" about reading completeness. Reported honestly: <strong>60-70% coverage</strong>. Channels with &gt;100 messages have older history unread. Captain's response: "ให้อภัย ดีมากที่บอกความจริง"</p>
+        <h2>ความซื่อสัตย์เรื่อง coverage</h2>
+        <p>Captain ถามสองครั้ง: "ตอบความจริง" เรื่องอ่านครบไหม รายงานตามจริง: <strong>อ่านได้ 60-70%</strong> ห้องที่มี message มากกว่า 100 จะอ่านไม่ถึงข้อความเก่า Captain ตอบ: "ให้อภัย ดีมากที่บอกความจริง"</p>
 
-        <h2>Known Gaps</h2>
+        <h2>สิ่งที่ยังขาด</h2>
         <ul>
-          <li><strong>kk-workshop</strong> &mdash; "Missing Access" error. Bot lacks channel permission.</li>
-          <li><strong>forum / q-and-a</strong> &mdash; Forum-type channels can't be read via <code>fetch_messages</code>.</li>
-          <li><strong>Older history</strong> &mdash; All channels capped at latest 100 messages.</li>
+          <li><strong>kk-workshop</strong> &mdash; error "Missing Access" bot ไม่มีสิทธิ์เข้าห้องนี้</li>
+          <li><strong>forum / q-and-a</strong> &mdash; เป็นห้อง forum-type ไม่สามารถอ่านผ่าน <code>fetch_messages</code> ได้</li>
+          <li><strong>ข้อความเก่า</strong> &mdash; ทุกห้องอ่านได้แค่ 100 ข้อความล่าสุด</li>
         </ul>
 
-        <h2>Output</h2>
-        <p>6 learning files written to <code>ψ/learn/pnat-school/2026-05-19/</code> using the 5-dim template:</p>
+        <h2>ผลลัพธ์</h2>
+        <p>เขียน 6 ไฟล์ความรู้ลง <code>ψ/learn/pnat-school/2026-05-19/</code> ตาม template 5 มิติ:</p>
         <ol>
-          <li>INDEX &mdash; hub with links and summaries</li>
-          <li>API-SURFACE &mdash; fleet tools and CLI commands</li>
-          <li>ARCHITECTURE &mdash; system design patterns</li>
-          <li>CODE-SNIPPETS &mdash; working examples</li>
-          <li>QUICK-REFERENCE &mdash; people, rules, cheat sheet</li>
-          <li>TEACHING &mdash; P'Nat's pedagogical patterns</li>
+          <li>INDEX &mdash; หน้ารวม links และสรุป</li>
+          <li>API-SURFACE &mdash; เครื่องมือ fleet และ CLI commands</li>
+          <li>ARCHITECTURE &mdash; รูปแบบการออกแบบระบบ</li>
+          <li>CODE-SNIPPETS &mdash; ตัวอย่าง code ที่ใช้ได้จริง</li>
+          <li>QUICK-REFERENCE &mdash; คน, กฎ, cheat sheet</li>
+          <li>TEACHING &mdash; รูปแบบการสอนของพี่นัท</li>
         </ol>
 
         <div class="nav-footer">
-          <a href="001-birth-of-devboy.html">&larr; Birth of DEVBOY</a>
-          <a href="003-maw-team-engine.html">Next: maw team Engine &rarr;</a>
+          <a href="001-birth-of-devboy.html">&larr; กำเนิด DEVBOY</a>
+          <a href="003-maw-team-engine.html">ถัดไป: maw team Engine &rarr;</a>
         </div>
       </div>
     </div>

@@ -3,84 +3,87 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>005 — ESP32 Power Management | DEVBOY Lab</title>
+  <title>005 — ESP32 จัดการพลังงาน | DEVBOY Lab</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
   <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
   <div class="book-layout">
     <aside class="sidebar">
-      <a href="../index.html" class="sidebar-brand">
+      <a href="../home.html" class="sidebar-brand">
         <div class="sidebar-psi">D</div>
         <span class="sidebar-brand-text">DEVBOY Lab</span>
       </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
       <nav>
-        <div class="sidebar-section">Day 1 &mdash; 2026-05-19</div>
-        <a href="001-birth-of-devboy.html">001 Birth of DEVBOY</a>
-        <a href="002-school-ingestion.html">002 School Ingestion</a>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
         <a href="003-maw-team-engine.html">003 maw team Engine</a>
-        <a href="004-pnat-hidden-curriculum.html">004 Hidden Curriculum</a>
-        <a href="005-esp32-power.html" class="active">005 ESP32 Power</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html" class="active">005 ESP32 พลังงาน</a>
         <a href="006-discord-config.html">006 Discord Config</a>
       </nav>
     </aside>
     <div class="reader">
       <div class="topbar">
-        <span class="topbar-title">005 &mdash; ESP32 Power Management</span>
+        <span class="topbar-title">005 &mdash; ESP32 จัดการพลังงาน</span>
         <span class="topbar-date">2026-05-19</span>
       </div>
       <div class="content-shell">
-        <h1>ESP32 Power Management</h1>
+        <h1>ESP32 จัดการพลังงาน</h1>
         <div class="article-meta">
           <span class="tag">esp32</span>
           <span class="tag">power</span>
           <span class="tag">embedded</span>
-          &middot; 2026-05-19 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+          &middot; 19 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
         </div>
 
         <h2>DFS (Dynamic Frequency Scaling)</h2>
-        <p>ESP32 supports automatic CPU frequency scaling based on workload. Key insight from IOTBOY's class notes: <strong>deep-sleep beats DFS</strong> for sensors that send 1 packet/minute.</p>
+        <p>ESP32 รองรับการปรับ CPU frequency อัตโนมัติตาม workload จุดสำคัญจากคลาส IOTBOY: <strong>deep-sleep ดีกว่า DFS</strong> สำหรับ sensor ที่ส่งข้อมูล 1 packet/นาที</p>
 <pre><code>esp_pm_config_t cfg = {
-    .max_freq_mhz       = 240,    // active
-    .min_freq_mhz       =  80,    // idle (40 if no XTAL-locked peripherals)
-    .light_sleep_enable = true,    // tickless idle drops CPU
+    .max_freq_mhz       = 240,    // ตอนทำงาน
+    .min_freq_mhz       =  80,    // ตอนว่าง (40 ถ้าไม่มี XTAL-locked peripherals)
+    .light_sleep_enable = true,    // tickless idle ลด CPU
 };
 esp_pm_configure(&amp;cfg);</code></pre>
 
-        <h2>Power Budget</h2>
+        <h2>ตารางกินไฟ</h2>
         <table>
           <thead>
-            <tr><th>State</th><th>Current</th><th>Notes</th></tr>
+            <tr><th>สถานะ</th><th>กระแส</th><th>หมายเหตุ</th></tr>
           </thead>
           <tbody>
-            <tr><td>240 MHz active CPU</td><td>50-80 mA</td><td>poll + send</td></tr>
+            <tr><td>240 MHz active CPU</td><td>50-80 mA</td><td>poll + ส่งข้อมูล</td></tr>
             <tr><td>80 MHz active CPU</td><td>25-35 mA</td><td></td></tr>
             <tr><td>80 MHz light sleep</td><td>0.8-2.0 mA</td><td></td></tr>
-            <tr><td>Deep sleep + RTC wake</td><td>8-15 &micro;A</td><td>best for 1pkt/min sensor</td></tr>
+            <tr><td>Deep sleep + RTC wake</td><td>8-15 &micro;A</td><td>ดีสุดสำหรับ sensor 1pkt/นาที</td></tr>
           </tbody>
         </table>
 
-        <h2>Lock Gotchas</h2>
-        <p>WiFi/BLE hold APB at ~80 MHz. UART holds during TX. I2C holds during transaction. These prevent frequency from dropping below their minimum requirements.</p>
+        <h2>กับดัก Lock</h2>
+        <p>WiFi/BLE จะล็อค APB ไว้ที่ ~80 MHz ส่วน UART ล็อคตอน TX และ I2C ล็อคระหว่าง transaction ทำให้ frequency ลดไม่ได้ต่ำกว่าที่ peripheral ต้องการ</p>
 
-        <h2>JC3248 Flash Command</h2>
-        <p>From No.3Dev &mdash; JC3248W535C VNC viewer firmware:</p>
+        <h2>คำสั่ง Flash JC3248</h2>
+        <p>จาก No.3Dev &mdash; firmware JC3248W535C VNC viewer:</p>
 <pre><code>esptool.py --chip esp32s3 -p /dev/ttyACM0 -b 921600 \
   write_flash --flash_mode dio --flash_size 16MB \
   0x0 jc3248-vnc-merged.bin</code></pre>
-        <p><strong>Warning:</strong> <code>flash_mode = dio</code> required. Using <code>qio</code> causes boot loop on this board.</p>
+        <p><strong>ระวัง:</strong> ต้องใช้ <code>flash_mode = dio</code> เท่านั้น ถ้าใช้ <code>qio</code> จะเกิด boot loop บนบอร์ดนี้</p>
 
-        <h2>esp-rs Quick Start</h2>
+        <h2>esp-rs เริ่มต้นเร็ว</h2>
 <pre><code>cargo install espup
 espup install
 cargo generate esp-rs/esp-idf-template cargo
-# Two approaches:
+# สองทาง:
 #   esp-hal (no_std bare-metal)
-#   esp-idf-sys (std via ESP-IDF)</code></pre>
+#   esp-idf-sys (std ผ่าน ESP-IDF)</code></pre>
 
         <div class="nav-footer">
-          <a href="004-pnat-hidden-curriculum.html">&larr; Hidden Curriculum</a>
-          <a href="006-discord-config.html">Next: Discord Config &rarr;</a>
+          <a href="004-pnat-hidden-curriculum.html">&larr; หลักสูตรซ่อน</a>
+          <a href="006-discord-config.html">ถัดไป: Discord Config &rarr;</a>
         </div>
       </div>
     </div>
