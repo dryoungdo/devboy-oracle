@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>010 — thClaws Agent Harness | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html" class="active">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">010 &mdash; thClaws Agent Harness</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>thClaws &mdash; Open-Source Agent Harness Platform</h1>
+        <div class="article-meta">
+          <span class="tag">thclaws</span>
+          <span class="tag">rust</span>
+          <span class="tag">multi-provider</span>
+          <span class="tag">agent</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>thClaws คืออะไร</h2>
+        <p><strong>thClaws</strong> คือ open-source AI agent workspace เขียนด้วย <strong>native Rust</strong> &mdash; ทำงาน local บนเครื่องตัวเอง "Sovereign by design"</p>
+        <p>เป็นทั้ง Claude Code competitor และ multi-provider agent platform &mdash; 948 stars, 134 forks, Apache-2.0 license</p>
+
+        <h2>Version History (ล่าสุด)</h2>
+        <table>
+          <thead>
+            <tr><th>Version</th><th>Date</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>v0.11.0</td><td>19 พ.ค. 2026</td><td>Latest release</td></tr>
+            <tr><td>v0.10.0</td><td>19 พ.ค. 2026</td><td></td></tr>
+            <tr><td>v0.9.10</td><td>17 พ.ค. 2026</td><td>Installed on Samsung Note 20 Ultra</td></tr>
+            <tr><td>v0.9.9</td><td>15 พ.ค. 2026</td><td></td></tr>
+            <tr><td>v0.9.8</td><td>14 พ.ค. 2026</td><td></td></tr>
+          </tbody>
+        </table>
+        <p>5 releases ใน 5 วัน &mdash; development เร็วมาก</p>
+
+        <h2>4 Surfaces, 1 Engine</h2>
+        <p>Agent loop, Session, ToolRegistry เดียวกันทุก UX:</p>
+        <ul>
+          <li><strong>Desktop GUI</strong> (<code>thclaws</code>) &mdash; native window: Terminal + Chat + Files + Team tabs</li>
+          <li><strong>CLI REPL</strong> (<code>thclaws --cli</code>) &mdash; interactive terminal สำหรับ SSH/headless</li>
+          <li><strong>Non-interactive</strong> (<code>thclaws -p "prompt"</code>) &mdash; single turn แล้วจบ สำหรับ scripts/CI</li>
+          <li><strong>Webapp</strong> (<code>thclaws --serve --port 7878</code>) &mdash; WebSocket/HTTP ผ่าน SSH tunnel</li>
+        </ul>
+
+        <h2>Multi-Provider Support</h2>
+        <p>รองรับ 300+ models ผ่าน OpenRouter + native providers:</p>
+        <ul>
+          <li><strong>Anthropic</strong> &mdash; Claude (ทุก version) + Claude Agent SDK</li>
+          <li><strong>OpenAI</strong> &mdash; Chat Completions + Responses/Codex</li>
+          <li><strong>Google</strong> &mdash; Gemini &amp; Gemma</li>
+          <li><strong>Thai LLMs</strong> &mdash; OpenThaiGPT, Typhoon, Pathumma, THaLLE (NSTDA)</li>
+          <li><strong>Others</strong> &mdash; DeepSeek, Qwen, NVIDIA NIM, Azure AI, Ollama (local)</li>
+          <li><strong>Generic</strong> &mdash; OpenAI-compatible slot (<code>oai/*</code>) สำหรับ LiteLLM, vLLM, proxies</li>
+        </ul>
+
+        <h2>Key Features</h2>
+        <ul>
+          <li><strong>Skills</strong> &mdash; reusable workflows packaged เป็น directory + <code>SKILL.md</code></li>
+          <li><strong>MCP servers</strong> &mdash; third-party tools + OAuth 2.1 + PKCE</li>
+          <li><strong>KMS (Knowledge Base)</strong> &mdash; per-project wiki, grep + read (no embeddings), <code>/dream</code> consolidation</li>
+          <li><strong>Agent Teams</strong> &mdash; concurrent agents ใน tmux panes + git worktrees + shared mailbox</li>
+          <li><strong>Plan Mode</strong> &mdash; sequential multi-step + user approval gates</li>
+          <li><strong>Document Workflow</strong> &mdash; native PDF, DOCX, PPTX, XLSX tools</li>
+          <li><strong>Schedule</strong> &mdash; cron jobs + intervals + filesystem watchers + launchd/systemd daemon</li>
+          <li><strong>Hooks</strong> &mdash; pre/post tool_use, permission_denied, session_start, pre_compact</li>
+          <li><strong>Memory</strong> &mdash; <code>AGENTS.md</code> / <code>CLAUDE.md</code> compatible project instructions</li>
+        </ul>
+
+        <h2>Quick Start</h2>
+<pre><code># Install from releases
+# https://github.com/thClaws/thClaws/releases
+
+# หรือ build from source (Rust 1.85+, Node 20+, pnpm 9+)
+git clone https://github.com/thClaws/thClaws.git
+cd thClaws
+cd frontend && pnpm install && pnpm build && cd ..
+cargo build --release --features gui --bin thclaws
+
+# Run
+thclaws              # GUI
+thclaws --cli        # CLI REPL
+thclaws -p "prompt"  # one-shot
+
+# Configure provider
+/provider anthropic
+/model claude-sonnet-4-6</code></pre>
+
+        <h2>เปรียบเทียบกับ Claude Code</h2>
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Claude Code</th><th>thClaws</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Language</td><td>TypeScript</td><td>Rust (native)</td></tr>
+            <tr><td>Providers</td><td>Anthropic only</td><td>Multi-provider (300+)</td></tr>
+            <tr><td>GUI</td><td>Terminal only</td><td>Desktop + Web + Terminal + Chat</td></tr>
+            <tr><td>KMS</td><td>Memory files</td><td>Full wiki + /dream</td></tr>
+            <tr><td>Offline</td><td>No</td><td>Yes (Ollama)</td></tr>
+            <tr><td>Standards</td><td>CLAUDE.md</td><td>AGENTS.md (vendor-neutral) + CLAUDE.md</td></tr>
+            <tr><td>Document</td><td>No</td><td>PDF/DOCX/PPTX/XLSX</td></tr>
+          </tbody>
+        </table>
+
+        <div class="nav-footer">
+          <a href="009-arra-oracle-v3.html">&larr; Arra Oracle v3</a>
+          <a href="011-fleet-migration.html">ถัดไป: Fleet Migration &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

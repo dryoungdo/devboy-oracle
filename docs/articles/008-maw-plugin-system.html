@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>008 — maw Plugin System | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html" class="active">008 Plugin System</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">008 &mdash; maw Plugin System</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw Plugin System &mdash; Architecture &amp; Registry</h1>
+        <div class="article-meta">
+          <span class="tag">maw</span>
+          <span class="tag">plugin</span>
+          <span class="tag">registry</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>ภาพรวม Plugin System</h2>
+        <p>maw-js ใช้ plugin architecture แบบ modular &mdash; ทุก feature ที่ไม่ใช่ core จะอยู่ในรูป plugin ติดตั้ง/ถอดได้</p>
+        <p>Plugin manager built-in ใน maw-js (เดิมเป็น repo แยก <code>maw-plugin-cli</code> แต่ archived แล้ว)</p>
+
+        <h2>Plugin Repos</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>maw-plugin-registry</strong></td><td>Curated registry &mdash; manifest source-of-truth สำหรับ maw.soulbrews.studio</td><td>Active</td></tr>
+            <tr><td><strong>maw-plugins</strong></td><td>Installable CLI, API, hook plugins</td><td>Active</td></tr>
+            <tr><td><strong>maw-core-plugins</strong></td><td>Core plugins: wake, sleep, stop, done, hey, ls, serve</td><td>Active</td></tr>
+            <tr><td><strong>maw-incarnation-plugin</strong></td><td>Template plugin &mdash; clone เพื่อสร้าง plugin ใหม่</td><td>Template</td></tr>
+            <tr><td><strong>maw-cell-plugin</strong></td><td>Example plugin จาก incarnation template</td><td>Example</td></tr>
+            <tr><td><strong>maw-learn</strong></td><td>Explore codebase ด้วย parallel AI agents (มาจาก Oracle /learn skill)</td><td>Active</td></tr>
+            <tr><td><strong>maw-plugin-cli</strong></td><td>Plugin manager แยก</td><td>Archived</td></tr>
+            <tr><td><strong>maw-commands</strong></td><td>Commands แยก</td><td>Archived (แทนที่ด้วย maw-plugins)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>คำสั่งจัดการ Plugin</h2>
+<pre><code># List plugins ที่ installed
+maw plugin ls
+
+# Install plugin จาก registry
+maw plugin install &lt;plugin-name&gt;
+
+# Remove plugin
+maw plugin remove &lt;plugin-name&gt;</code></pre>
+
+        <h2>สร้าง Plugin ใหม่</h2>
+        <p>ใช้ <code>maw-incarnation-plugin</code> เป็น template:</p>
+<pre><code># Clone template
+gh repo clone Soul-Brews-Studio/maw-incarnation-plugin my-plugin
+
+# แก้ไข manifest + implement hooks
+# publish ไปที่ registry</code></pre>
+
+        <h2>Core Plugins (มากับ maw-js)</h2>
+        <ul>
+          <li><strong>wake</strong> &mdash; start agent ใน tmux window</li>
+          <li><strong>sleep</strong> &mdash; graceful shutdown agent</li>
+          <li><strong>stop</strong> &mdash; force stop</li>
+          <li><strong>done</strong> &mdash; mark task complete</li>
+          <li><strong>hey</strong> &mdash; ส่ง prompt ไปที่ agent</li>
+          <li><strong>ls</strong> &mdash; list agents + sessions</li>
+          <li><strong>serve</strong> &mdash; start API server</li>
+        </ul>
+
+        <h2>Plugin Registry Version</h2>
+        <p>ล่าสุด v0.4.0 &mdash; เพิ่ม <code>access</code> subcommand สำหรับจัดการ Discord bot access</p>
+        <p>Discord plugin v0.4.1 &mdash; เพิ่ม anchor + drift columns ใน <code>maw discord status</code></p>
+
+        <h2>Known Bug: Vendor Stub</h2>
+        <p>จาก #road-to-dev channel &mdash; <code>plugin-bootstrap.ts</code> links vendor <strong>หลัง</strong> commands ทำให้ override implementation ใหม่:</p>
+        <ul>
+          <li><code>--exec</code> spawn prints success แต่ไม่สร้าง tmux pane จริง (vendor stub hardcodes string)</li>
+          <li><code>--prompt-file</code> flag ไม่มีอยู่จริงใน claude CLI (ต้องใช้ <code>--system-prompt-file</code>)</li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="007-maw-js-orchestrator.html">&larr; maw-js Orchestrator</a>
+          <a href="009-arra-oracle-v3.html">ถัดไป: Arra Oracle v3 &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

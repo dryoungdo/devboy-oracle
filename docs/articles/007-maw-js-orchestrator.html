@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>007 — maw-js Orchestrator | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html" class="active">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">007 &mdash; maw-js Orchestrator</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw-js &mdash; Multi-Agent Workflow Orchestrator</h1>
+        <div class="article-meta">
+          <span class="tag">maw</span>
+          <span class="tag">orchestrator</span>
+          <span class="tag">bun</span>
+          <span class="tag">tmux</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>maw-js คืออะไร</h2>
+        <p><strong>maw-js</strong> (Multi-Agent Workflow) คือ orchestrator สำหรับจัดการ AI agent หลายตัวพร้อมกัน ผ่าน tmux + CLI ทำงานบน <strong>Bun 1.3+</strong> เขียนด้วย TypeScript แบบ monorepo</p>
+        <p>จุดเด่นคือสั่ง agent ข้ามเครื่องได้ผ่าน federation — ใช้ Zenoh messaging + HMAC-SHA256 signing</p>
+
+        <h2>Version ล่าสุด</h2>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Version</td><td>v26.5.19-alpha.739</td></tr>
+            <tr><td>Versioning</td><td>CalVer: <code>v{yy}.{m}.{d}[-alpha.{HHMM}]</code></td></tr>
+            <tr><td>Test Coverage</td><td>100% lines, 100% functions</td></tr>
+            <tr><td>License</td><td>BUSL-1.1</td></tr>
+            <tr><td>Stars</td><td>20 (forked 33 times)</td></tr>
+            <tr><td>Repo</td><td>Soul-Brews-Studio/maw-js</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Core Features</h2>
+        <ul>
+          <li><strong>CLI-driven orchestration</strong> &mdash; wake agents ใน tmux, ส่ง task, monitor, ดู cost จาก terminal เดียว</li>
+          <li><strong>Cross-machine federation</strong> &mdash; deploy บน 1 node หรือ 20 node ด้วย command เดียวกัน</li>
+          <li><strong>Web UI</strong> &mdash; React + Three.js federation lens (install แยกจาก maw-ui repo)</li>
+          <li><strong>Agent spawning</strong> &mdash; <code>maw bud</code> สร้าง oracle, <code>maw wake</code> จาก repo URL หรือ issue prompt</li>
+          <li><strong>Plugin system</strong> &mdash; extensible ผ่าน maw-plugin-registry</li>
+        </ul>
+
+        <h2>คำสั่งที่ใช้บ่อย</h2>
+<pre><code># จัดการ agent
+maw ls                    # list ทุก agent
+maw ls --active           # เฉพาะที่ active ล่าสุด
+maw wake &lt;oracle&gt;         # start agent ใน tmux
+maw a &lt;oracle&gt;            # attach เข้าไปดู
+maw bring &lt;oracle&gt;        # shorthand for wake --split
+maw stop &lt;oracle&gt;         # หยุด agent
+
+# ส่งงาน
+maw hey &lt;oracle&gt; "prompt" # ส่ง prompt ไปที่ agent
+maw peek &lt;oracle&gt;         # ดู pane output
+maw capture &lt;oracle&gt; -n N # capture N บรรทัดล่าสุด
+
+# Federation
+maw federation status     # ดู peers
+maw osmosis --push &lt;host&gt; # sync sessions ข้ามเครื่อง</code></pre>
+
+        <h2>Architecture</h2>
+        <p>maw-js ทำงานเป็น monorepo:</p>
+        <ul>
+          <li><code>src/cli.ts</code> &mdash; CLI entry point + binary distribution</li>
+          <li><code>Server</code> &mdash; WebSocket/HTTP API on port :3456</li>
+          <li><code>UI</code> &mdash; React/Three.js bundle (install via <code>maw ui install</code>)</li>
+          <li><code>Plugin transport</code> &mdash; hub-based routing, manifest lock/install</li>
+          <li><code>Federation</code> &mdash; Zenoh-based cross-machine messaging (<code>@eclipse-zenoh/zenoh-ts</code>)</li>
+        </ul>
+
+        <h2>Recent Activity (พ.ค. 2026)</h2>
+        <ul>
+          <li>Coverage sprint 18-19 พ.ค. &mdash; function coverage จาก ~94% ขึ้นเป็น 100%</li>
+          <li>40+ targeted test files (plugin wrapper, dispatch, tmux, CLI edge cases)</li>
+          <li>Alpha promoted to main สำหรับ public 100% announcement</li>
+          <li><code>ls --active</code> filter สำหรับ recently active sessions (#1802)</li>
+          <li>Disabled self-hosted federation workflow (no runner available)</li>
+        </ul>
+
+        <h2>Open Issues ที่น่าสนใจ</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Issue</th><th>Type</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>#1801</td><td>Cross-Engine AI Team Port: maw-js &rarr; maw-rs</td><td>Epic</td></tr>
+            <tr><td>#1798</td><td>maw-rs Rust port (depends on #1797)</td><td>Epic</td></tr>
+            <tr><td>#1797</td><td>team spawn --exec: ψ in prompt path crashes</td><td>Bug</td></tr>
+            <tr><td>#1804</td><td>GET /api/sessions=[] เมื่อ tmux ไม่พร้อม (Apple Silicon)</td><td>Bug</td></tr>
+          </tbody>
+        </table>
+
+        <div class="nav-footer">
+          <a href="006-discord-config.html">&larr; Discord Config</a>
+          <a href="008-maw-plugin-system.html">ถัดไป: Plugin System &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

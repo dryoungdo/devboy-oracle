@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>012 — Soul Brews Ecosystem | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html" class="active">012 Soul Brews Map</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">012 &mdash; Soul Brews Ecosystem</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>Soul Brews Studio &mdash; Ecosystem Map</h1>
+        <div class="article-meta">
+          <span class="tag">soul-brews</span>
+          <span class="tag">ecosystem</span>
+          <span class="tag">repo-map</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>ภาพรวม</h2>
+        <p><strong>Soul-Brews-Studio</strong> คือ GitHub organization ของ P'Nat ที่รวม tool ทั้งหมดของ fleet &mdash; 70+ repos ครอบคลุม orchestration, knowledge management, agent platforms, และ developer education</p>
+
+        <h2>maw Ecosystem (Core)</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>maw-js</strong></td><td>Multi-Agent Workflow orchestrator &mdash; CLI + React/Three.js Web UI, tmux orchestra</td></tr>
+            <tr><td><strong>multi-agent-workflow-kit</strong></td><td>Reusable toolkit สำหรับ tmux + git worktree workflows (predecessor ของ maw-js)</td></tr>
+            <tr><td><strong>maw-ui</strong></td><td>ARRA Office &mdash; web dashboard สำหรับ fleet control</td></tr>
+            <tr><td><strong>maw-studio</strong></td><td>Landing + plugin marketplace (maw.soulbrews.studio)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>maw Plugin Layer</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>maw-plugin-registry</strong></td><td>Curated registry &mdash; manifest source-of-truth</td></tr>
+            <tr><td><strong>maw-plugins</strong></td><td>Installable CLI, API, hook plugins</td></tr>
+            <tr><td><strong>maw-core-plugins</strong></td><td>Built-in: wake, sleep, stop, done, hey, ls, serve</td></tr>
+            <tr><td><strong>maw-learn</strong></td><td>Codebase exploration ด้วย parallel agents</td></tr>
+            <tr><td><strong>maw-incarnation-plugin</strong></td><td>Template สำหรับสร้าง plugin ใหม่</td></tr>
+            <tr><td><strong>maw-cell-plugin</strong></td><td>Example plugin จาก template</td></tr>
+            <tr><td><strong>maw-cross-team-queue</strong></td><td>Queue management สำหรับ multi-team coordination</td></tr>
+          </tbody>
+        </table>
+
+        <h2>maw Utilities</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>maw-bg</strong></td><td>Background process management</td></tr>
+            <tr><td><strong>maw-shellenv</strong></td><td>Shell environment setup</td></tr>
+            <tr><td><strong>maw-rename</strong></td><td>Agent rename utility</td></tr>
+            <tr><td><strong>maw-park</strong></td><td>Park (pause) agents</td></tr>
+            <tr><td><strong>maw-incubate</strong></td><td>Agent incubation</td></tr>
+            <tr><td><strong>maw-project</strong></td><td>Project management</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Oracle &amp; Knowledge Layer</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>arra-oracle-v3</strong></td><td>MCP Memory Layer &mdash; FTS5 + semantic search</td></tr>
+            <tr><td><strong>arra-oracle-v2</strong></td><td>Previous version (archived)</td></tr>
+            <tr><td><strong>arra-oracle-skills-cli</strong></td><td>Skills CLI สำหรับ Arra</td></tr>
+            <tr><td><strong>arra-safety-hooks</strong></td><td>Safety hooks สำหรับ Arra</td></tr>
+            <tr><td><strong>arra-mcp-installation-guide-oracle</strong></td><td>Installation guide + vector fix caretaker</td></tr>
+            <tr><td><strong>arra-wasm-hello</strong></td><td>WASM experiment</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Agent Platforms</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>thClaws</strong></td><td>Rust agent harness platform (fork) &mdash; multi-provider, GUI + CLI</td></tr>
+            <tr><td><strong>the-agent-bus</strong></td><td>Agent communication layer</td></tr>
+            <tr><td><strong>multi-agent-orchestration-book</strong></td><td>Documentation / book</td></tr>
+            <tr><td><strong>agents-that-remember</strong></td><td>Memory-focused agent patterns</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Oracle Identity &amp; Philosophy</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>oracle-philosophy</strong></td><td>Oracle design philosophy</td></tr>
+            <tr><td><strong>oracle-philosophy-book</strong></td><td>Book format</td></tr>
+            <tr><td><strong>oracle-identity</strong></td><td>Identity framework</td></tr>
+            <tr><td><strong>oracle-framework</strong></td><td>Base framework</td></tr>
+            <tr><td><strong>oracle-framework-advanced</strong></td><td>Advanced patterns</td></tr>
+            <tr><td><strong>oracle-voice-tray</strong></td><td>Voice interface</td></tr>
+            <tr><td><strong>oracle-vault-report</strong></td><td>Vault reporting</td></tr>
+            <tr><td><strong>the-form-teaches-the-formless</strong></td><td>Philosophy document</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Developer Education</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>claude-code-workshops</strong></td><td>Claude Code workshop materials</td></tr>
+            <tr><td><strong>claude-project-manager</strong></td><td>Project management ด้วย Claude</td></tr>
+            <tr><td><strong>ndf-workshop-materials</strong></td><td>NDF workshop</td></tr>
+            <tr><td><strong>mission-02-parser-debug</strong></td><td>Mission 02: parser debugging</td></tr>
+            <tr><td><strong>mission-03-gesture-control</strong></td><td>Mission 03: gesture control</td></tr>
+            <tr><td><strong>mission-04-hooks-challenge</strong></td><td>Mission 04: hooks challenge</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Other Notable Repos</h2>
+        <table>
+          <thead>
+            <tr><th>Repo</th><th>คำอธิบาย</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>plugin-marketplace</strong></td><td>Soul Brews MCP Marketplace</td></tr>
+            <tr><td><strong>webhook-relay-oss</strong></td><td>Webhook relay (open source)</td></tr>
+            <tr><td><strong>hand-tracker-mqtt</strong></td><td>Hand tracking ผ่าน MQTT</td></tr>
+            <tr><td><strong>indexer-pro</strong></td><td>Professional indexer</td></tr>
+            <tr><td><strong>ralph-local</strong></td><td>Local Ralph agent</td></tr>
+            <tr><td><strong>pluto</strong></td><td>Pluto project</td></tr>
+            <tr><td><strong>claude-browser-proxy</strong></td><td>Browser proxy สำหรับ Claude</td></tr>
+            <tr><td><strong>shrimp-oracle</strong></td><td>Shrimp oracle experiment</td></tr>
+            <tr><td><strong>where-is-nat</strong></td><td>Location tracker</td></tr>
+          </tbody>
+        </table>
+
+        <div class="nav-footer">
+          <a href="011-fleet-migration.html">&larr; Fleet Migration</a>
+          <a href="../home.html">กลับสารบัญ &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

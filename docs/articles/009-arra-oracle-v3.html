@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>009 — Arra Oracle v3 | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html" class="active">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">009 &mdash; Arra Oracle v3</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>Arra Oracle v3 &mdash; MCP Memory Layer</h1>
+        <div class="article-meta">
+          <span class="tag">arra</span>
+          <span class="tag">mcp</span>
+          <span class="tag">knowledge-base</span>
+          <span class="tag">semantic-search</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>Arra Oracle คืออะไร</h2>
+        <p><strong>Arra Oracle v3</strong> คือ MCP memory layer + semantic knowledge base &mdash; ออกแบบมาให้ AI agent จัดเก็บ, index, และ retrieve ความรู้ขององค์กร ผ่าน hybrid search</p>
+        <p>Version ปัจจุบัน: <strong>v26.4.19-alpha.7</strong> | Docs: 20,672 รายการ</p>
+
+        <h2>Hybrid Search Architecture</h2>
+        <p>Arra ใช้ search 2 แบบรวมกัน:</p>
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Engine</th><th>จุดเด่น</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>FTS5</td><td>SQLite Full-Text Search 5</td><td>เร็ว, keyword-based, sanitize input ป้องกัน parse error</td></tr>
+            <tr><td>Vector Search</td><td>ChromaDB / LanceDB / sqlite-vec / Qdrant</td><td>Semantic similarity, embedding-based</td></tr>
+          </tbody>
+        </table>
+        <p>Hybrid mode merge ผลจากทั้งสองด้วย re-ranking &mdash; ถ้า vector ไม่พร้อมจะ fallback เป็น FTS5-only</p>
+
+        <h2>Embedding Models</h2>
+        <ul>
+          <li><strong>bge-m3</strong> (default) &mdash; multilingual ไทย-อังกฤษ</li>
+          <li><strong>nomic</strong> &mdash; general purpose</li>
+          <li><strong>qwen3</strong> &mdash; 4096 dimensions</li>
+        </ul>
+
+        <h2>22 MCP Tools</h2>
+        <p>Arra expose 22 tools ผ่าน MCP protocol:</p>
+        <table>
+          <thead>
+            <tr><th>Category</th><th>Tools</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Search</td><td><code>arra_search</code>, <code>arra_concepts</code>, <code>arra_list</code>, <code>arra_stats</code></td></tr>
+            <tr><td>Learn</td><td><code>arra_learn</code>, <code>arra_supersede</code>, <code>arra_read</code></td></tr>
+            <tr><td>Trace</td><td><code>arra_trace</code>, <code>arra_trace_chain</code>, <code>arra_trace_get</code>, <code>arra_trace_link</code>, <code>arra_trace_list</code>, <code>arra_trace_unlink</code></td></tr>
+            <tr><td>Forum</td><td><code>arra_thread</code>, <code>arra_thread_read</code>, <code>arra_thread_update</code>, <code>arra_threads</code></td></tr>
+            <tr><td>Handoff</td><td><code>arra_handoff</code>, <code>arra_inbox</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Technical Stack</h2>
+<pre><code>Runtime:    Bun &ge;1.2 (TypeScript)
+Database:   SQLite + FTS5, Drizzle ORM
+Vectors:    LanceDB (default), multi-backend
+API:        Hono HTTP server on port 47778
+Protocol:   MCP for Claude integration
+Install:    bunx (GitHub packages)</code></pre>
+
+        <h2>Key Concepts</h2>
+        <ul>
+          <li><strong>arra_learn</strong> &mdash; เพิ่ม pattern/learning เป็น markdown ใน <code>ψ/memory/learnings/</code> auto-index พร้อม concept tags</li>
+          <li><strong>arra_trace</strong> &mdash; capture discovery sessions เป็น queryable dig points (files, commits, issues) พร้อม parent-child linking</li>
+          <li><strong>Supersede Pattern</strong> &mdash; "Nothing is Deleted" &mdash; mark เป็น outdated แทนที่จะลบ เก็บ lineage ไว้</li>
+          <li><strong>Forum (arra_thread)</strong> &mdash; discussion threads พร้อม Oracle auto-response จาก knowledge base</li>
+        </ul>
+
+        <h2>Known Retrieval Bugs (Issue #1059)</h2>
+        <ul>
+          <li><strong>P0:</strong> L2-to-cosine distance mismatch</li>
+          <li><strong>P1:</strong> bge-m3 prefix ไม่ถูกต้อง</li>
+          <li><strong>P2:</strong> chunking strategy ต้องปรับ</li>
+        </ul>
+        <p>Active caretaker: <code>arra-mcp-installation-guide-oracle</code> (renamed จาก sage-vector-fix-oracle)</p>
+
+        <div class="nav-footer">
+          <a href="008-maw-plugin-system.html">&larr; Plugin System</a>
+          <a href="010-thclaws-agent-harness.html">ถัดไป: thClaws &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

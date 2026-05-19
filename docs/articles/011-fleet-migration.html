@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>011 — Fleet Migration | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html" class="active">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">011 &mdash; Fleet Migration</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>Fleet Migration &mdash; m5 &rarr; alpha@white</h1>
+        <div class="article-meta">
+          <span class="tag">fleet</span>
+          <span class="tag">migration</span>
+          <span class="tag">wireguard</span>
+          <span class="tag">federation</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>ภาพรวม Migration</h2>
+        <p>กลาง พ.ค. 2026 &mdash; ย้าย 11 Discord bots จาก <strong>m5</strong> ไปที่ <strong>alpha@white.wg</strong> (white.local = fleet's always-on Linux WG anchor ที่ 10.20.0.1, 81 agent slots)</p>
+
+        <h2>Bots ที่ย้าย</h2>
+        <table>
+          <thead>
+            <tr><th>Bot</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>volt, pigment, calliope</td><td>Migrated to alpha@white</td></tr>
+            <tr><td>dustboy, fireman, arr01</td><td>Migrated to alpha@white</td></tr>
+            <tr><td>drdo, fortal, metis</td><td>Migrated to alpha@white</td></tr>
+            <tr><td>mother, thor</td><td>Migrated to alpha@white</td></tr>
+            <tr><td>discord-oracle, digger, hermes-discord, odin</td><td>ยังอยู่ m5 (by design)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Session History Migration</h2>
+        <p>ใช้ <code>maw osmosis</code> sync session .jsonl ข้ามเครื่อง:</p>
+<pre><code># Push sessions ไป alpha@white.wg
+maw osmosis --push alpha@white.wg --sessions --apply
+
+# ปัญหาที่เจอ: path-encoding mismatch
+# m5: -opt-Code-
+# alpha: -home-alpha-Code-
+# แก้โดย path-translate 183 jsonls ข้าม 9 bots</code></pre>
+
+        <h2>Federation Mesh</h2>
+        <p>Federation verified bidirectional:</p>
+        <ul>
+          <li><strong>m5 &rarr; alpha</strong>: 295ms latency, 67 agents reachable</li>
+          <li><strong>alpha &rarr; m5</strong>: ทำงานปกติ</li>
+          <li>3 peers reachable จาก white: <code>white</code>, <code>mba</code>, <code>oracle-world</code></li>
+        </ul>
+
+        <h2>WireGuard Topology</h2>
+<pre><code>white.local (10.20.0.1/24) — Linux anchor
+├── 7 peers connected
+├── 81 agent slots available
+└── wg0 interface
+
+# Federation nodes:
+# clinic-drdo, clinic-nat, mba
+# maw v26.5.17-beta.2354</code></pre>
+
+        <h2>Bot Supervision Design</h2>
+        <p>แผนสำหรับ <code>maw discord supervise</code>:</p>
+        <ul>
+          <li>Bash wrapper loop พร้อม backoff</li>
+          <li>Restart-storm detection</li>
+          <li>Death logging</li>
+          <li>เลือกแทน systemd-user หรือ pm2</li>
+        </ul>
+
+        <h2>Discord Access Matrix</h2>
+        <p>จาก #nat-s-preps:</p>
+        <ul>
+          <li>Document ว่า access config ไหนใช้ได้จริง vs v0.5 plan</li>
+          <li>Filed maw-plugin-registry issue #93 สำหรับ <code>--allow everyone</code> sentinel</li>
+          <li>Discord plugin v0.4.1 &mdash; anchor + drift columns ใน <code>maw discord status</code></li>
+        </ul>
+
+        <h2>Cron Infrastructure</h2>
+        <p>huginn/sleipnir cron system:</p>
+        <ul>
+          <li>ใช้ launchd-based scheduling</li>
+          <li><strong>Known issue:</strong> crashing เพราะ <code>claude not in PATH</code> &mdash; ต้อง set full path ใน launchd plist</li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="010-thclaws-agent-harness.html">&larr; thClaws</a>
+          <a href="012-soul-brews-ecosystem.html">ถัดไป: Soul Brews Map &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
