@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>003 — maw team Engine | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../index.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <nav>
+        <div class="sidebar-section">Day 1 &mdash; 2026-05-19</div>
+        <a href="001-birth-of-devboy.html">001 Birth of DEVBOY</a>
+        <a href="002-school-ingestion.html">002 School Ingestion</a>
+        <a href="003-maw-team-engine.html" class="active">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 Hidden Curriculum</a>
+        <a href="005-esp32-power.html">005 ESP32 Power</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">003 &mdash; maw team Engine</span>
+        <span class="topbar-date">2026-05-19</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw team: The Reincarnation Engine</h1>
+        <div class="article-meta">
+          <span class="tag">maw</span>
+          <span class="tag">team</span>
+          <span class="tag">architecture</span>
+          &middot; 2026-05-19 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>Key Insight: FILE-BOUND, Not Session-Bound</h2>
+        <p>The critical breakthrough: <code>maw team</code> agents persist via filesystem, not shell sessions. A team survives terminal crashes, machine reboots, and context resets because its state lives in files:</p>
+        <ul>
+          <li><code>config.json</code> &mdash; team identity, agent definitions</li>
+          <li><code>inboxes/</code> &mdash; inter-agent message queues</li>
+          <li>8 CLI flags at spawn &mdash; <code>--agent-id</code>, <code>--agent-name</code>, <code>--team-name</code>, <code>--agent-color</code>, <code>--parent-session-id</code>, <code>--agent-type</code>, <code>--dangerously-skip-permissions</code>, <code>--model</code></li>
+        </ul>
+
+        <h2>Two-Store Architecture</h2>
+        <table>
+          <thead>
+            <tr><th>Store</th><th>Purpose</th><th>Location</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Tool store</td><td>Active team state</td><td><code>.claude/team/</code></td></tr>
+            <tr><td>Vault</td><td>Persistent knowledge across lives</td><td><code>ψ/</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Full Lifecycle Commands</h2>
+<pre><code>maw team create my-team
+maw team spawn my-team scout --exec --prompt "scan for TODOs"
+maw team status my-team
+maw team add "analyze codebase" --team my-team --assign scout
+maw team tasks my-team
+maw team done 1
+maw team send my-team scout "focus on src/ directory"
+maw team shutdown --merge --force   # merge knowledge to vault
+maw team resume                      # reincarnation from vault
+maw team lives scout                 # show past-life data
+maw team delete my-team</code></pre>
+
+        <h2>Communication Decision Tree</h2>
+        <table>
+          <thead>
+            <tr><th>Need</th><th>Use</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Within team</td><td><code>SendMessage</code> (internal)</td></tr>
+            <tr><td>Cross-machine</td><td><code>maw hey &lt;oracle&gt; "msg"</code></td></tr>
+            <tr><td>Shell command</td><td><code>maw run &lt;cmd&gt;</code></td></tr>
+            <tr><td>Solo background</td><td><code>Agent</code> tool (background)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Known Bugs (as of 2026-05-19)</h2>
+        <ul>
+          <li><strong>Vendor stub override</strong> &mdash; <code>maw team</code> has a vendor stub issue that needs resolution</li>
+          <li><strong>--prompt-file flag</strong> &mdash; not yet implemented</li>
+          <li><strong>Missing subcommands</strong> &mdash; some documented commands don't exist in current build</li>
+          <li><strong>shutdown --force error</strong> &mdash; intermittent failure on forced shutdown</li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="002-school-ingestion.html">&larr; School Ingestion</a>
+          <a href="004-pnat-hidden-curriculum.html">Next: Hidden Curriculum &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
