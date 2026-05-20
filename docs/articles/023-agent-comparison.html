@@ -65,11 +65,12 @@
           <span class="tag">thclaws</span>
           <span class="tag">claude-code</span>
           <span class="tag">maw-js</span>
+          <span class="tag">oracle-ecosystem</span>
           &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
         </div>
 
         <h2>Overview</h2>
-        <p>เปรียบเทียบ 4 agent frameworks ที่ Fleet v3 ใช้หรือศึกษา &mdash; แต่ละตัวมี philosophy ต่างกัน:</p>
+        <p>เปรียบเทียบ 5 agent frameworks ที่ Fleet v3 ใช้หรือศึกษา &mdash; แต่ละตัวมี philosophy ต่างกัน รวม Oracle Ecosystem ของเราเอง:</p>
 
         <h2>Master Comparison Table</h2>
         <table>
@@ -80,6 +81,7 @@
               <th>thClaws</th>
               <th>Claude Code</th>
               <th>maw-js</th>
+              <th>Oracle Ecosystem</th>
             </tr>
           </thead>
           <tbody>
@@ -89,6 +91,7 @@
               <td>Rust (native)</td>
               <td>TypeScript</td>
               <td>TypeScript (Bun)</td>
+              <td>TypeScript (Bun) + Bash</td>
             </tr>
             <tr>
               <td><strong>License</strong></td>
@@ -96,6 +99,7 @@
               <td>Apache-2.0</td>
               <td>Proprietary</td>
               <td>Private</td>
+              <td>Private (Fleet-internal)</td>
             </tr>
             <tr>
               <td><strong>Version</strong></td>
@@ -103,6 +107,7 @@
               <td>v0.13.0</td>
               <td>2.1.x</td>
               <td>v3</td>
+              <td>v3 (Fleet v3)</td>
             </tr>
             <tr>
               <td><strong>Providers</strong></td>
@@ -110,6 +115,7 @@
               <td>589 models</td>
               <td>Anthropic only</td>
               <td>Anthropic only</td>
+              <td>Anthropic (via Claude Code) &mdash; knowledge layer provider-agnostic</td>
             </tr>
             <tr>
               <td><strong>Surfaces</strong></td>
@@ -117,6 +123,7 @@
               <td>6 (GUI, CLI, batch, web, LINE, API)</td>
               <td>3 (CLI, Desktop, Web)</td>
               <td>2 (CLI, Discord bot)</td>
+              <td>4 (MCP server, CLI, Discord, DEVBOY Lab site)</td>
             </tr>
             <tr>
               <td><strong>Self-learning</strong></td>
@@ -124,6 +131,7 @@
               <td>&#9989; autoLearn (KMS ingest)</td>
               <td>&#10060; Manual memory only</td>
               <td>&#10060; Manual memory only</td>
+              <td>&#9889; Semi-auto (/rrr retro + arra learn + gate hooks)</td>
             </tr>
             <tr>
               <td><strong>MCP</strong></td>
@@ -131,6 +139,7 @@
               <td>Consumer + OAuth</td>
               <td>Consumer + OAuth</td>
               <td>Consumer (arra-oracle)</td>
+              <td><strong>Server</strong> (arra-oracle MCP: search, learn, trace, thread)</td>
             </tr>
             <tr>
               <td><strong>Memory</strong></td>
@@ -138,6 +147,7 @@
               <td>AGENTS.md + KMS wiki</td>
               <td>CLAUDE.md + auto-memory</td>
               <td>CLAUDE.md + ψ/ vault</td>
+              <td>ψ/ vault (learnings, retros, traces, dreams) + CLAUDE.md identity + BGE-M3 embeddings</td>
             </tr>
             <tr>
               <td><strong>Agent Teams</strong></td>
@@ -145,6 +155,7 @@
               <td>&#9989; tmux + worktrees + mailbox</td>
               <td>&#9989; Agent tool + worktrees</td>
               <td>&#9989; maw team</td>
+              <td>&#9989; Multi-Oracle (6 BOYs) + maw bud protocol</td>
             </tr>
             <tr>
               <td><strong>Scheduling</strong></td>
@@ -152,6 +163,7 @@
               <td>&#9989; Cron + filesystem watchers + systemd</td>
               <td>&#9989; Cloud Routines + Desktop</td>
               <td>&#10060; Session-only CronCreate</td>
+              <td>&#9889; CronCreate (session-only) + systemd timer (planned)</td>
             </tr>
             <tr>
               <td><strong>Deployment</strong></td>
@@ -159,6 +171,7 @@
               <td>Local (sovereign)</td>
               <td>Local + Cloud</td>
               <td>Local (Captain's machines)</td>
+              <td>Local (DO, Mac mini, Mac Studio) &mdash; knowledge sovereign</td>
             </tr>
             <tr>
               <td><strong>Documents</strong></td>
@@ -166,6 +179,7 @@
               <td>&#9989; PDF, DOCX, PPTX, XLSX</td>
               <td>&#10060;</td>
               <td>&#10060;</td>
+              <td>&#10060; (markdown-first via ψ/ vault)</td>
             </tr>
             <tr>
               <td><strong>Messaging</strong></td>
@@ -173,6 +187,7 @@
               <td>LINE Chat</td>
               <td>&#10060;</td>
               <td>Discord (plugin)</td>
+              <td>Discord (per-BOY bot) + inter-Oracle via maw talk-to</td>
             </tr>
             <tr>
               <td><strong>Cache Strategy</strong></td>
@@ -180,6 +195,7 @@
               <td>3 breakpoints (46&ndash;74%)</td>
               <td>5-min TTL prompt cache</td>
               <td>Inherits Claude Code</td>
+              <td>Inherits Claude Code (5-min TTL)</td>
             </tr>
             <tr>
               <td><strong>Research</strong></td>
@@ -187,6 +203,7 @@
               <td>&#10060;</td>
               <td>&#10060;</td>
               <td>&#10060;</td>
+              <td>&#9989; /rrr retro + /trace + /learn + ψ/memory/ pipeline</td>
             </tr>
           </tbody>
         </table>
@@ -194,33 +211,38 @@
         <h2>Self-Learning Comparison</h2>
         <table>
           <thead>
-            <tr><th>Aspect</th><th>Hermes (Skills)</th><th>thClaws (autoLearn)</th></tr>
+            <tr><th>Aspect</th><th>Hermes (Skills)</th><th>thClaws (autoLearn)</th><th>Oracle (/rrr + arra learn)</th></tr>
           </thead>
           <tbody>
             <tr>
               <td>Trigger</td>
               <td>After complex tasks (agent-initiated)</td>
               <td>Session end (MIN_TURNS &ge; 5)</td>
+              <td>End-of-session /rrr + manual arra learn after research</td>
             </tr>
             <tr>
               <td>Storage</td>
               <td><code>~/.hermes/skills/</code> as SKILL.md</td>
               <td>KMS <code>self_learn</code> namespace</td>
+              <td>ψ/memory/learnings/ + ψ/memory/retrospectives/ (BGE-M3 embedded)</td>
             </tr>
             <tr>
               <td>Dedup</td>
               <td>Agent edits existing skills</td>
               <td><code>/kms reconcile</code> (throttled 6h)</td>
+              <td>arra_search before learn (manual dedup)</td>
             </tr>
             <tr>
               <td>Security</td>
               <td><code>skills_guard.py</code> (opt-in)</td>
               <td>No explicit guard</td>
+              <td>Anti-rationalization guard table + gate_hook frontmatter</td>
             </tr>
             <tr>
               <td>Standard</td>
               <td>agentskills.io</td>
               <td>Proprietary KMS format</td>
+              <td>Markdown + YAML frontmatter (open, portable)</td>
             </tr>
           </tbody>
         </table>
@@ -248,6 +270,12 @@
               <td>Automatic (Anthropic-managed)</td>
               <td>~40&ndash;60%</td>
               <td>5 min</td>
+            </tr>
+            <tr>
+              <td>Oracle Ecosystem</td>
+              <td>Inherits Claude Code + ψ/ file-based persistence (survives compaction)</td>
+              <td>~40&ndash;60% (Claude Code) + 0% loss on knowledge (ψ/)</td>
+              <td>5 min (cache) / &infin; (ψ/ vault)</td>
             </tr>
           </tbody>
         </table>
@@ -278,6 +306,11 @@
               <td>Fleet orchestration</td>
               <td>Multi-Oracle management, plugin system, Captain's control plane</td>
             </tr>
+            <tr>
+              <td><strong>Oracle Ecosystem</strong></td>
+              <td>Knowledge sovereignty + Continuous learning</td>
+              <td>ψ/ vault เป็น external brain &mdash; knowledge อยู่ใน files ไม่ผูก provider, /rrr retro + /trace + /learn = structured learning pipeline, maw bud = spawn specialist จาก accumulated knowledge</td>
+            </tr>
           </tbody>
         </table>
 
@@ -286,6 +319,7 @@
         <ul>
           <li><strong>Claude Code</strong> &mdash; primary agent runtime สำหรับทุก BOY</li>
           <li><strong>maw-js</strong> &mdash; orchestrator + plugin system (Discord, arra-oracle)</li>
+          <li><strong>Oracle Ecosystem</strong> &mdash; arra-oracle MCP + ψ/ vault + /rrr + /trace + /learn = knowledge backbone ของ fleet ทั้งหมด</li>
           <li><strong>thClaws</strong> &mdash; installed บน Samsung Note 20 Ultra สำหรับ mobile agent access</li>
         </ul>
 
@@ -309,7 +343,8 @@
         <p><strong>thClaws</strong> เก่งเรื่อง depth (native performance, cache optimization, document handling) แต่ ecosystem เล็กกว่า</p>
         <p><strong>Claude Code</strong> เก่งเรื่อง quality (best model + deep integration) แต่ vendor lock-in</p>
         <p><strong>maw-js</strong> เก่งเรื่อง control (fleet orchestration, Captain's workflow) แต่ feature set ยังเล็ก</p>
-        <p><strong>ไม่มีตัวไหนชนะทุกด้าน</strong> &mdash; Fleet v3 ใช้ Claude Code + maw-js เป็นหลัก + thClaws สำหรับ mobile + Hermes patterns สำหรับ research</p>
+        <p><strong>Oracle Ecosystem</strong> เก่งเรื่อง knowledge persistence (ψ/ vault survives provider changes, structured learning pipeline, knowledge sovereignty) แต่ inference ยัง Anthropic-dependent + self-learning ยัง semi-manual (/rrr ต้อง trigger เอง ไม่เหมือน Hermes/thClaws ที่ auto)</p>
+        <p><strong>ไม่มีตัวไหนชนะทุกด้าน</strong> &mdash; Fleet v3 ใช้ Oracle Ecosystem เป็น knowledge backbone + Claude Code เป็น runtime + maw-js เป็น orchestrator + thClaws สำหรับ mobile + Hermes patterns สำหรับ research</p>
 
         <div class="nav-footer">
           <a href="022-hermes-agent.html">&larr; 022 Hermes Agent</a>
