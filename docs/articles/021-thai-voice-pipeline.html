@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>021 — Thai Voice Pipeline &amp; Safety | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html" class="active">021 Thai Voice Pipeline</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">021 &mdash; Thai Voice Pipeline &amp; Safety</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>Thai Voice Pipeline &mdash; STT, TTS &amp; Safety Lessons</h1>
+        <div class="article-meta">
+          <span class="tag">clubsxai</span>
+          <span class="tag">voice</span>
+          <span class="tag">stt</span>
+          <span class="tag">tts</span>
+          <span class="tag">thai</span>
+          <span class="tag">safety</span>
+          <span class="tag">groq</span>
+          <span class="tag">cartesia</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>STT Evolution (วันเดียว)</h2>
+        <p>No.1 iterate ผ่าน 6 models ภายในวันเดียว &mdash; แต่ละ iteration บังคับให้เลือกใหม่ด้วยข้อจำกัดที่ชัดเจน:</p>
+        <ol>
+          <li><strong>SpeechRecognition + Google STT</strong> &mdash; starting point, network-dependent</li>
+          <li><strong>faster-whisper tiny</strong> &mdash; local, เบา แต่ accuracy ต่ำสำหรับภาษาไทย</li>
+          <li><strong>faster-whisper small</strong> &mdash; accuracy ดีขึ้น แต่เริ่มกิน CPU</li>
+          <li><strong>Pathumma medium</strong> &mdash; Thai-tuned model, ดี แต่ <strong>81&deg;C!</strong> CPU sustained high-load ทำให้ bot ไม่เสถียร</li>
+          <li><strong>faster-whisper tiny (fallback)</strong> &mdash; ถอยหลังเพราะ thermal</li>
+          <li><strong>Groq Whisper Large-v3 (final)</strong> &mdash; cloud inference, เย็น, เร็ว, free tier</li>
+        </ol>
+        <p><strong>Key lesson:</strong> local Whisper medium/large = thermal death (80&deg;C+ sustained CPU) สำหรับ persistent bot ที่ต้องทำงานตลอด cloud STT (Groq free tier) ไม่ใช่ premium choice &mdash; มันคือ <em>correct default</em> สำหรับ always-on voice bot</p>
+
+        <h2>Thai STT Challenges</h2>
+        <table>
+          <thead>
+            <tr><th>Challenge</th><th>ปัญหา</th><th>Current Solution</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tonal language</td>
+              <td>5 tones phonemically contrastive, Whisper trained primarily on formal Thai</td>
+              <td>Groq Whisper Large-v3 handles better than tiny/small</td>
+            </tr>
+            <tr>
+              <td>Informal speech</td>
+              <td>Syllable compression &mdash; "โน้นึง" ถูกตีความเป็น "โน้ ดึง"</td>
+              <td>Post-processing rules (brittle)</td>
+            </tr>
+            <tr>
+              <td>Code-switching</td>
+              <td>Thai-English mid-sentence confuses BPE tokenizer</td>
+              <td>None &mdash; known gap</td>
+            </tr>
+            <tr>
+              <td>Proper nouns / nicknames</td>
+              <td>"สมโบ" → "สมบัติ" (no training data for Thai nicknames)</td>
+              <td>30+ trigger name variants (O(N) brittle)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Upgrade path</strong> สำหรับ proper noun problem: embedding similarity หรือ phonetic matching แทน hard-coded variant list</p>
+
+        <h2>TTS Comparison</h2>
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>edge-tts</th><th>Cartesia Sonic-3.5</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Thai voices</td>
+              <td>Premwadee, Niwat</td>
+              <td>Suda, Somchai</td>
+            </tr>
+            <tr>
+              <td>Cost</td>
+              <td>Free</td>
+              <td>$5/mo</td>
+            </tr>
+            <tr>
+              <td>TTFA (Time-to-First-Audio)</td>
+              <td>2&ndash;3 seconds</td>
+              <td>40ms (streaming)</td>
+            </tr>
+            <tr>
+              <td>Prosody style</td>
+              <td>Read-speech (formal, monotone)</td>
+              <td>Conversational Thai (natural)</td>
+            </tr>
+            <tr>
+              <td>Architecture</td>
+              <td>Concatenative / neural TTS</td>
+              <td>Flow-matching diffusion</td>
+            </tr>
+            <tr>
+              <td>Streaming support</td>
+              <td>No</td>
+              <td>Yes</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Cartesia Sonic-3.5 ชนะใน latency และ naturalness อย่างชัดเจน &mdash; $5/mo คุ้มสำหรับ voice bot ที่ใช้จริง edge-tts เหมาะสำหรับ prototype หรือ offline scenario</p>
+
+        <h2>End-to-End Latency</h2>
+        <table>
+          <thead>
+            <tr><th>Stage</th><th>Latency</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Audio capture + VAD</td>
+              <td>200&ndash;500ms</td>
+              <td>Voice Activity Detection threshold tuning</td>
+            </tr>
+            <tr>
+              <td>Groq STT</td>
+              <td>300&ndash;600ms</td>
+              <td>Network + Groq inference</td>
+            </tr>
+            <tr>
+              <td>LLM inference</td>
+              <td>500&ndash;1,500ms</td>
+              <td><strong>Bottleneck</strong> &mdash; model choice matters most here</td>
+            </tr>
+            <tr>
+              <td>Cartesia TTS</td>
+              <td>40ms TTFA</td>
+              <td>Streaming &mdash; first audio chunk extremely fast</td>
+            </tr>
+            <tr>
+              <td><strong>Total</strong></td>
+              <td><strong>1&ndash;3 seconds</strong></td>
+              <td>Optimal stack, good network</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>LLM inference คือ bottleneck ที่ควร optimize ก่อน &mdash; ลด context window, เลือก model ที่เร็วกว่า (เช่น Groq Llama แทน GPT-4o สำหรับ voice response)</p>
+
+        <h2>Safety Analysis</h2>
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Status</th><th>Gap / Risk</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Owner-gate (user_id based)</td>
+              <td>&#9989; Implemented</td>
+              <td>Spoofable via soundboard / audio injection</td>
+            </tr>
+            <tr>
+              <td>Echo guard (2.5s fixed)</td>
+              <td>&#9989; Implemented</td>
+              <td>Should be TTS-duration-aware, not fixed duration</td>
+            </tr>
+            <tr>
+              <td>Gibberish filter (&gt;60% short words)</td>
+              <td>&#9989; Implemented</td>
+              <td>OK for noise, not for adversarial inputs</td>
+            </tr>
+            <tr>
+              <td>Bot ignore list</td>
+              <td>&#9989; Implemented</td>
+              <td>Prevents audio loops between bots</td>
+            </tr>
+            <tr>
+              <td>Trigger cooldown (8s)</td>
+              <td>&#9989; Implemented</td>
+              <td>Anti-spam, adequate</td>
+            </tr>
+            <tr>
+              <td>Prompt injection defense</td>
+              <td>&#10060; <strong>MISSING</strong></td>
+              <td><strong>Highest severity</strong> &mdash; voice can carry injected instructions to LLM</td>
+            </tr>
+            <tr>
+              <td>IPC atomic writes</td>
+              <td>&#10060; <strong>MISSING</strong></td>
+              <td>Race condition on concurrent triggers</td>
+            </tr>
+            <tr>
+              <td>Transcript retention policy</td>
+              <td>&#10060; <strong>MISSING</strong></td>
+              <td>Privacy risk &mdash; no expiry on stored voice transcripts</td>
+            </tr>
+            <tr>
+              <td>API spend circuit breaker</td>
+              <td>&#10060; <strong>MISSING</strong></td>
+              <td>No cap on Groq / Cartesia calls &mdash; cost runaway possible</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Priority order</strong> สำหรับ fix: prompt injection → IPC atomic writes → circuit breaker → transcript policy → echo guard improvement</p>
+
+        <h2>Groq Free Tier Limits</h2>
+        <ul>
+          <li><strong>7,200 audio-seconds/day</strong> &mdash; ~2 ชั่วโมงของเสียงต่อวัน</li>
+          <li><strong>100 req/min</strong> &mdash; เพียงพอสำหรับ voice bot ที่ไม่ได้ตอบพร้อมกันหลายคน</li>
+          <li><strong>Max 25MB/file</strong> &mdash; ไม่ใช่ปัญหาสำหรับ voice chunks ปกติ</li>
+          <li><strong>~1,440&ndash;3,600 conversational turns/day</strong> (assuming 2&ndash;5s per turn)</li>
+        </ul>
+        <p>เพียงพอสำหรับ personal bot และ class bot อย่าง DEVBOY-oracle ใน HUMAN SCHOOL &mdash; ไม่เพียงพอสำหรับ multi-user production deployment</p>
+
+        <h2>Key Quote &mdash; อาจารย์วิน</h2>
+        <blockquote>
+          "if แกวัดผลจากความประหยัด แต่ in term of คุณภาพ วัดยังไง ใช้กะไม่ใช้ อันไหน หลอน น้อยกว่า"
+        </blockquote>
+        <p>Quote นี้เกี่ยวกับการเลือก model โดยทั่วไป &mdash; แต่ apply ตรงกับ STT selection ด้วย: วัด accuracy ที่ผล (hallucination rate บน Thai informal speech) ไม่ใช่แค่ cost saving local Whisper small อาจประหยัดเงิน แต่ถ้า hallucinate "สมโบ" เป็น "สมบัติ" ทุกครั้ง bot ไม่มีประโยชน์</p>
+
+        <h2>DEVBOY Takeaways</h2>
+        <ul>
+          <li><strong>Groq STT + two-pass ingestion</strong> = voice class coverage ที่ $0 DEVBOY สามารถ ingest P'Nat's voice class โดยตรงโดยไม่ต้องพึ่ง transcript จาก third-party</li>
+          <li><strong>Lab experiment ถัดไป:</strong> 30 LOC เพื่อทดสอบ Groq Whisper บน recorded voice (<code>ψ/lab/voice-ingestion/</code>) &mdash; hypothesis: accuracy บน P'Nat's Thai-English code-switching &gt;80%</li>
+          <li><strong>Bud signal: &#127861; emerging</strong> &mdash; voice architecture ชัดเจนแล้ว (Groq STT + Cartesia TTS + safety gaps documented) แต่ยังไม่มี application evidence ใน <code>ψ/lab/</code> gate ที่ขาด: application evidence</li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="020-oracle-voice-architecture.html">&larr; 020 Voice Architecture</a>
+          <a href="../home.html">กลับสารบัญ &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

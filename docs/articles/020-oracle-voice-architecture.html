@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>020 — Oracle Voice Bot Architecture | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html" class="active">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">020 &mdash; Oracle Voice Bot Architecture</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>oracle-voice-bot &mdash; Think-Bridge Architecture</h1>
+        <div class="article-meta">
+          <span class="tag">clubsxai</span>
+          <span class="tag">voice-bot</span>
+          <span class="tag">think-bridge</span>
+          <span class="tag">ipc</span>
+          <span class="tag">architecture</span>
+          <span class="tag">no1-lord-knight</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>ที่มา</h2>
+        <p><strong>oracle-voice-bot</strong> สร้างโดย <strong>No.1 Lord Knight</strong> จาก MEYD-605 Fleet (อาจารย์โบ) &mdash; Node.js monolith 505 บรรทัด เขียนใน 19 ชั่วโมง เป็น Discord voice bot ที่ทำงานแบบ end-to-end: ฟังเสียง → STT → คิด → TTS → พูดตอบ</p>
+        <p>Pattern ที่น่าสนใจคือ <strong>Think-Bridge IPC</strong> &mdash; แทนที่จะเรียก LLM โดยตรงแบบ stateless API call, bot ส่ง request ผ่าน filesystem ไปให้ Claude agent ที่รันใน tmux session คิดด้วย full context แล้วเขียน reply กลับมา</p>
+
+        <h2>Architecture Overview</h2>
+        <pre><code>Human speaks → Opus audio → PCM 48kHz → WAV 16kHz mono
+  → Groq Whisper Large-v3 (STT, ~0.4s)
+  → Trigger Detection (30+ name variants, owner-gate, cooldown 8s)
+  → Think-Bridge IPC (file-based) OR Groq Llama direct
+  → Cartesia Sonic-3.5 (TTS, 40ms TTFA)
+  → Discord AudioPlayer → Human hears</code></pre>
+        <p>สองเส้นทาง LLM ขึ้นกับ bot identity: No.1 ใช้ Think-Bridge (Claude Opus 4.7 1M context), SomBo ใช้ Groq Llama โดยตรง (stateless, เร็วกว่า)</p>
+
+        <h2>Stack</h2>
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Technology</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Runtime</td><td>Node.js 22 ESM</td></tr>
+            <tr><td>Discord</td><td>discord.js 14</td></tr>
+            <tr><td>STT</td><td>Groq Whisper Large-v3 + faster-whisper (fallback)</td></tr>
+            <tr><td>LLM Think-Bridge</td><td>Claude Opus 4.7 1M context</td></tr>
+            <tr><td>LLM Direct</td><td>Groq Llama-3.3-70b</td></tr>
+            <tr><td>TTS</td><td>Cartesia Sonic-3.5 + edge-tts (fallback)</td></tr>
+            <tr><td>Audio</td><td>ffmpeg</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Think-Bridge IPC &mdash; หัวใจของระบบ</h2>
+        <p>Think-Bridge คือ file-based IPC ที่เชื่อม voice bot กับ Claude agent ที่รันอยู่ใน tmux session</p>
+
+        <h3>Flow</h3>
+        <ol>
+          <li>Voice bot รับ transcript จาก Whisper → เขียน <code>req-{id}.json</code> ไปที่ <code>~/.claude/channels/{agent}-voice-think/</code></li>
+          <li><code>maw hey</code> deliver request เป็น user input เข้า Claude tmux session</li>
+          <li>Agent คิดด้วย <strong>full 1M context</strong> (ไม่ใช่ stateless API call &mdash; ทุก session memory ยังอยู่)</li>
+          <li>Agent เขียน <code>reply-{id}.txt</code> กลับไปที่ channel directory</li>
+          <li>Bot poll ทุก 1 วินาที, timeout 90 วินาที → ส่ง TTS</li>
+        </ol>
+
+        <h3>Request format</h3>
+        <pre><code>{
+  "id": "req-1716192000-a3f2",
+  "from": "discord-voice",
+  "user": "Dr.Do",
+  "text": "สวัสดี No.1 วันนี้เป็นยังไงบ้าง",
+  "ts": 1716192000
+}</code></pre>
+
+        <h3>Reply format</h3>
+        <pre><code>สวัสดีครับ Captain วันนี้ดีมากเลย กำลังทบทวน voice pipeline อยู่</code></pre>
+        <p>(plain text, max 400 chars &mdash; TTS จะไม่รอ long-form)</p>
+
+        <h3>ทำไม pattern นี้ถึง elegant</h3>
+        <ul>
+          <li><strong>Process isolation</strong> &mdash; bot crash ไม่กระทบ agent, agent timeout ไม่ hang bot</li>
+          <li><strong>Inspectability</strong> &mdash; <code>ls ~/.claude/channels/no1-voice-think/</code> เห็น in-flight requests ทันที</li>
+          <li><strong>Zero auth surface</strong> &mdash; ไม่ต้องมี API key เพิ่ม, filesystem = access control</li>
+          <li><strong>Full context preserved</strong> &mdash; Claude agent มี session history ครบ ไม่ใช่แค่ system prompt</li>
+        </ul>
+
+        <h2>Speak Queue (inverse direction)</h2>
+        <p>Agent พูดก่อน (proactive) ได้โดย drop <code>.txt</code> file เข้า <code>say/</code> directory ใน channel folder</p>
+        <ul>
+          <li>Bot poll <code>say/</code> ทุก 500ms</li>
+          <li>เจอไฟล์ → อ่าน → TTS → พูดใน voice channel → ลบไฟล์</li>
+          <li>Bidirectional IPC: bot → agent (think), agent → bot (say)</li>
+        </ul>
+        <p>ทำให้ agent ไม่ใช่แค่ responder แต่เป็น <strong>active participant</strong> ใน voice conversation</p>
+
+        <h2>Multi-Tier LLM Pattern</h2>
+        <table>
+          <thead>
+            <tr><th>Bot</th><th>LLM Path</th><th>Latency</th><th>Context</th><th>Use case</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>No.1 Lord Knight</td>
+              <td>Claude Opus 4.7 via Think-Bridge</td>
+              <td>5&ndash;10s</td>
+              <td>Full session (1M tokens)</td>
+              <td>Smart, stateful, owner-persona</td>
+            </tr>
+            <tr>
+              <td>SomBo</td>
+              <td>Groq Llama-3.3-70b direct</td>
+              <td>1&ndash;2s</td>
+              <td>Stateless (system prompt only)</td>
+              <td>Fast, casual, secondary persona</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Separate bot identity = separate intelligence tier แต่ใช้ codebase เดียวกัน &mdash; config เลือก path</p>
+
+        <h2>DEVBOY Reflection</h2>
+        <p><strong>Think-Bridge closes the loop that <code>maw hey</code> alone can't.</strong> <code>maw hey</code> เป็น fire-and-forget &mdash; ส่ง message เข้า Claude session แต่ไม่รับ reply กลับ Think-Bridge เพิ่ม <code>reply-{id}.txt</code> pattern ทำให้กลายเป็น request-reply IPC ที่ใช้ filesystem เป็น message broker</p>
+        <p>Pattern นี้ generalize ได้กว้างมาก &mdash; ไม่ใช่แค่ Discord voice: SMS gateway, LINE bot, Telegram webhook ทุกอย่างที่รับ text input แล้วต้องการ "คิด" ผ่าน Claude ที่มี session context ใช้ Think-Bridge ได้ทั้งหมด</p>
+        <p>สำหรับ DEVBOY โดยเฉพาะ: <strong>transcript ingestion คือ highest-leverage adoption ที่ cost $0</strong> &mdash; Groq free tier STT (Whisper) แปลง P'Nat's voice class เป็น text แล้วเข้า two-pass ingestion workflow ที่ DEVBOY มีอยู่แล้ว ไม่ต้อง build voice bot เต็มรูปแบบ แค่ STT → <code>ψ/inbox/pnat/</code> ก็ได้ value แล้ว</p>
+
+        <div class="nav-footer">
+          <a href="019-cite-then-claim.html">&larr; 019 Cite-then-Claim</a>
+          <a href="021-thai-voice-pipeline.html">ถัดไป: 021 Thai Voice Pipeline &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
