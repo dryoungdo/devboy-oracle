@@ -11,55 +11,8 @@
   <script>checkAuth();</script>
   <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
   <div class="book-layout">
-    <aside class="sidebar">
-      <a href="../home.html" class="sidebar-brand">
-        <div class="sidebar-psi">D</div>
-        <span class="sidebar-brand-text">DEVBOY Lab</span>
-      </a>
-      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
-      <nav>
-        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
-        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
-        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
-        <a href="003-maw-team-engine.html">003 maw team Engine</a>
-        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
-        <a href="005-esp32-power.html" class="active">005 ESP32 พลังงาน</a>
-        <a href="006-discord-config.html">006 Discord Config</a>
-        <div class="sidebar-section">maw Ecosystem</div>
-        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
-        <a href="008-maw-plugin-system.html">008 Plugin System</a>
-        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
-        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
-        <div class="sidebar-section">Oracle Tools</div>
-        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
-        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
-        <div class="sidebar-section">Fleet Infrastructure</div>
-        <a href="011-fleet-migration.html">011 Fleet Migration</a>
-        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
-        <div class="sidebar-section">ClubsXai Classroom</div>
-        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
-        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
-        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
-        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
-        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
-        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
-        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
-        <div class="sidebar-section">Agent Frameworks</div>
-        <a href="022-hermes-agent.html">022 Hermes Agent</a>
-        <a href="023-agent-comparison.html">023 Agent Comparison</a>
-        <div class="sidebar-section">AI Research</div>
-        <a href="024-sovereign-ai.html">024 Sovereign AI</a>
-        <a href="025-rag-retrieval-augmented-generation.html">025 RAG</a>
-        <div class="sidebar-section">Local AI</div>
-        <a href="026-ollama-local-llm.html">026 Ollama</a>
-        <a href="027-dgx-spark.html">027 DGX Spark</a>
-        <a href="028-self-hosted-ai.html">028 Self-Hosted AI</a>
-        <a href="029-local-ai-sovereignty.html">029 Local AI &amp; Sovereignty</a>
-        <a href="030-gemma4.html">030 Gemma 4</a>
-        <div class="sidebar-section">Multi-Agent</div>
-        <a href="031-team-tile-bootstrap.html">031 Team-Tile Bootstrap</a>
-      </nav>
-    </aside>
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
     <div class="reader">
       <div class="topbar">
         <span class="topbar-title">005 &mdash; ESP32 จัดการพลังงาน</span>

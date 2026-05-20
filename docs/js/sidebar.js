@@ -1,0 +1,78 @@
+// sidebar.js — Dynamic sidebar for DEVBOY Lab
+// To add a new article: add one entry to NAV below. O(1).
+(function () {
+  var NAV = [
+    ['\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48 1 \u2014 19 \u0e1e.\u0e04. 2026', [
+      ['001-birth-of-devboy.html', '001 \u0e01\u0e33\u0e40\u0e19\u0e34\u0e14 DEVBOY'],
+      ['002-school-ingestion.html', '002 \u0e2d\u0e48\u0e32\u0e19\u0e2b\u0e49\u0e2d\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19'],
+      ['003-maw-team-engine.html', '003 maw team Engine'],
+      ['004-pnat-hidden-curriculum.html', '004 \u0e2b\u0e25\u0e31\u0e01\u0e2a\u0e39\u0e15\u0e23\u0e0b\u0e48\u0e2d\u0e19'],
+      ['005-esp32-power.html', '005 ESP32 \u0e1e\u0e25\u0e31\u0e07\u0e07\u0e32\u0e19'],
+      ['006-discord-config.html', '006 Discord Config']
+    ]],
+    ['maw Ecosystem', [
+      ['007-maw-js-orchestrator.html', '007 maw-js Orchestrator'],
+      ['008-maw-plugin-system.html', '008 Plugin System'],
+      ['013-maw-ui-arra-office.html', '013 maw-ui ARRA Office'],
+      ['014-maw-plugin-registry.html', '014 Plugin Registry']
+    ]],
+    ['Oracle Tools', [
+      ['009-arra-oracle-v3.html', '009 Arra Oracle v3'],
+      ['010-thclaws-agent-harness.html', '010 thClaws']
+    ]],
+    ['Fleet Infrastructure', [
+      ['011-fleet-migration.html', '011 Fleet Migration'],
+      ['012-soul-brews-ecosystem.html', '012 Soul Brews Map']
+    ]],
+    ['ClubsXai Classroom', [
+      ['015-clubsxai-cross-fleet.html', '015 ClubsXai Overview'],
+      ['016-allowbots-inter-oracle.html', '016 allowBots &amp; Comm'],
+      ['017-rtk-benchmark.html', '017 RTK Benchmark'],
+      ['018-orchestrator-patterns.html', '018 Orchestrator Patterns'],
+      ['019-cite-then-claim.html', '019 Cite-then-Claim'],
+      ['020-oracle-voice-architecture.html', '020 Voice Architecture'],
+      ['021-thai-voice-pipeline.html', '021 Thai Voice Pipeline']
+    ]],
+    ['Agent Frameworks', [
+      ['022-hermes-agent.html', '022 Hermes Agent'],
+      ['023-agent-comparison.html', '023 Agent Comparison']
+    ]],
+    ['AI Research', [
+      ['024-sovereign-ai.html', '024 Sovereign AI'],
+      ['025-rag-retrieval-augmented-generation.html', '025 RAG']
+    ]],
+    ['Local AI', [
+      ['026-ollama-local-llm.html', '026 Ollama'],
+      ['027-dgx-spark.html', '027 DGX Spark'],
+      ['028-self-hosted-ai.html', '028 Self-Hosted AI'],
+      ['029-local-ai-sovereignty.html', '029 Local AI &amp; Sovereignty'],
+      ['030-gemma4.html', '030 Gemma 4']
+    ]],
+    ['Multi-Agent', [
+      ['031-team-tile-bootstrap.html', '031 Team-Tile Bootstrap']
+    ]]
+  ];
+
+  var el = document.getElementById('sidebar');
+  if (!el) return;
+
+  var page = location.pathname.split('/').pop() || '';
+
+  var h = '<a href="../home.html" class="sidebar-brand">'
+    + '<div class="sidebar-psi">D</div>'
+    + '<span class="sidebar-brand-text">DEVBOY Lab</span></a>'
+    + '<div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">'
+    + 'DEVBOY AI \u00b7 Captain Dr.Do</div><nav aria-label="Article navigation">';
+
+  for (var i = 0; i < NAV.length; i++) {
+    h += '<div class="sidebar-section">' + NAV[i][0] + '</div>';
+    var links = NAV[i][1];
+    for (var j = 0; j < links.length; j++) {
+      var cls = links[j][0] === page ? ' class="active"' : '';
+      h += '<a href="' + links[j][0] + '"' + cls + '>' + links[j][1] + '</a>';
+    }
+  }
+
+  h += '</nav>';
+  el.innerHTML = h;
+})();
