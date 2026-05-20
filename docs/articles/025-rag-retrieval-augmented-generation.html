@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>025 — RAG | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+        <div class="sidebar-section">Agent Frameworks</div>
+        <a href="022-hermes-agent.html">022 Hermes Agent</a>
+        <a href="023-agent-comparison.html">023 Agent Comparison</a>
+        <div class="sidebar-section">AI Research</div>
+        <a href="024-sovereign-ai.html">024 Sovereign AI</a>
+        <a href="025-rag-retrieval-augmented-generation.html" class="active">025 RAG</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">025 &mdash; RAG</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>RAG &mdash; Retrieval-Augmented Generation</h1>
+        <div class="article-meta">
+          <span class="tag">rag</span>
+          <span class="tag">retrieval</span>
+          <span class="tag">hybrid-search</span>
+          <span class="tag">arra-oracle</span>
+          <span class="tag">vector-search</span>
+          <span class="tag">graphrag</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <h2>RAG คืออะไร</h2>
+        <p><strong>Retrieval-Augmented Generation</strong> (Lewis et al., 2020) = ดึงข้อมูลที่เกี่ยวข้องจาก knowledge base มาเป็น context ให้ LLM ก่อนตอบ &mdash; แก้ปัญหา hallucination + ข้อมูลล้าสมัย</p>
+        <p>Simple RAG flow: <code>Query → Retrieve → Augment prompt → Generate</code></p>
+
+        <h2>ทำไม Context Window ใหญ่ขึ้นแต่ RAG ไม่ตาย</h2>
+        <table>
+          <thead>
+            <tr><th>Argument</th><th>Reality</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>"ยัดทุกอย่างใน context ได้แล้ว"</td><td>Cost ต่อ call สูงมาก &mdash; 1M tokens = $3-15/call (Claude/GPT)</td></tr>
+            <tr><td>"LLM จำได้หมด"</td><td><strong>Lost-in-the-middle</strong> &mdash; LLM attention เป็น U-curve, ข้อมูลตรงกลางถูกลืม</td></tr>
+            <tr><td>"ไม่ต้อง update"</td><td>Freshness &mdash; knowledge cutoff ไม่ช่วยข้อมูลที่เปลี่ยนทุกวัน</td></tr>
+            <tr><td>"Simple กว่า"</td><td>RAG ให้ <strong>audit trail</strong> &mdash; รู้ว่าคำตอบมาจากไหน (cite-then-claim)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Hybrid Search = Production Default</h2>
+        <p>ใช้ BM25 (keyword/sparse) + Vector (semantic/dense) ด้วยกัน:</p>
+        <div class="callout info">
+          <strong>Performance:</strong> Hybrid search ให้ <strong>+5-15% nDCG</strong> เทียบกับ vector-only<br>
+          <strong>Re-ranking</strong> เพิ่มอีก <strong>+33-40% accuracy</strong> (Cohere Rerank, cross-encoder)
+        </div>
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Strength</th><th>Weakness</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>BM25</strong> (sparse)</td><td>Exact keyword match, fast, no GPU needed</td><td>ไม่เข้าใจ synonyms</td></tr>
+            <tr><td><strong>Vector</strong> (dense)</td><td>Semantic understanding, cross-language</td><td>Exact keywords อาจพลาด, ต้อง GPU</td></tr>
+            <tr><td><strong>Hybrid</strong></td><td>Best of both worlds</td><td>Complexity ของ score fusion</td></tr>
+          </tbody>
+        </table>
+        <p>Score fusion method ที่ดีที่สุด: <strong>Reciprocal Rank Fusion (RRF)</strong> &mdash; merge rankings จากทั้ง BM25 + vector โดยไม่ต้อง normalize scores</p>
+
+        <h2>Advanced RAG Patterns</h2>
+        <table>
+          <thead>
+            <tr><th>Pattern</th><th>Source</th><th>Key Idea</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>GraphRAG</strong></td>
+              <td>Microsoft, 2024</td>
+              <td>สร้าง knowledge graph จาก documents → query ทั้ง graph + vector &mdash; ดีสำหรับ multi-hop questions</td>
+            </tr>
+            <tr>
+              <td><strong>Agentic RAG</strong></td>
+              <td>Various, 2024-25</td>
+              <td>Agent ตัดสินใจว่าจะ retrieve อะไร เมื่อไหร่ &mdash; query planning + iterative retrieval</td>
+            </tr>
+            <tr>
+              <td><strong>Self-RAG</strong></td>
+              <td>ICLR 2024</td>
+              <td>LLM ตัดสินเองว่าต้อง retrieve หรือเปล่า + self-critique คำตอบ</td>
+            </tr>
+            <tr>
+              <td><strong>RAPTOR</strong></td>
+              <td>Stanford, 2024</td>
+              <td>Tree-structured retrieval &mdash; สร้าง hierarchical summary clusters</td>
+            </tr>
+            <tr>
+              <td><strong>HyDE</strong></td>
+              <td>Gao et al., 2022</td>
+              <td>Hypothetical Document Embeddings &mdash; LLM สร้าง "answer" ก่อน แล้วใช้ embed answer ไป search</td>
+            </tr>
+            <tr>
+              <td><strong>CRAG</strong></td>
+              <td>Yan et al., 2024</td>
+              <td>Corrective RAG &mdash; evaluate retrieval quality ก่อนส่งให้ LLM ถ้าแย่ → web search fallback</td>
+            </tr>
+            <tr>
+              <td><strong>Contextual Retrieval</strong></td>
+              <td>Anthropic, 2024</td>
+              <td>เพิ่ม document-level context ให้ทุก chunk ก่อน index → <strong>49% failure reduction</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Late Chunking</strong></td>
+              <td>Jina AI, 2024</td>
+              <td>Embed ทั้ง document ก่อน แล้วค่อย chunk embeddings &mdash; preserve cross-chunk context</td>
+            </tr>
+            <tr>
+              <td><strong>RAG Fusion</strong></td>
+              <td>Various</td>
+              <td>Multi-query generation + RRF merge &mdash; expand query ด้วย LLM-generated variants</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Tooling Ecosystem</h2>
+        <table>
+          <thead>
+            <tr><th>Tool</th><th>Stars</th><th>Best For</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>LangChain</strong></td><td>~100k</td><td>Largest ecosystem, most integrations</td></tr>
+            <tr><td><strong>LlamaIndex</strong></td><td>~38k</td><td>Best RAG-first framework, data connectors</td></tr>
+            <tr><td><strong>Haystack</strong> (deepset)</td><td>~18k</td><td>Production RAG pipelines, modular</td></tr>
+            <tr><td><strong>Unstructured.io</strong></td><td>-</td><td>PDF/image/table extraction pre-processing</td></tr>
+            <tr><td><strong>Docling</strong> (IBM)</td><td>-</td><td>Document understanding, layout-aware chunking</td></tr>
+            <tr><td><strong>Marker</strong></td><td>-</td><td>PDF → markdown conversion</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Embedding Models</h3>
+        <table>
+          <thead>
+            <tr><th>Model</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>BGE-M3</strong> (BAAI)</td><td>Best open-source multilingual &mdash; Thai + EN ใช้ตัวนี้</td></tr>
+            <tr><td><strong>text-embedding-3-large</strong> (OpenAI)</td><td>Best proprietary general-purpose</td></tr>
+            <tr><td><strong>Cohere Embed v3</strong></td><td>Best for multilingual search + reranking</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Vector Databases</h3>
+        <table>
+          <thead>
+            <tr><th>DB</th><th>Best For</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Weaviate</strong></td><td>Best hybrid search (built-in BM25 + vector)</td></tr>
+            <tr><td><strong>ChromaDB</strong></td><td>Simple, local-first, good for prototyping</td></tr>
+            <tr><td><strong>Qdrant</strong></td><td>Rust-native, high performance</td></tr>
+            <tr><td><strong>Pinecone</strong></td><td>Managed cloud, zero-ops</td></tr>
+            <tr><td><strong>pgvector</strong></td><td>Postgres extension, ใช้กับ DB ที่มีอยู่แล้ว</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Evaluation &mdash; RAGAS Framework</h2>
+        <p><strong>RAGAS</strong> (Retrieval Augmented Generation Assessment) เป็น standard evaluation framework:</p>
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Measures</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Faithfulness</td><td>คำตอบ consistent กับ retrieved context หรือเปล่า</td></tr>
+            <tr><td>Answer Relevancy</td><td>คำตอบตรงคำถามหรือเปล่า</td></tr>
+            <tr><td>Context Precision</td><td>Retrieved chunks relevant กับคำถามแค่ไหน</td></tr>
+            <tr><td>Context Recall</td><td>ดึง relevant info มาครบหรือเปล่า</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Known Problems</h2>
+        <table>
+          <thead>
+            <tr><th>Problem</th><th>Impact</th><th>Mitigation</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Lost-in-the-middle</strong></td>
+              <td>LLM attention เป็น U-curve &mdash; ข้อมูลตรงกลาง context ถูกลืม</td>
+              <td>จำกัด retrieved chunks, re-rank ให้ relevant อยู่ต้น/ท้าย</td>
+            </tr>
+            <tr>
+              <td><strong>Retrieval poisoning</strong></td>
+              <td>&gt;80% flip rate &mdash; adversarial chunks เปลี่ยนคำตอบ LLM ได้</td>
+              <td>Input sanitization, source verification, content integrity checks</td>
+            </tr>
+            <tr>
+              <td><strong>Thai word segmentation</strong></td>
+              <td>Tokenizer แย่ → embedding แย่ → retrieval แย่ &mdash; cascade failure</td>
+              <td>ใช้ PyThaiNLP/newmm pre-tokenize ก่อน embed</td>
+            </tr>
+            <tr>
+              <td><strong>Embedding drift</strong></td>
+              <td>Update embedding model → old vectors ไม่ compatible → re-index ทั้งหมด</td>
+              <td>Version embedding models, store raw text alongside vectors</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout warning">
+          <strong>Rule of thumb:</strong> RAG ไม่จำเป็นสำหรับ corpus &lt;50 pages &mdash; ยัดใน context ได้เลย ถูกกว่า + ง่ายกว่า
+        </div>
+
+        <h2>arra-oracle = Minimal RAG System</h2>
+        <p>Fleet v3 มี RAG อยู่แล้ว &mdash; <strong>arra-oracle</strong> ทำ index + search + retrieve:</p>
+        <table>
+          <thead>
+            <tr><th>Component</th><th>Current</th><th>Upgrade Path</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Storage</td><td>SQLite + flat files</td><td>+ ChromaDB for vectors</td></tr>
+            <tr><td>Search</td><td>Keyword-based</td><td>+ <strong>RRF hybrid scoring</strong> (priority 1)</td></tr>
+            <tr><td>Chunking</td><td>Document-level</td><td>+ <strong>Semantic chunking</strong> (priority 2)</td></tr>
+            <tr><td>Feedback</td><td>None</td><td>+ <strong>Implicit relevance logging</strong> (priority 3)</td></tr>
+            <tr><td>Embedding</td><td>BGE-M3 (correct choice)</td><td>Keep &mdash; best multilingual Thai+EN</td></tr>
+            <tr><td>Graph</td><td>None</td><td>GraphRAG when docs &gt;3K</td></tr>
+          </tbody>
+        </table>
+        <div class="callout info">
+          <strong>Sovereign RAG:</strong> Nearly achievable &mdash; local ChromaDB + SQLite + BGE-M3 ทำ RAG ได้ locally ทั้งหมด<br>
+          เหลือแค่ LLM inference ที่ยัง cloud-dependent (Anthropic API)
+        </div>
+
+        <h2>DEVBOY Takeaways</h2>
+        <ol>
+          <li><strong>Hybrid search (BM25+vector) คือ baseline ที่ต้องมี</strong> &mdash; arra-oracle ต้องเพิ่ม RRF fusion เป็นอันดับแรก</li>
+          <li><strong>Contextual Retrieval (Anthropic)</strong> ลด failure 49% &mdash; เพิ่ม document context ให้ทุก chunk ก่อน index ไม่ยาก</li>
+          <li><strong>GraphRAG ยังไม่จำเป็น</strong> ที่ current arra size (&lt;3K docs) แต่ keep tracking</li>
+          <li><strong>Thai word segmentation</strong> เป็นจุดอ่อนที่ต้อง address &mdash; PyThaiNLP pre-tokenize ก่อน embed</li>
+          <li><strong>Retrieval poisoning</strong> เป็น security concern จริง &mdash; arra-oracle เป็น internal system (ตัดปัญหา external adversarial content) แต่ถ้าเปิด public ingestion ต้องระวัง</li>
+          <li><strong>RAG ≠ silver bullet</strong> &mdash; corpus &lt;50 pages ไม่ต้อง RAG, ยัดใน context ถูกกว่า</li>
+        </ol>
+
+        <div class="nav-footer">
+          <a href="024-sovereign-ai.html">&larr; 024 Sovereign AI</a>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
