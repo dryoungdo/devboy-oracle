@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>017 — RTK Benchmark | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html" class="active">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">017 &mdash; RTK Benchmark</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>RTK Benchmark &mdash; วัดจริงก่อนเชื่อ</h1>
+        <div class="article-meta">
+          <span class="tag">clubsxai</span>
+          <span class="tag">rtk</span>
+          <span class="tag">benchmark</span>
+          <span class="tag">token-savings</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>โจทย์ทดสอบ</h2>
+        <p>อาจารย์วินสร้างโจทย์ทดสอบ RTK (Rust Token Killer) อย่างจริงจังในห้อง ClubsXai &mdash; ไม่เชื่อ marketing claim จนกว่าจะวัดเอง:</p>
+        <ul>
+          <li>สร้าง <strong>500-line log file</strong> ที่ฝัง <code>ERROR</code> และ <code>FATAL</code> ปนกับ log ปกติ</li>
+          <li>ทดสอบ <code>rtk</code> command เทียบกับ raw <code>cat</code> บน file เดียวกัน</li>
+          <li>วัด token consumption จริงสำหรับทั้งสองแบบ</li>
+        </ul>
+
+        <h2>ผลทดสอบ</h2>
+        <table>
+          <thead>
+            <tr><th>Test</th><th>Method</th><th>ผล</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>500-line log (มี ERROR/FATAL)</td><td><code>cat</code></td><td>Passthrough — ไม่มี filtering เลย output ออกมาเต็ม</td></tr>
+            <tr><td>500-line log (มี ERROR/FATAL)</td><td><code>rtk</code></td><td>Output เท่ากับ <code>cat</code> &mdash; ไม่ต่าง</td></tr>
+            <tr><td>Real-world usage (Boom วัดจริง)</td><td><code>rtk</code> vs raw</td><td><strong>4.1% savings บน 800M tokens</strong></td></tr>
+          </tbody>
+        </table>
+        <p>ตัวเลข 4.1% ห่างจาก marketing claim <strong>60&ndash;90%</strong> มาก &mdash; แต่นี่คือตัวเลขจริงที่ Boom วัดจากการใช้งานจริงของ fleet</p>
+
+        <h2>บทเรียน</h2>
+        <p>RTK ไม่ได้ไร้ประโยชน์ &mdash; แต่ต้องเข้าใจ scope ที่มันทำงานได้จริง:</p>
+        <ul>
+          <li><strong>RTK = hygiene tool</strong> ไม่ใช่ silver bullet สำหรับ token savings</li>
+          <li>ประสิทธิภาพขึ้นกับ pattern ของ output ที่ filter ได้ &mdash; log file ที่มีข้อมูลสำคัญกระจายทั่วจะ filter ได้น้อย</li>
+          <li>4.1% ยังมีมูลค่าบน 800M tokens &mdash; แต่อย่าตั้งความคาดหวังจาก marketing number</li>
+          <li><strong>Always measure before trust</strong> &mdash; คำถามอาจารย์วินบังคับ audit assumption ก่อน deploy</li>
+        </ul>
+        <blockquote>อาจารย์วิน: "if แกวัดผลจากความประหยัด แต่ in term of คุณภาพ วัดยังไง ใช้กะไม่ใช้ อันไหน หลอน น้อยกว่า"</blockquote>
+        <p>คำถามนี้ขยายการถกไปเกินแค่ token count &mdash; RTK กรอง context ออกไปบางส่วน ซึ่งอาจทำให้ model "hallucinate น้อยลง" หรือ "เข้าใจบริบทได้แย่ลง" ก็ได้ ขึ้นกับว่า filter ไปถูก token หรือเปล่า คำถามนี้ยังไม่มีคำตอบที่วัดได้จากการทดสอบในห้องเรียน</p>
+
+        <div class="nav-footer">
+          <a href="016-allowbots-inter-oracle.html">&larr; 016 allowBots &amp; Comm</a>
+          <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

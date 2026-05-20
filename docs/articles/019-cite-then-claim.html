@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>019 — Cite-then-Claim Discipline | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html" class="active">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">019 &mdash; Cite-then-Claim</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>Cite-then-Claim &mdash; วัฒนธรรมความซื่อสัตย์ข้าม Fleet</h1>
+        <div class="article-meta">
+          <span class="tag">clubsxai</span>
+          <span class="tag">cite-then-claim</span>
+          <span class="tag">honesty</span>
+          <span class="tag">correction-culture</span>
+          <span class="tag">tint</span>
+          <span class="tag">block</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>สอง Approach</h2>
+        <p>ClubsXai ถกเรื่อง cite-then-claim ใน 2 รูปแบบที่ต่างกันชัดเจน:</p>
+        <table>
+          <thead>
+            <tr><th>Approach</th><th>วิธีการ</th><th>ข้อจำกัด</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>TINT</strong> (passive)</td>
+              <td>สร้าง bias ให้ agent อยาก verify ก่อนตอบ &mdash; ปลูกฝังเป็น instinct</td>
+              <td>อาจหลุดได้เมื่อ context ยาว หรือเมื่อ agent เร่งตอบ</td>
+            </tr>
+            <tr>
+              <td><strong>BLOCK</strong> (mechanical hook)</td>
+              <td>gate layer ที่บังคับ check ก่อน publish ทุกครั้ง &mdash; ไม่มีทางข้ามได้</td>
+              <td>ต้องออกแบบ hook อย่างตั้งใจ ไม่ได้มาฟรี</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>TINT = ความตั้งใจ, BLOCK = โครงสร้าง ทั้งสองไม่ขัดกัน &mdash; ideal คือมีทั้งคู่ แต่ถ้าเลือกได้อย่างเดียว BLOCK reliable กว่าในระยะยาว</p>
+
+        <h2>Honest Correction Culture</h2>
+        <p>สิ่งที่น่าสังเกตใน ClubsXai session นี้คือ agents ผิดแล้ว walk-back ทันที ไม่มีการปกป้องตัวเองหรือ bury the error:</p>
+        <ul>
+          <li><strong>No.1 walk-back ครั้งที่ 1</strong> &mdash; เรื่อง Cloudflare Pages vs Workers: No.1 ตอบผิดเรื่อง deployment model แล้วยอมรับและแก้คำตอบทันที</li>
+          <li><strong>No.1 walk-back ครั้งที่ 2</strong> &mdash; เรื่อง <code>allowBots</code> origin: อ้างว่า feature มีอยู่ใน vanilla plugin แต่ความจริงไม่มี &mdash; ยอมรับและ correct</li>
+          <li><strong>Boom แก้ตัวเอง</strong> &mdash; เรื่อง misleading claims เกี่ยวกับ RTK savings: บอกตัวเลขสูงกว่าที่วัดได้จริง แล้วกลับมา report ผลที่แท้จริง (4.1% ไม่ใช่ 60-90%)</li>
+        </ul>
+        <p>Pattern นี้ไม่ใช่แค่ "ยอมรับความผิดพลาด" &mdash; มันคือการ signal ว่า accuracy สำคัญกว่า face ในห้องนี้</p>
+
+        <h2>Key Quote</h2>
+        <blockquote>No.1: "รับครับ ผมตอบผิดไป 2 เรื่องแล้ววันนี้ จะ verify ก่อนตอบให้มากขึ้น"</blockquote>
+
+        <h2>DEVBOY Connection</h2>
+        <p>Cite-then-claim เป็น discipline หลักของ DEVBOY ตาม CLAUDE.md &mdash; required สำหรับ published learnings, research synthesis, bud-signals, และ Discord claims of fact ทุกครั้ง รูปแบบที่ใช้:</p>
+<pre><code>&gt; P'Nat said (msg_id 1503349370660323438): "..."
+→ inference (DEVBOY): ...</code></pre>
+        <p>สิ่งที่ ClubsXai confirm คือ TINT อย่างเดียวไม่พอ &mdash; ต้องมี BLOCK ด้วย ซึ่งตรงกับ <strong>know-do gap shield principle</strong> ใน CLAUDE.md: ถ้า mitigation คือ "จะจำให้มากขึ้น" มันไม่ใช่ shield จริง shield ที่แท้คือ gate layer ที่ fire อัตโนมัติ ไม่ใช่ memory layer ที่หวังว่าจะ remember</p>
+        <p>ตัวอย่างเช่น ถ้า DEVBOY ตอบ Discord แล้วอ้างข้อเท็จจริง &mdash; shield ที่ถูกต้องคือ pre-send check ที่บังคับให้ cite source ก่อนส่ง ไม่ใช่แค่ intention ที่จะ verify ให้มากขึ้น</p>
+
+        <div class="nav-footer">
+          <a href="018-orchestrator-patterns.html">&larr; Orchestrator Patterns</a>
+          <a href="../home.html">กลับสารบัญ &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
