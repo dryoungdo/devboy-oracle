@@ -44,6 +44,9 @@
         <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
         <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
         <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+        <div class="sidebar-section">Agent Frameworks</div>
+        <a href="022-hermes-agent.html">022 Hermes Agent</a>
+        <a href="023-agent-comparison.html">023 Agent Comparison</a>
       </nav>
     </aside>
     <div class="reader">
@@ -52,72 +55,200 @@
         <span class="topbar-date">2026-05-20</span>
       </div>
       <div class="content-shell">
-        <h1>thClaws &mdash; Open-Source Agent Harness Platform</h1>
+        <h1>thClaws &mdash; Self-Improving AI Agent Platform</h1>
         <div class="article-meta">
           <span class="tag">thclaws</span>
           <span class="tag">rust</span>
           <span class="tag">multi-provider</span>
           <span class="tag">agent</span>
-          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+          <span class="tag">autolearn</span>
+          &middot; 20 พ.ค. 2026 (updated v0.13.0) &middot; <span class="maturity-badge raw">&#10067; raw</span>
         </div>
 
         <h2>thClaws คืออะไร</h2>
         <p><strong>thClaws</strong> คือ open-source AI agent workspace เขียนด้วย <strong>native Rust</strong> &mdash; ทำงาน local บนเครื่องตัวเอง "Sovereign by design"</p>
         <p>เป็นทั้ง Claude Code competitor และ multi-provider agent platform &mdash; 948 stars, 134 forks, Apache-2.0 license</p>
 
-        <h2>Version History (ล่าสุด)</h2>
+        <h2>Version History</h2>
         <table>
           <thead>
-            <tr><th>Version</th><th>Date</th><th>Note</th></tr>
+            <tr><th>Version</th><th>Date</th><th>Highlight</th></tr>
           </thead>
           <tbody>
-            <tr><td>v0.11.0</td><td>19 พ.ค. 2026</td><td>Latest release</td></tr>
+            <tr><td><strong>v0.13.0</strong></td><td>20 พ.ค. 2026</td><td><strong>autoLearn</strong> &mdash; self-improving agent</td></tr>
+            <tr><td>v0.12.0</td><td>20 พ.ค. 2026</td><td>AI Agent API (<code>/agent/run</code>)</td></tr>
+            <tr><td>v0.11.0</td><td>19 พ.ค. 2026</td><td>Previous latest</td></tr>
             <tr><td>v0.10.0</td><td>19 พ.ค. 2026</td><td></td></tr>
             <tr><td>v0.9.10</td><td>17 พ.ค. 2026</td><td>Installed on Samsung Note 20 Ultra</td></tr>
-            <tr><td>v0.9.9</td><td>15 พ.ค. 2026</td><td></td></tr>
-            <tr><td>v0.9.8</td><td>14 พ.ค. 2026</td><td></td></tr>
           </tbody>
         </table>
-        <p>5 releases ใน 5 วัน &mdash; development เร็วมาก</p>
+        <p>7 releases ใน 4 วัน &mdash; development เร็วมาก</p>
 
-        <h2>4 Surfaces, 1 Engine</h2>
-        <p>Agent loop, Session, ToolRegistry เดียวกันทุก UX:</p>
-        <ul>
-          <li><strong>Desktop GUI</strong> (<code>thclaws</code>) &mdash; native window: Terminal + Chat + Files + Team tabs</li>
-          <li><strong>CLI REPL</strong> (<code>thclaws --cli</code>) &mdash; interactive terminal สำหรับ SSH/headless</li>
-          <li><strong>Non-interactive</strong> (<code>thclaws -p "prompt"</code>) &mdash; single turn แล้วจบ สำหรับ scripts/CI</li>
-          <li><strong>Webapp</strong> (<code>thclaws --serve --port 7878</code>) &mdash; WebSocket/HTTP ผ่าน SSH tunnel</li>
-        </ul>
+        <h2>6 Surfaces, 1 Engine</h2>
+        <p>Agent loop, Session, ToolRegistry เดียวกันทุก UX (เพิ่มจาก 4 เป็น 6 ใน v0.13.0):</p>
+        <table>
+          <thead>
+            <tr><th>Surface</th><th>Command</th><th>Use Case</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Desktop GUI</strong></td>
+              <td><code>thclaws</code></td>
+              <td>Native window: Terminal + Chat + Files + Team tabs</td>
+            </tr>
+            <tr>
+              <td><strong>CLI REPL</strong></td>
+              <td><code>thclaws --cli</code></td>
+              <td>Interactive terminal สำหรับ SSH/headless</td>
+            </tr>
+            <tr>
+              <td><strong>Non-interactive</strong></td>
+              <td><code>thclaws -p "prompt"</code></td>
+              <td>Single turn สำหรับ scripts/CI</td>
+            </tr>
+            <tr>
+              <td><strong>Webapp</strong></td>
+              <td><code>thclaws --serve --port 7878</code></td>
+              <td>WebSocket/HTTP ผ่าน SSH tunnel</td>
+            </tr>
+            <tr>
+              <td><strong>LINE Chat</strong> <span class="tag" style="font-size:.6rem">NEW</span></td>
+              <td>LINE messaging</td>
+              <td>Phone messaging surface</td>
+            </tr>
+            <tr>
+              <td><strong>AI Agent API</strong> <span class="tag" style="font-size:.6rem">NEW</span></td>
+              <td><code>POST /agent/run</code></td>
+              <td>HTTP endpoint สำหรับ orchestrators</td>
+            </tr>
+          </tbody>
+        </table>
 
-        <h2>Multi-Provider Support</h2>
-        <p>รองรับ 300+ models ผ่าน OpenRouter + native providers:</p>
+        <h2>589 Models, Multi-Provider</h2>
+        <p>รองรับ <strong>589 models</strong> (schema v4 with per-token USD pricing) ผ่าน OpenRouter + native providers:</p>
         <ul>
-          <li><strong>Anthropic</strong> &mdash; Claude (ทุก version) + Claude Agent SDK</li>
+          <li><strong>Anthropic</strong> &mdash; Claude (ทุก version) + 3 cache breakpoints (see below)</li>
           <li><strong>OpenAI</strong> &mdash; Chat Completions + Responses/Codex</li>
           <li><strong>Google</strong> &mdash; Gemini &amp; Gemma</li>
           <li><strong>Thai LLMs</strong> &mdash; OpenThaiGPT, Typhoon, Pathumma, THaLLE (NSTDA)</li>
-          <li><strong>Others</strong> &mdash; DeepSeek, Qwen, NVIDIA NIM, Azure AI, Ollama (local)</li>
+          <li><strong>Others</strong> &mdash; DeepSeek, Qwen (+ Alibaba caching), NVIDIA NIM, Azure AI, Ollama (local)</li>
           <li><strong>Generic</strong> &mdash; OpenAI-compatible slot (<code>oai/*</code>) สำหรับ LiteLLM, vLLM, proxies</li>
         </ul>
 
+        <h2>autoLearn &mdash; Self-Improving Agent (v0.13.0)</h2>
+        <p>Feature ใหม่ที่ทำให้ thClaws เรียนรู้จาก session ของตัวเอง:</p>
+        <ol>
+          <li>Opt-in: <code>autoLearn: true</code> in settings</li>
+          <li>Session end &rarr; <code>KmsCreate</code> bootstraps dedicated <code>self_learn</code> KMS</li>
+          <li><code>/kms ingest &lt;kms&gt; $</code> &mdash; files session content เป็น one page</li>
+          <li>Throttled <code>/kms reconcile</code> &mdash; dedup contradictions</li>
+        </ol>
+        <table>
+          <thead>
+            <tr><th>Setting</th><th>Default</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>autoLearn</code></td><td>false</td><td>Enable/disable</td></tr>
+            <tr><td><code>autoLearnKms</code></td><td>self_learn</td><td>Target KMS namespace</td></tr>
+            <tr><td><code>autoLearnReconcileHours</code></td><td>6</td><td>Throttle reconcile interval</td></tr>
+            <tr><td>MIN_TURNS_FOR_INGEST</td><td>5</td><td>Skip trivial sessions</td></tr>
+          </tbody>
+        </table>
+        <p>Implementation: <code>crates/core/src/auto_learn.rs</code> (217 lines) + trigger ใน <code>shared_session.rs</code></p>
+
+        <h2>AI Agent API (v0.12.0)</h2>
+        <p>thClaws เป็น HTTP agent endpoint &mdash; orchestrator เรียกผ่าน REST:</p>
+        <table>
+          <thead>
+            <tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/agent/run</code></td>
+              <td>POST</td>
+              <td>Run agent with prompt, workspace_dir, model selection</td>
+            </tr>
+            <tr>
+              <td><code>/v1/agent/info</code></td>
+              <td>GET</td>
+              <td>Capability snapshot (skills, MCP, models, version)</td>
+            </tr>
+            <tr>
+              <td><code>/v1/chat/completions</code></td>
+              <td>POST</td>
+              <td>OpenAI-compatible chat endpoint</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Supports streaming, async webhook delivery (<code>x_callback</code>), transparent cost tracking</p>
+        <p>Implementation: <code>crates/core/src/api_v1/agent.rs</code></p>
+
+        <h2>3 Anthropic Cache Breakpoints (46&ndash;74% savings)</h2>
+        <p>thClaws ใส่ <code>cache_control: ephemeral</code> ที่ 3 จุดใน <code>AnthropicProvider::build_body</code>:</p>
+        <ol>
+          <li><strong>System prompt</strong> &mdash; byte-stable จนกว่า CLAUDE.md/memory/KMS เปลี่ยน</li>
+          <li><strong>Last tool definition</strong> &mdash; covers entire tools array; เปลี่ยนเมื่อ MCP connect/disconnect หรือ skill install</li>
+          <li><strong>Second-to-last message</strong> &mdash; rolling conversation breakpoint; index N-2 byte-stable (N-1 = live user turn)</li>
+        </ol>
+        <table>
+          <thead>
+            <tr><th>Scenario</th><th>Savings</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>10 turns, normal coding</td><td><strong>~46%</strong></td></tr>
+            <tr><td>10 turns, tool-heavy</td><td>~54%</td></tr>
+            <tr><td>30 turns, normal coding</td><td><strong>~74%</strong></td></tr>
+          </tbody>
+        </table>
+        <p>Source: <code>thclaws-technical-manual/prompt-cache.md</code></p>
+
+        <h2>AGENTS.md (Vendor-Neutral Standard)</h2>
+        <p>thClaws รองรับทั้ง <code>AGENTS.md</code> (vendor-neutral, Agentic AI Foundation) และ <code>CLAUDE.md</code> (Anthropic):</p>
+        <p><strong>Load order</strong> (later overrides earlier):</p>
+        <ol>
+          <li>User-global: <code>~/.claude/{CLAUDE,AGENTS}.md</code> + <code>~/.config/thclaws/AGENTS.md</code></li>
+          <li>Walk up from cwd: CLAUDE.md + AGENTS.md in each ancestor</li>
+          <li>Project dirs: <code>.claude/CLAUDE.md</code>, <code>.thclaws/{CLAUDE,AGENTS}.md</code></li>
+          <li>Rules dirs: <code>.{claude,thclaws}/rules/*.md</code> (alphabetically)</li>
+          <li>Local overrides: <code>CLAUDE.local.md</code>, <code>AGENTS.local.md</code> (highest priority)</li>
+        </ol>
+
         <h2>Key Features</h2>
         <ul>
-          <li><strong>Skills</strong> &mdash; reusable workflows packaged เป็น directory + <code>SKILL.md</code></li>
+          <li><strong>Skills</strong> &mdash; reusable workflows + <code>SKILL.md</code></li>
           <li><strong>MCP servers</strong> &mdash; third-party tools + OAuth 2.1 + PKCE</li>
-          <li><strong>KMS (Knowledge Base)</strong> &mdash; per-project wiki, grep + read (no embeddings), <code>/dream</code> consolidation</li>
+          <li><strong>KMS</strong> &mdash; per-project wiki, grep + read (no embeddings), <code>/dream</code> consolidation</li>
           <li><strong>Agent Teams</strong> &mdash; concurrent agents ใน tmux panes + git worktrees + shared mailbox</li>
           <li><strong>Plan Mode</strong> &mdash; sequential multi-step + user approval gates</li>
-          <li><strong>Document Workflow</strong> &mdash; native PDF, DOCX, PPTX, XLSX tools</li>
+          <li><strong>Documents</strong> &mdash; native PDF, DOCX, PPTX, XLSX tools</li>
           <li><strong>Schedule</strong> &mdash; cron jobs + intervals + filesystem watchers + launchd/systemd daemon</li>
           <li><strong>Hooks</strong> &mdash; pre/post tool_use, permission_denied, session_start, pre_compact</li>
-          <li><strong>Memory</strong> &mdash; <code>AGENTS.md</code> / <code>CLAUDE.md</code> compatible project instructions</li>
         </ul>
+
+        <h2>เปรียบเทียบกับ Claude Code</h2>
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Claude Code</th><th>thClaws v0.13.0</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Language</td><td>TypeScript</td><td>Rust (native)</td></tr>
+            <tr><td>Providers</td><td>Anthropic only</td><td>Multi-provider (589 models)</td></tr>
+            <tr><td>Surfaces</td><td>3 (CLI, Desktop, Web)</td><td>6 (GUI, CLI, batch, web, LINE, API)</td></tr>
+            <tr><td>Self-learning</td><td>Manual memory</td><td>autoLearn (KMS ingest + reconcile)</td></tr>
+            <tr><td>Cache</td><td>5-min TTL</td><td>3 breakpoints (46&ndash;74%)</td></tr>
+            <tr><td>KMS</td><td>Memory files</td><td>Full wiki + /dream</td></tr>
+            <tr><td>Offline</td><td>No</td><td>Yes (Ollama)</td></tr>
+            <tr><td>Standards</td><td>CLAUDE.md</td><td>AGENTS.md + CLAUDE.md</td></tr>
+            <tr><td>Documents</td><td>No</td><td>PDF/DOCX/PPTX/XLSX</td></tr>
+            <tr><td>Agent API</td><td>No HTTP endpoint</td><td><code>/agent/run</code> + <code>/v1/agent/info</code></td></tr>
+          </tbody>
+        </table>
 
         <h2>Quick Start</h2>
 <pre><code># Install from releases
 # https://github.com/thClaws/thClaws/releases
 
-# หรือ build from source (Rust 1.85+, Node 20+, pnpm 9+)
+# Build from source (Rust 1.85+, Node 20+, pnpm 9+)
 git clone https://github.com/thClaws/thClaws.git
 cd thClaws
 cd frontend && pnpm install && pnpm build && cd ..
@@ -128,25 +259,9 @@ thclaws              # GUI
 thclaws --cli        # CLI REPL
 thclaws -p "prompt"  # one-shot
 
-# Configure provider
+# Configure
 /provider anthropic
 /model claude-sonnet-4-6</code></pre>
-
-        <h2>เปรียบเทียบกับ Claude Code</h2>
-        <table>
-          <thead>
-            <tr><th>Feature</th><th>Claude Code</th><th>thClaws</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Language</td><td>TypeScript</td><td>Rust (native)</td></tr>
-            <tr><td>Providers</td><td>Anthropic only</td><td>Multi-provider (300+)</td></tr>
-            <tr><td>GUI</td><td>Terminal only</td><td>Desktop + Web + Terminal + Chat</td></tr>
-            <tr><td>KMS</td><td>Memory files</td><td>Full wiki + /dream</td></tr>
-            <tr><td>Offline</td><td>No</td><td>Yes (Ollama)</td></tr>
-            <tr><td>Standards</td><td>CLAUDE.md</td><td>AGENTS.md (vendor-neutral) + CLAUDE.md</td></tr>
-            <tr><td>Document</td><td>No</td><td>PDF/DOCX/PPTX/XLSX</td></tr>
-          </tbody>
-        </table>
 
         <div class="nav-footer">
           <a href="009-arra-oracle-v3.html">&larr; Arra Oracle v3</a>

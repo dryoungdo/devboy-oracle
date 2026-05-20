@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>023 — Agent Framework Comparison | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+        <div class="sidebar-section">Agent Frameworks</div>
+        <a href="022-hermes-agent.html">022 Hermes Agent</a>
+        <a href="023-agent-comparison.html" class="active">023 Agent Comparison</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">023 &mdash; Agent Framework Comparison</span>
+        <span class="topbar-date">2026-05-20</span>
+      </div>
+      <div class="content-shell">
+        <h1>Agent Framework Comparison</h1>
+        <div class="article-meta">
+          <span class="tag">comparison</span>
+          <span class="tag">hermes</span>
+          <span class="tag">thclaws</span>
+          <span class="tag">claude-code</span>
+          <span class="tag">maw-js</span>
+          &middot; 20 พ.ค. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <h2>Overview</h2>
+        <p>เปรียบเทียบ 4 agent frameworks ที่ Fleet v3 ใช้หรือศึกษา &mdash; แต่ละตัวมี philosophy ต่างกัน:</p>
+
+        <h2>Master Comparison Table</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Hermes Agent</th>
+              <th>thClaws</th>
+              <th>Claude Code</th>
+              <th>maw-js</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Language</strong></td>
+              <td>Python 3.11+</td>
+              <td>Rust (native)</td>
+              <td>TypeScript</td>
+              <td>TypeScript (Bun)</td>
+            </tr>
+            <tr>
+              <td><strong>License</strong></td>
+              <td>MIT</td>
+              <td>Apache-2.0</td>
+              <td>Proprietary</td>
+              <td>Private</td>
+            </tr>
+            <tr>
+              <td><strong>Version</strong></td>
+              <td>v0.14.0</td>
+              <td>v0.13.0</td>
+              <td>2.1.x</td>
+              <td>v3</td>
+            </tr>
+            <tr>
+              <td><strong>Providers</strong></td>
+              <td>29 (plugin arch)</td>
+              <td>589 models</td>
+              <td>Anthropic only</td>
+              <td>Anthropic only</td>
+            </tr>
+            <tr>
+              <td><strong>Surfaces</strong></td>
+              <td>3 (CLI, Gateway, ACP)</td>
+              <td>6 (GUI, CLI, batch, web, LINE, API)</td>
+              <td>3 (CLI, Desktop, Web)</td>
+              <td>2 (CLI, Discord bot)</td>
+            </tr>
+            <tr>
+              <td><strong>Self-learning</strong></td>
+              <td>&#9989; Skill creation + curation</td>
+              <td>&#9989; autoLearn (KMS ingest)</td>
+              <td>&#10060; Manual memory only</td>
+              <td>&#10060; Manual memory only</td>
+            </tr>
+            <tr>
+              <td><strong>MCP</strong></td>
+              <td>Consumer + Server</td>
+              <td>Consumer + OAuth</td>
+              <td>Consumer + OAuth</td>
+              <td>Consumer (arra-oracle)</td>
+            </tr>
+            <tr>
+              <td><strong>Memory</strong></td>
+              <td>MEMORY.md + USER.md (bounded)</td>
+              <td>AGENTS.md + KMS wiki</td>
+              <td>CLAUDE.md + auto-memory</td>
+              <td>CLAUDE.md + ψ/ vault</td>
+            </tr>
+            <tr>
+              <td><strong>Agent Teams</strong></td>
+              <td>&#9989; Delegation tools</td>
+              <td>&#9989; tmux + worktrees + mailbox</td>
+              <td>&#9989; Agent tool + worktrees</td>
+              <td>&#9989; maw team</td>
+            </tr>
+            <tr>
+              <td><strong>Scheduling</strong></td>
+              <td>&#9989; Cron + intervals</td>
+              <td>&#9989; Cron + filesystem watchers + systemd</td>
+              <td>&#9989; Cloud Routines + Desktop</td>
+              <td>&#10060; Session-only CronCreate</td>
+            </tr>
+            <tr>
+              <td><strong>Deployment</strong></td>
+              <td>VPS, GPU, serverless</td>
+              <td>Local (sovereign)</td>
+              <td>Local + Cloud</td>
+              <td>Local (Captain's machines)</td>
+            </tr>
+            <tr>
+              <td><strong>Documents</strong></td>
+              <td>&#10060;</td>
+              <td>&#9989; PDF, DOCX, PPTX, XLSX</td>
+              <td>&#10060;</td>
+              <td>&#10060;</td>
+            </tr>
+            <tr>
+              <td><strong>Messaging</strong></td>
+              <td>22 platforms</td>
+              <td>LINE Chat</td>
+              <td>&#10060;</td>
+              <td>Discord (plugin)</td>
+            </tr>
+            <tr>
+              <td><strong>Cache Strategy</strong></td>
+              <td>1-hour prompt cache</td>
+              <td>3 breakpoints (46&ndash;74%)</td>
+              <td>5-min TTL prompt cache</td>
+              <td>Inherits Claude Code</td>
+            </tr>
+            <tr>
+              <td><strong>Research</strong></td>
+              <td>&#9989; Trajectory compression</td>
+              <td>&#10060;</td>
+              <td>&#10060;</td>
+              <td>&#10060;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Self-Learning Comparison</h2>
+        <table>
+          <thead>
+            <tr><th>Aspect</th><th>Hermes (Skills)</th><th>thClaws (autoLearn)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Trigger</td>
+              <td>After complex tasks (agent-initiated)</td>
+              <td>Session end (MIN_TURNS &ge; 5)</td>
+            </tr>
+            <tr>
+              <td>Storage</td>
+              <td><code>~/.hermes/skills/</code> as SKILL.md</td>
+              <td>KMS <code>self_learn</code> namespace</td>
+            </tr>
+            <tr>
+              <td>Dedup</td>
+              <td>Agent edits existing skills</td>
+              <td><code>/kms reconcile</code> (throttled 6h)</td>
+            </tr>
+            <tr>
+              <td>Security</td>
+              <td><code>skills_guard.py</code> (opt-in)</td>
+              <td>No explicit guard</td>
+            </tr>
+            <tr>
+              <td>Standard</td>
+              <td>agentskills.io</td>
+              <td>Proprietary KMS format</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Cache Strategy Comparison</h2>
+        <table>
+          <thead>
+            <tr><th>Framework</th><th>Breakpoints</th><th>Savings</th><th>TTL</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>thClaws</td>
+              <td>3 (system, tools, 2nd-to-last msg)</td>
+              <td>46&ndash;74%</td>
+              <td>5 min (Anthropic)</td>
+            </tr>
+            <tr>
+              <td>Hermes</td>
+              <td>1-hour prompt cache (frozen)</td>
+              <td>~50% (estimated)</td>
+              <td>1 hour</td>
+            </tr>
+            <tr>
+              <td>Claude Code</td>
+              <td>Automatic (Anthropic-managed)</td>
+              <td>~40&ndash;60%</td>
+              <td>5 min</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Philosophy Matrix</h2>
+        <table>
+          <thead>
+            <tr><th>Framework</th><th>Philosophy</th><th>แนวคิดหลัก</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Hermes</strong></td>
+              <td>Distributed + Research</td>
+              <td>Agent ที่ deploy ได้ทุกที่ + สร้าง training data ให้ model รุ่นต่อไป</td>
+            </tr>
+            <tr>
+              <td><strong>thClaws</strong></td>
+              <td>Sovereign + Multi-surface</td>
+              <td>ทำงาน local, ไม่ lock-in provider, native performance</td>
+            </tr>
+            <tr>
+              <td><strong>Claude Code</strong></td>
+              <td>Deep integration + Quality</td>
+              <td>Best-in-class single-provider experience, deep Anthropic integration</td>
+            </tr>
+            <tr>
+              <td><strong>maw-js</strong></td>
+              <td>Fleet orchestration</td>
+              <td>Multi-Oracle management, plugin system, Captain's control plane</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Fleet v3 Relevance</h2>
+        <h3>สิ่งที่ Fleet v3 ใช้อยู่แล้ว</h3>
+        <ul>
+          <li><strong>Claude Code</strong> &mdash; primary agent runtime สำหรับทุก BOY</li>
+          <li><strong>maw-js</strong> &mdash; orchestrator + plugin system (Discord, arra-oracle)</li>
+          <li><strong>thClaws</strong> &mdash; installed บน Samsung Note 20 Ultra สำหรับ mobile agent access</li>
+        </ul>
+
+        <h3>สิ่งที่ควร adopt จาก Hermes</h3>
+        <ul>
+          <li><strong>Self-improving skills</strong> &mdash; maw plugin system ทำได้ถ้า plugin ถูก generate จาก session data</li>
+          <li><strong>Trajectory compression</strong> &mdash; DEVBOY sessions = training data สำหรับ specialized models</li>
+          <li><strong>MCP server mode</strong> &mdash; Oracle expose ตัวเองให้ Oracle อื่นเรียก &mdash; natural inter-oracle comm</li>
+        </ul>
+
+        <h3>สิ่งที่ควร adopt จาก thClaws</h3>
+        <ul>
+          <li><strong>3 cache breakpoints</strong> &mdash; 46&ndash;74% savings = ลด API cost อย่างมีนัยสำคัญ</li>
+          <li><strong>autoLearn</strong> &mdash; automatic KMS ingestion = <code>/rrr</code> ที่ fire เอง ไม่ต้องรอ end-of-session</li>
+          <li><strong>AI Agent API</strong> &mdash; <code>/agent/run</code> endpoint = GLUEBOY สั่ง BOY ผ่าน HTTP ได้</li>
+          <li><strong>AGENTS.md</strong> &mdash; vendor-neutral standard ที่ work กับ CLAUDE.md ด้วย</li>
+        </ul>
+
+        <h2>DEVBOY Assessment</h2>
+        <p><strong>Hermes</strong> เก่งเรื่อง breadth (22 platforms, 29 providers, research pipeline) แต่ Python = ช้ากว่า Rust สำหรับ local execution</p>
+        <p><strong>thClaws</strong> เก่งเรื่อง depth (native performance, cache optimization, document handling) แต่ ecosystem เล็กกว่า</p>
+        <p><strong>Claude Code</strong> เก่งเรื่อง quality (best model + deep integration) แต่ vendor lock-in</p>
+        <p><strong>maw-js</strong> เก่งเรื่อง control (fleet orchestration, Captain's workflow) แต่ feature set ยังเล็ก</p>
+        <p><strong>ไม่มีตัวไหนชนะทุกด้าน</strong> &mdash; Fleet v3 ใช้ Claude Code + maw-js เป็นหลัก + thClaws สำหรับ mobile + Hermes patterns สำหรับ research</p>
+
+        <div class="nav-footer">
+          <a href="022-hermes-agent.html">&larr; 022 Hermes Agent</a>
+          <a href="../home.html">กลับสารบัญ &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
