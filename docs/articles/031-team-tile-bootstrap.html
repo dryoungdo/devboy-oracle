@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>031 — Team-Tile Bootstrap | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+        <div class="sidebar-section">Agent Frameworks</div>
+        <a href="022-hermes-agent.html">022 Hermes Agent</a>
+        <a href="023-agent-comparison.html">023 Agent Comparison</a>
+        <div class="sidebar-section">AI Research</div>
+        <a href="024-sovereign-ai.html">024 Sovereign AI</a>
+        <a href="025-rag-retrieval-augmented-generation.html">025 RAG</a>
+        <div class="sidebar-section">Local AI</div>
+        <a href="026-ollama-local-llm.html">026 Ollama</a>
+        <a href="027-dgx-spark.html">027 DGX Spark</a>
+        <a href="028-self-hosted-ai.html">028 Self-Hosted AI</a>
+        <a href="029-local-ai-sovereignty.html">029 Local AI &amp; Sovereignty</a>
+        <a href="030-gemma4.html">030 Gemma 4</a>
+        <div class="sidebar-section">Multi-Agent</div>
+        <a href="031-team-tile-bootstrap.html" class="active">031 Team-Tile Bootstrap</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">031 &mdash; Team-Tile Bootstrap</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>Team-Tile Bootstrap &mdash; All-Maw-Verbs Multi-Agent Spawning</h1>
+        <div class="article-meta">
+          <span class="tag">maw-tile</span>
+          <span class="tag">team-tile</span>
+          <span class="tag">agent-teams</span>
+          <span class="tag">TeamCreate</span>
+          <span class="tag">SendMessage</span>
+          <span class="tag">wire-format</span>
+          <span class="tag">bootstrap</span>
+          <span class="tag">tmux</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <h2>Team-Tile คืออะไร</h2>
+        <p><strong>Team-Tile Bootstrap</strong> = pattern สำหรับ spawn N parallel claude.exe teammates ใน tmux panes โดยใช้ <strong>เฉพาะ maw verbs + Claude Code tools</strong> ไม่ต้อง raw <code>tmux split-window</code></p>
+        <p>Validated live ใน digger-oracle fleet 2026-05-20 โดย P'Nat. Source: <a href="https://gist.github.com/nazt/1ffec5896ece7b911a8ab9134df99ae1">gist</a></p>
+
+        <h2>Verb Chain</h2>
+        <pre><code>maw tile N &rarr; tmux select-layout &rarr; TeamCreate &rarr; SendMessage &times; N
+           &rarr; wait &rarr; SendMessage shutdown &times; N &rarr; TeamDelete &rarr; kill-pane</code></pre>
+        <p>หลัง maw-js #1837 &mdash; collapsed เหลือ 1 verb ต่อ pane:</p>
+        <pre><code>maw tile 1 --path &lt;repo&gt; --cmd "env ... claude.exe --agent-id ..."</code></pre>
+
+        <h2>7-Flag claude.exe Spawn</h2>
+        <table>
+          <thead>
+            <tr><th>Flag</th><th>Purpose</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>--agent-id</code></td><td>Routing key (unique per team)</td><td><code>reader@my-team</code></td></tr>
+            <tr><td><code>--agent-name</code></td><td>Display name ใน team UI</td><td><code>reader</code></td></tr>
+            <tr><td><code>--team-name</code></td><td>Namespace: <code>~/.claude/teams/&lt;team&gt;/</code></td><td><code>my-team</code></td></tr>
+            <tr><td><code>--agent-color</code></td><td>Visual differentiation</td><td><code>magenta</code></td></tr>
+            <tr><td><code>--parent-session-id</code></td><td>Auth chain to lead session</td><td>UUID</td></tr>
+            <tr><td><code>--model</code></td><td>Model per teammate</td><td><code>sonnet</code></td></tr>
+            <tr><td><code>--dangerously-skip-permissions</code></td><td>No permission prompts</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Canonical Addressing</h2>
+        <table>
+          <thead>
+            <tr><th>Format</th><th>Example</th><th>Works?</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>&lt;session&gt;:&lt;window&gt;.&lt;pane&gt;</code></td><td><code>50-digger:2.1</code></td><td style="color:#2d7d46"><strong>Yes</strong></td><td>tile-spawned = registered in agents map</td></tr>
+            <tr><td><code>%&lt;pane-id&gt;</code></td><td><code>%107</code></td><td style="color:#c0392b"><strong>No</strong></td><td>raw tmux ID not in agents map</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Wire Format &mdash; <code>&lt;teammate-message&gt;</code></h2>
+        <pre><code>&lt;teammate-message teammate_id="reader-a" color="magenta" summary="found 3 patterns"&gt;
+  markdown body หรือ JSON body
+&lt;/teammate-message&gt;</code></pre>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Body Shape</th><th>When</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Verbose markdown</td><td>Full analysis replies</td></tr>
+            <tr><td>2</td><td>Short text ack</td><td>Simple acknowledgments</td></tr>
+            <tr><td>3</td><td>JSON <code>idle_notification</code></td><td>Teammate waiting</td></tr>
+            <tr><td>4</td><td>JSON <code>shutdown_request</code></td><td>Lead requesting shutdown</td></tr>
+            <tr><td>5</td><td>JSON <code>shutdown_approved</code></td><td>Teammate confirming</td></tr>
+          </tbody>
+        </table>
+        <div class="callout info">
+          <strong>Missing from protocol:</strong> timestamp, message_id (no request-response correlation), type discriminator field. Body shapes are emergent, not formal schema.
+        </div>
+
+        <h2>6 Seams</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Seam</th><th>Severity</th><th>Mitigation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>maw-workon workers lack team membership</td><td>Medium</td><td>Proposed <code>/maw-team-workon</code></td></tr>
+            <tr><td>2</td><td>GitHub issues no team binding</td><td>Low</td><td>Manual assignment</td></tr>
+            <tr><td>3</td><td>XML render requires <code>--agent-id</code> env</td><td>Low</td><td>By design</td></tr>
+            <tr><td>4</td><td>Cross-session = auth boundary</td><td>Medium</td><td>Unix perms only</td></tr>
+            <tr><td>5</td><td><code>maw ls</code> blind to raw-spawn panes</td><td>Medium</td><td>maw-js #1837</td></tr>
+            <tr><td>6</td><td><strong>shutdown_approved &ne; process kill</strong></td><td style="color:#c0392b"><strong>High</strong></td><td><code>tmux kill-pane</code> follow-up</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warning">
+          <strong>Seam #6:</strong> <code>shutdown_approved</code> ไม่ kill process จริง &mdash; อาจเหลือ zombie claude.exe ใน tmux pane. ต้อง <code>tmux kill-pane</code> เสมอหลัง shutdown.
+        </div>
+
+        <h2>Agent() vs Team-Tile &mdash; เมื่อไหร่ใช้อะไร</h2>
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th>Agent()</th><th>team-tile</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Context window</td><td>Shares parent budget</td><td>Own full context per pane</td></tr>
+            <tr><td>Lifetime</td><td>Ephemeral (returns result)</td><td>Persistent (survives parent crash)</td></tr>
+            <tr><td>Cross-repo</td><td>No</td><td>Yes (<code>--path</code> per pane)</td></tr>
+            <tr><td>Communication</td><td>Result-only</td><td>Bidirectional SendMessage</td></tr>
+            <tr><td>Identity</td><td>Anonymous</td><td>Named 7-flag identity</td></tr>
+            <tr><td>Visibility</td><td>Internal to session</td><td>maw ls, maw peek, fleet UI</td></tr>
+            <tr><td>Cost</td><td>Lower (summary back)</td><td>N full Claude instances</td></tr>
+            <tr><td>Setup</td><td>Single function call</td><td>7 flags + tile + lifecycle</td></tr>
+          </tbody>
+        </table>
+
+        <h2>bootstrap.ts &mdash; Code Review</h2>
+        <p>Bun script (~140 LOC) จัดการ bash-side: <code>findClaudeBin()</code>, <code>parseMember()</code>, <code>shellQuote()</code>, <code>buildClaudeCmd()</code></p>
+        <table>
+          <thead>
+            <tr><th>Issue</th><th>Severity</th><th>Detail</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>--dangerously-skip-permissions</code> hardcoded</td><td style="color:#c0392b">CRITICAL</td><td>Should be opt-in via flag</td></tr>
+            <tr><td>No partial-failure rollback</td><td style="color:#c0392b">HIGH</td><td>Orphaned panes if spawn 3/5 fails</td></tr>
+            <tr><td>findClaudeBin hardcodes NVM v24.15.0</td><td style="color:#b8860b">MEDIUM</td><td>Breaks on Node version bump</td></tr>
+            <tr><td>sleep-based readiness</td><td style="color:#b8860b">MEDIUM</td><td>Should poll for process start</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Security Model</h2>
+        <ul>
+          <li><code>--dangerously-skip-permissions</code> propagate จาก lead ไปทุก teammate</li>
+          <li>ทุก teammate run เป็น same Unix user &mdash; ไม่มี per-teammate sandbox</li>
+          <li>Teammate สามารถ write file ใดก็ได้ที่ user เป็นเจ้าของ</li>
+          <li>Teammate สามารถ inject message เข้า inbox teammate อื่น (Seam 4)</li>
+          <li>Security boundary = OS user isolation เท่านั้น</li>
+        </ul>
+
+        <h2>Filesystem Transport</h2>
+        <pre><code>~/.claude/teams/&lt;team&gt;/
+├── config.json          # team registry
+├── inboxes/
+│   ├── &lt;role-a&gt;.json    # pending messages
+│   └── &lt;role-b&gt;.json
+└── tasks/               # shared task list</code></pre>
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th>Claude Teams</th><th>OpenAI Swarm</th><th>CrewAI</th><th>LangGraph</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Transport</td><td><strong>Filesystem</strong></td><td>In-memory</td><td>In-memory</td><td>State graph</td></tr>
+            <tr><td>Persistence</td><td>Survives crash</td><td>None</td><td>None</td><td>Checkpoint</td></tr>
+            <tr><td>Schema</td><td>None (emergent)</td><td>Typed functions</td><td>Pydantic</td><td>TypedDict</td></tr>
+            <tr><td>Multi-machine</td><td>No</td><td>No</td><td>No</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+
+        <h2>3 Skills ที่มากับ Gist</h2>
+        <table>
+          <thead>
+            <tr><th>Skill</th><th>Purpose</th><th>Args</th><th>Auto-cleanup</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>/team-tile-spawn</code></td><td>Production verb</td><td><code>&lt;team&gt; &lt;role@cwd:color:#mission&gt;</code></td><td>No</td></tr>
+            <tr><td><code>/team-tile-demo</code></td><td>Educational 12-step walkthrough</td><td><code>[--quick|--narrate]</code></td><td>No</td></tr>
+            <tr><td><code>/full-auto-long-demo</code></td><td>Self-running end-to-end</td><td>None</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+
+        <h2>maw-js #1837 &mdash; Evolution</h2>
+        <p>ก่อน #1837 ต้อง 2 verbs ต่อ pane (timing race ระหว่าง tile กับ run):</p>
+        <pre><code>maw tile 2
+maw run 50-digger:2.1 "cd /opt/Code/foo &amp;&amp; env ... claude.exe ..."</code></pre>
+        <p>หลัง #1837 &mdash; atomic spawn 1 verb:</p>
+        <pre><code>maw tile 1 --path /opt/Code/foo --cmd "env ... claude.exe ..."</code></pre>
+        <div class="callout info">
+          <strong>Key improvement:</strong> ไม่มี timing gap ระหว่าง pane creation กับ command execution &mdash; ถ้า tile fail ไม่มี orphaned pane, ถ้า succeed command รันทันที.
+        </div>
+
+        <h2>Fleet v3 Applicability</h2>
+        <table>
+          <thead>
+            <tr><th>Dimension</th><th>Current (Agent())</th><th>With team-tile</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Cross-BOY coordination</td><td>maw hey (async)</td><td>Live teammate ใน peer repo + bidirectional</td></tr>
+            <tr><td>Research fan-out</td><td>Agent() &times; 10, same repo</td><td>team-tile &times; N, each different repo</td></tr>
+            <tr><td>Bud validation</td><td>Manual assessment</td><td>Pre-bud test: spawn temporary teammate</td></tr>
+            <tr><td>Shutdown/cleanup</td><td>Agent() auto-dies</td><td>Explicit lifecycle (6 seams)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warning">
+          <strong>DO Server Status:</strong> tmux 3.4, bun 1.3.11, maw-js v26.5.17-beta.2354 &mdash; all prerequisites present. Lab experiment needed to validate.
+        </div>
+
+        <h2>DEVBOY Takeaways</h2>
+        <ol>
+          <li><strong>team-tile complement Agent() ไม่ใช่ replacement</strong> &mdash; ใช้ team-tile เมื่อต้อง cross-repo, persistent, bidirectional; ใช้ Agent() เมื่อ same-repo ephemeral result-only</li>
+          <li><strong>maw tile คือ new primitive</strong> ที่ DEVBOY ยังไม่เคยมี &mdash; extends conceptual knowledge จาก article 003 สู่ implementation level</li>
+          <li><strong>Seam 6 = ต้องจำ</strong> &mdash; <code>tmux kill-pane</code> เสมอหลัง shutdown_approved</li>
+          <li><strong>Security concern</strong> &mdash; <code>--dangerously-skip-permissions</code> hardcoded ใน bootstrap.ts = ทุก teammate ทำอะไรก็ได้</li>
+          <li><strong>Lab experiment required</strong> &mdash; run <code>&psi;/lab/team-tile-bootstrap/</code> บน DO server ก่อน promote to solid</li>
+          <li><strong>Pre-bud potential</strong> &mdash; team-tile สามารถเป็น mechanism สำหรับ test bud candidates ก่อน <code>maw bud</code></li>
+        </ol>
+
+        <div class="nav-footer">
+          <a href="030-gemma4.html">&larr; 030 Gemma 4</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
