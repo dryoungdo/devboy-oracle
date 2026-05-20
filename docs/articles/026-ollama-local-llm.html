@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>026 — Ollama | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+        <div class="sidebar-section">Agent Frameworks</div>
+        <a href="022-hermes-agent.html">022 Hermes Agent</a>
+        <a href="023-agent-comparison.html">023 Agent Comparison</a>
+        <div class="sidebar-section">AI Research</div>
+        <a href="024-sovereign-ai.html">024 Sovereign AI</a>
+        <a href="025-rag-retrieval-augmented-generation.html">025 RAG</a>
+        <div class="sidebar-section">Local AI</div>
+        <a href="026-ollama-local-llm.html" class="active">026 Ollama</a>
+        <a href="027-dgx-spark.html">027 DGX Spark</a>
+        <a href="028-self-hosted-ai.html">028 Self-Hosted AI</a>
+        <a href="029-local-ai-sovereignty.html">029 Local AI &amp; Sovereignty</a>
+        <a href="030-gemma4.html">030 Gemma 4</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">026 &mdash; Ollama</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>Ollama &mdash; Local LLM Runtime</h1>
+        <div class="article-meta">
+          <span class="tag">ollama</span>
+          <span class="tag">local-inference</span>
+          <span class="tag">llama-cpp</span>
+          <span class="tag">gguf</span>
+          <span class="tag">openai-compatible</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <h2>Ollama คืออะไร</h2>
+        <p><strong>Ollama</strong> = open-source local LLM runtime เขียนด้วย Go, wraps llama.cpp &mdash; "Docker for AI models"</p>
+        <p>Pull model ด้วยคำสั่งเดียว: <code>ollama pull llama3</code> แล้วรันได้ทันที ไม่ต้อง config อะไร</p>
+
+        <h2>Numbers</h2>
+        <table>
+          <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>GitHub stars</td><td><strong>172K+</strong></td></tr>
+            <tr><td>Monthly downloads</td><td><strong>52M</strong> (Q1 2026)</td></tr>
+            <tr><td>Models available</td><td><strong>4,500+</strong></td></tr>
+            <tr><td>Current version</td><td>v0.24.0 (May 2026)</td></tr>
+            <tr><td>License</td><td>MIT</td></tr>
+            <tr><td>Language</td><td>Go + llama.cpp (C/C++)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Architecture</h2>
+        <ul>
+          <li><strong>Model format</strong>: GGUF (binary, stores architecture + tokenizer + weights)</li>
+          <li><strong>Default quantization</strong>: Q4_K_M (4-bit mixed-precision, ~75% compression vs FP16)</li>
+          <li><strong>Modelfile</strong>: Dockerfile-like config &mdash; <code>FROM</code>, <code>SYSTEM</code>, <code>TEMPLATE</code>, <code>PARAMETER</code></li>
+          <li><strong>Storage</strong>: Content-addressable blob storage, layers shared across variants</li>
+          <li><strong>Multi-model</strong>: 3+ models concurrent (controlled by <code>OLLAMA_MAX_LOADED_MODELS</code>)</li>
+        </ul>
+
+        <h2>API</h2>
+        <p>REST API on <code>localhost:11434</code> &mdash; <strong>OpenAI-compatible</strong> mode ที่ <code>/v1/chat/completions</code></p>
+        <table>
+          <thead><tr><th>Endpoint</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST /api/chat</code></td><td>Multi-turn conversation</td></tr>
+            <tr><td><code>POST /api/generate</code></td><td>Text completion</td></tr>
+            <tr><td><code>POST /api/embed</code></td><td>Vector embeddings</td></tr>
+            <tr><td><code>POST /api/pull</code></td><td>Download model</td></tr>
+            <tr><td><code>GET /api/tags</code></td><td>List local models</td></tr>
+            <tr><td><code>/v1/chat/completions</code></td><td>OpenAI-compatible (drop-in replacement)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Hardware Requirements</h2>
+        <table>
+          <thead><tr><th>Model Size</th><th>VRAM/RAM</th><th>RTX 4090 tok/s</th></tr></thead>
+          <tbody>
+            <tr><td>7B (Q4_K_M)</td><td>4-6 GB</td><td>60-145</td></tr>
+            <tr><td>13B</td><td>8-10 GB</td><td>~40</td></tr>
+            <tr><td>34B</td><td>20-24 GB</td><td>~25</td></tr>
+            <tr><td>70B</td><td>38-48 GB</td><td>~25</td></tr>
+          </tbody>
+        </table>
+        <p>GPU: NVIDIA CUDA (535+), AMD ROCm (Linux), Apple Metal (M1-M4 auto-detected). CPU-only ทำได้แต่ช้ามาก</p>
+
+        <h2>Ecosystem</h2>
+        <table>
+          <thead><tr><th>Category</th><th>Tools</th></tr></thead>
+          <tbody>
+            <tr><td>IDE</td><td>Continue.dev (VS Code, JetBrains, Neovim), GitHub Copilot local</td></tr>
+            <tr><td>Frameworks</td><td>LangChain, LlamaIndex, CrewAI, AutoGen, Haystack</td></tr>
+            <tr><td>UI</td><td><strong>Open WebUI</strong> (137K stars), LobeChat, LibreChat</td></tr>
+            <tr><td>MCP</td><td>Community MCP servers (ollama-mcp) &mdash; expose Ollama to Claude Code</td></tr>
+            <tr><td>Deploy</td><td>Docker, Kubernetes (Helm charts, Ollama Operator)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Ollama vs Alternatives</h2>
+        <table>
+          <thead><tr><th>Tool</th><th>Stars</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Ollama</strong></td><td>172K</td><td>Developer/API, best Apple Silicon perf</td></tr>
+            <tr><td><strong>LM Studio</strong></td><td>Closed</td><td>GUI + HuggingFace browser</td></tr>
+            <tr><td><strong>Jan.ai</strong></td><td>41K</td><td>Privacy-first, zero telemetry</td></tr>
+            <tr><td><strong>GPT4All</strong></td><td>-</td><td>Non-technical users, built-in RAG</td></tr>
+            <tr><td><strong>LocalAI</strong></td><td>35K</td><td>Multi-modal (text+image+audio+video)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Limitations</h2>
+        <ul>
+          <li><strong>Not production-grade</strong> &mdash; ใช้ vLLM/SGLang สำหรับ production multi-user serving</li>
+          <li><strong>Concurrency bottleneck</strong> &mdash; cross-model request queuing ทำให้ latency สูงเมื่อรัน multiple models</li>
+          <li><strong>No auth/rate-limiting</strong> &mdash; API เปิด localhost ตรงๆ ต้องใส่ reverse proxy เอง</li>
+          <li><strong>ROCm fragility</strong> &mdash; AMD GPU บน Linux ยังมีปัญหา driver version mismatch</li>
+        </ul>
+
+        <h2>Fleet v3 Relevance</h2>
+        <div class="callout info">
+          <strong>Phase 1 plan:</strong> <code>brew install ollama</code> on Mac mini → <code>ollama pull qwen3:8b</code> → validate Thai output quality<br>
+          ใช้เป็น fallback inference สำหรับ medium/low tasks &mdash; ถ้า Anthropic ล่ม fleet ยังทำงาน basic ได้
+        </div>
+
+        <div class="nav-footer">
+          <a href="025-rag-retrieval-augmented-generation.html">&larr; 025 RAG</a>
+          <a href="027-dgx-spark.html">027 DGX Spark &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

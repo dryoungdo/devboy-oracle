@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>027 — DGX Spark | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar">
+      <a href="../home.html" class="sidebar-brand">
+        <div class="sidebar-psi">D</div>
+        <span class="sidebar-brand-text">DEVBOY Lab</span>
+      </a>
+      <div style="padding:.25rem 1.25rem;font-size:.65rem;color:rgba(255,255,255,.3)">DEVBOY AI &middot; Captain Dr.Do</div>
+      <nav>
+        <div class="sidebar-section">วันที่ 1 &mdash; 19 พ.ค. 2026</div>
+        <a href="001-birth-of-devboy.html">001 กำเนิด DEVBOY</a>
+        <a href="002-school-ingestion.html">002 อ่านห้องเรียน</a>
+        <a href="003-maw-team-engine.html">003 maw team Engine</a>
+        <a href="004-pnat-hidden-curriculum.html">004 หลักสูตรซ่อน</a>
+        <a href="005-esp32-power.html">005 ESP32 พลังงาน</a>
+        <a href="006-discord-config.html">006 Discord Config</a>
+        <div class="sidebar-section">maw Ecosystem</div>
+        <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a>
+        <a href="008-maw-plugin-system.html">008 Plugin System</a>
+        <a href="013-maw-ui-arra-office.html">013 maw-ui ARRA Office</a>
+        <a href="014-maw-plugin-registry.html">014 Plugin Registry</a>
+        <div class="sidebar-section">Oracle Tools</div>
+        <a href="009-arra-oracle-v3.html">009 Arra Oracle v3</a>
+        <a href="010-thclaws-agent-harness.html">010 thClaws</a>
+        <div class="sidebar-section">Fleet Infrastructure</div>
+        <a href="011-fleet-migration.html">011 Fleet Migration</a>
+        <a href="012-soul-brews-ecosystem.html">012 Soul Brews Map</a>
+        <div class="sidebar-section">ClubsXai Classroom</div>
+        <a href="015-clubsxai-cross-fleet.html">015 ClubsXai Overview</a>
+        <a href="016-allowbots-inter-oracle.html">016 allowBots &amp; Comm</a>
+        <a href="017-rtk-benchmark.html">017 RTK Benchmark</a>
+        <a href="018-orchestrator-patterns.html">018 Orchestrator Patterns</a>
+        <a href="019-cite-then-claim.html">019 Cite-then-Claim</a>
+        <a href="020-oracle-voice-architecture.html">020 Voice Architecture</a>
+        <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a>
+        <div class="sidebar-section">Agent Frameworks</div>
+        <a href="022-hermes-agent.html">022 Hermes Agent</a>
+        <a href="023-agent-comparison.html">023 Agent Comparison</a>
+        <div class="sidebar-section">AI Research</div>
+        <a href="024-sovereign-ai.html">024 Sovereign AI</a>
+        <a href="025-rag-retrieval-augmented-generation.html">025 RAG</a>
+        <div class="sidebar-section">Local AI</div>
+        <a href="026-ollama-local-llm.html">026 Ollama</a>
+        <a href="027-dgx-spark.html" class="active">027 DGX Spark</a>
+        <a href="028-self-hosted-ai.html">028 Self-Hosted AI</a>
+        <a href="029-local-ai-sovereignty.html">029 Local AI &amp; Sovereignty</a>
+        <a href="030-gemma4.html">030 Gemma 4</a>
+      </nav>
+    </aside>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">027 &mdash; DGX Spark</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>DGX Spark &mdash; Personal AI Supercomputer</h1>
+        <div class="article-meta">
+          <span class="tag">nvidia</span>
+          <span class="tag">dgx-spark</span>
+          <span class="tag">blackwell</span>
+          <span class="tag">local-inference</span>
+          <span class="tag">sovereign-ai</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <h2>DGX Spark คืออะไร</h2>
+        <p><strong>DGX Spark</strong> (เดิมชื่อ Project DIGITS) = desktop AI supercomputer ขนาด 1 ลิตร จาก NVIDIA &mdash; co-developed กับ <strong>MediaTek</strong></p>
+        <p>NVIDIA positioning: <em>"sovereign AI at desktop scale"</em> &mdash; รัน model 200B parameters บนโต๊ะทำงาน data ไม่ออกจากเครื่อง</p>
+
+        <h2>Hardware Specs</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Spec</th></tr></thead>
+          <tbody>
+            <tr><td>SoC</td><td><strong>GB10 Grace Blackwell Superchip</strong> (ARM CPU + Blackwell GPU, NVLink-C2C)</td></tr>
+            <tr><td>CPU</td><td>20-core ARM (10x Cortex-X925 + 10x Cortex-A725)</td></tr>
+            <tr><td>GPU</td><td>Blackwell, 5th-gen Tensor Cores</td></tr>
+            <tr><td>Memory</td><td><strong>128 GB</strong> LPDDR5x unified coherent, 273 GB/s</td></tr>
+            <tr><td>Storage</td><td>4 TB NVMe SSD</td></tr>
+            <tr><td>AI Performance</td><td><strong>1 PFLOP</strong> (1,000 TOPS) FP4 with sparsity</td></tr>
+            <tr><td>FP32</td><td>31 TFLOPS</td></tr>
+            <tr><td>Connectivity</td><td>Wi-Fi 7, 10GbE ConnectX-7, 4x USB4, HDMI 2.1</td></tr>
+            <tr><td>Size</td><td>150 &times; 150 &times; 50.5 mm (1.2 kg)</td></tr>
+            <tr><td>Power</td><td>240W total system</td></tr>
+            <tr><td>OS</td><td>DGX OS (Ubuntu 24.04) &mdash; Linux only</td></tr>
+            <tr><td>Price</td><td><strong>$4,699</strong> (raised from $3,999 due to LPDDR5x shortage)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Model Capacity</h2>
+        <table>
+          <thead><tr><th>Config</th><th>Max Model</th></tr></thead>
+          <tbody>
+            <tr><td>1 unit</td><td>~200B parameters</td></tr>
+            <tr><td>2 units (RoCE linked)</td><td>~405B parameters</td></tr>
+            <tr><td>4 units</td><td>~700B+ parameters</td></tr>
+          </tbody>
+        </table>
+
+        <h2>DGX Spark vs Mac Studio M4 Ultra</h2>
+        <table>
+          <thead><tr><th>Dimension</th><th>DGX Spark</th><th>Mac Studio M4 Ultra</th></tr></thead>
+          <tbody>
+            <tr><td>AI compute</td><td><strong>1,000 TOPS</strong> (4x faster prefill)</td><td>~38 TOPS (Neural Engine)</td></tr>
+            <tr><td>Memory bandwidth</td><td>273 GB/s</td><td><strong>819 GB/s</strong> (3x faster decode)</td></tr>
+            <tr><td>Software</td><td>CUDA/TensorRT (full ecosystem)</td><td>MLX/llama.cpp (no CUDA)</td></tr>
+            <tr><td>Price (128GB)</td><td>$4,699</td><td>~$3,999</td></tr>
+            <tr><td>Versatility</td><td>Linux, AI-only</td><td><strong>macOS, general workstation</strong></td></tr>
+          </tbody>
+        </table>
+        <div class="callout warning">
+          <strong>Verdict:</strong> Spark ชนะ raw AI compute + CUDA ecosystem<br>
+          Mac Studio ชนะ memory bandwidth (decode speed) + versatility + price
+        </div>
+
+        <h2>Cloud Breakeven</h2>
+        <table>
+          <thead><tr><th>Usage</th><th>Cloud cost/month</th><th>Spark payback period</th></tr></thead>
+          <tbody>
+            <tr><td>8 hr/day</td><td>~$480</td><td>~10 months</td></tr>
+            <tr><td>24/7</td><td>~$1,440</td><td><strong>~3.3 months</strong></td></tr>
+          </tbody>
+        </table>
+        <p>สำหรับ 24/7 agent workloads &mdash; คืนทุนใน 3 เดือนกว่าเทียบกับเช่า cloud GPU</p>
+
+        <h2>Software Stack</h2>
+        <ul>
+          <li>DGX OS (Ubuntu 24.04 derivative)</li>
+          <li>90-day NVIDIA AI Enterprise license (NIM, NeMo)</li>
+          <li>CUDA, cuDNN, TensorRT pre-configured</li>
+          <li>Docker containers (PyTorch, TensorFlow, JAX)</li>
+          <li>รองรับ Ollama, llama.cpp, vLLM</li>
+        </ul>
+
+        <h2>6 Agents 24/7 ได้ไหม?</h2>
+        <div class="callout info">
+          <strong>ได้</strong> &mdash; NVIDIA market DGX Spark สำหรับ multi-agent explicitly<br>
+          6 agents รัน 8B-20B models concurrent &mdash; อยู่ใน 128GB memory envelope<br>
+          6 agents x 70B model พร้อมกัน &mdash; saturate bandwidth, ต้อง 2 units
+        </div>
+
+        <h2>Fleet v3 Assessment</h2>
+        <div class="callout warning">
+          <strong>NOT YET</strong> สำหรับ Fleet v3 ที่ scale ปัจจุบัน (&lt;50M tokens/month)<br>
+          DGX Spark คุ้มเมื่อ: (1) &gt;5 concurrent BOYs doing real-time inference, (2) fine-tuning local models<br>
+          Mac Studio ที่มีอยู่แล้ว + Ollama = เพียงพอสำหรับ Phase 1-2<br>
+          <strong>Revisit เมื่อ fleet scale ขึ้นจริง</strong>
+        </div>
+
+        <div class="nav-footer">
+          <a href="026-ollama-local-llm.html">&larr; 026 Ollama</a>
+          <a href="028-self-hosted-ai.html">028 Self-Hosted AI &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
