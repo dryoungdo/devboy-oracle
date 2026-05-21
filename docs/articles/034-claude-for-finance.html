@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>034 — Claude for Finance | DEVBOY Lab</title>
+  <title>034 — Claude for Finance (Expert Guide) | DEVBOY Lab</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -15,112 +15,525 @@
     <script src="../js/sidebar.js"></script>
     <div class="reader">
       <div class="topbar">
-        <span class="topbar-title">034 &mdash; Claude for Finance</span>
+        <span class="topbar-title">034 &mdash; Claude for Finance (Expert Guide)</span>
         <span class="topbar-date">2026-05-21</span>
       </div>
       <div class="content-shell">
-        <h1>Claude for Finance &mdash; How to Use</h1>
+        <h1>Claude for Finance &mdash; Expert Guide</h1>
         <div class="article-meta">
           <span class="tag">claude-finance</span>
           <span class="tag">financial-agents</span>
           <span class="tag">MCP</span>
           <span class="tag">compliance</span>
           <span class="tag">excel-integration</span>
+          <span class="tag">prompt-engineering</span>
           <span class="tag">anthropic</span>
           &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
         </div>
 
-        <h2>Overview</h2>
-        <p>Anthropic มี <strong>Claude for Financial Services</strong> เป็น dedicated initiative:</p>
+        <!-- ============================================ -->
+        <!-- PART 1: PRODUCT OVERVIEW                     -->
+        <!-- ============================================ -->
+
+        <h2>1. Product Overview &amp; Launch Timeline</h2>
+        <p>Anthropic มี <strong>Claude for Financial Services</strong> เป็น dedicated initiative with three launch waves:</p>
+        <table>
+          <thead><tr><th>Date</th><th>Launch</th><th>Details</th></tr></thead>
+          <tbody>
+            <tr><td><strong>15 ก.ค. 2025</strong></td><td>Claude for Financial Services v1</td><td>Product page + first 9 data connectors (Box, Daloopa, Databricks, FactSet, Morningstar, PitchBook, S&amp;P Global, Snowflake, Palantir)</td></tr>
+            <tr><td><strong>24 ก.พ. 2026</strong></td><td>Cowork Finance Plugins</td><td>5 vertical plugins (Financial Analysis, IB, Equity Research, PE, Wealth Mgmt). Claude Enterprise required.</td></tr>
+            <tr><td><strong>5 พ.ค. 2026</strong></td><td>Finance Agents + M365 GA</td><td>10 agent templates + 7 vertical plugins + Microsoft 365 add-ins GA + 8 new connectors + Moody's partnership + Opus 4.7</td></tr>
+          </tbody>
+        </table>
+        <p>GitHub: <code>anthropics/financial-services</code> &mdash; <strong>26,233 stars</strong>, 3,660 forks, Apache 2.0, Python. Last updated 21 พ.ค. 2026.</p>
+        <p>Named customers on <a href="https://claude.com/solutions/financial-services">product page</a>: <strong>Citadel, BNY Mellon, Citi, Mizuho, RBC, Carlyle, FIS, Travelers, PwC</strong> + 15 others. ~40% of Anthropic's top 50 enterprise customers are in financial sector.</p>
+
+        <!-- ============================================ -->
+        <!-- PART 2: AGENT ARCHITECTURE                   -->
+        <!-- ============================================ -->
+
+        <h2>2. Agent Architecture (3-Tier Security)</h2>
+        <div class="callout info">
+          <strong>ทุก agent ใช้ architecture เดียวกัน:</strong> Orchestrator &rarr; Reader (untrusted docs) &rarr; Writer. ป้องกัน prompt injection จาก financial documents structurally ไม่ใช่ prompting.
+        </div>
+        <table>
+          <thead><tr><th>Layer</th><th>Model</th><th>Tools</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Orchestrator</strong></td><td>Opus 4.7</td><td>Dispatch only</td><td>ไม่แตะ untrusted docs, ไม่เขียนไฟล์</td></tr>
+            <tr><td><strong>Reader subagent</strong></td><td>Opus 4.7</td><td>Read + Grep only</td><td>อ่าน untrusted external docs, return schema-validated JSON only. No MCP, No Write, No Bash</td></tr>
+            <tr><td><strong>Writer subagent</strong></td><td>Opus 4.7</td><td>Write + Edit</td><td>คนเดียวที่เขียนไฟล์ได้. ไม่เปิด external docs โดยตรง</td></tr>
+          </tbody>
+        </table>
         <ul>
-          <li>กลาง 2025: Launch กับ FactSet + MSCI data partnerships</li>
-          <li>5 พ.ค. 2026: <strong>10 finance agent templates</strong> open-source บน GitHub (<code>anthropics/financial-services</code>)</li>
-          <li>พ.ค. 2026: Full <strong>Microsoft 365 integration</strong> (Excel, PowerPoint, Word, Outlook)</li>
+          <li><strong>ALL 10 agents + ALL subagents ใช้ Opus 4.7</strong> &mdash; ไม่มี Sonnet หรือ Haiku ใน managed-agent configs</li>
+          <li><strong>No agent writes to production systems</strong> &mdash; output staged ใน <code>./out/</code> สำหรับ human sign-off</li>
+          <li><strong>Reader output = schema-validated</strong> with character-class restrictions &mdash; free text ไม่ผ่าน, prompt injection จาก docs propagate ไม่ได้</li>
+          <li><strong>Cross-agent handoffs</strong> event-based via <code>handoff_request</code>, routed โดย <code>orchestrate.py</code> (หรือ Temporal/Airflow)</li>
         </ul>
 
-        <h2>10 Agent Templates</h2>
-        <p>แต่ละ agent มี 3 components: <strong>skills</strong> (Markdown instructions), <strong>connectors</strong> (MCP data access), <strong>subagents</strong> (Claude models สำหรับ sub-tasks)</p>
+        <!-- ============================================ -->
+        <!-- PART 3: 10 AGENT TEMPLATES                   -->
+        <!-- ============================================ -->
+
+        <h2>3. Ten Agent Templates (Detail)</h2>
         <table>
-          <thead><tr><th>Agent</th><th>Use Case</th><th>Difficulty</th></tr></thead>
+          <thead><tr><th>Agent</th><th>Does What</th><th>Input</th><th>Output</th><th>MCP</th><th>Difficulty</th></tr></thead>
           <tbody>
-            <tr><td>Pitch Builder</td><td>Generate pitchbooks จาก deal parameters</td><td>Medium</td></tr>
-            <tr><td>Model Builder</td><td>สร้าง financial models จาก assumptions</td><td>Hard</td></tr>
-            <tr><td>Earnings Reviewer</td><td>Analyze quarterly earnings</td><td>Easy</td></tr>
-            <tr><td>Market Researcher</td><td>Competitive landscape analysis</td><td>Easy</td></tr>
-            <tr><td>Meeting Preparer</td><td>Pre-meeting briefing packages</td><td>Easy</td></tr>
-            <tr><td>Valuation Reviewer</td><td>Audit DCF/comparable valuations</td><td>Hard</td></tr>
-            <tr><td>GL Reconciler</td><td>General ledger reconciliation</td><td>Medium</td></tr>
-            <tr><td>Month-End Closer</td><td>Automate month-end close</td><td>Medium</td></tr>
-            <tr><td>Financial Statement Auditor</td><td>Audit financial statements</td><td>Hard</td></tr>
-            <tr><td>KYC Screener</td><td>Know-Your-Customer compliance</td><td>Medium</td></tr>
+            <tr>
+              <td><strong>Pitch Agent</strong></td>
+              <td>Comps, precedent txns, LBO/DCF valuation, branded pitch deck &mdash; end to end</td>
+              <td>Target + acquirer + thesis</td>
+              <td><code>pitch-&lt;target&gt;.pptx</code> + <code>model.xlsx</code></td>
+              <td>S&amp;P CapIQ, Daloopa</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>Model Builder</strong></td>
+              <td>DCF, LBO, 3-statement, comps models as file artifacts</td>
+              <td>Ticker + model type + assumptions JSON</td>
+              <td><code>model.xlsx</code></td>
+              <td>S&amp;P CapIQ, Daloopa</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>Earnings Reviewer</strong></td>
+              <td>Read transcript + press release, update coverage model, draft research note</td>
+              <td>Ticker + period (e.g. <code>AAPL Q1-2026</code>)</td>
+              <td><code>note.docx</code> + <code>model.xlsx</code></td>
+              <td>FactSet, Daloopa</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>Market Researcher</strong></td>
+              <td>Industry overview, competitive landscape, peer comps, ideas shortlist</td>
+              <td>Sector/theme + angle</td>
+              <td><code>primer.docx</code> (+ <code>.pptx</code>)</td>
+              <td>S&amp;P CapIQ, FactSet</td>
+              <td>Medium</td>
+            </tr>
+            <tr>
+              <td><strong>Meeting Prep</strong></td>
+              <td>Briefing pack: client profile, news, talking points</td>
+              <td>Client ID + calendar event</td>
+              <td><code>briefing.pptx</code></td>
+              <td>CRM, S&amp;P CapIQ</td>
+              <td>Low-Med</td>
+            </tr>
+            <tr>
+              <td><strong>Valuation Reviewer</strong></td>
+              <td>Ingest GP valuation packages, run firm's policy waterfall, flag discrepancies</td>
+              <td>Fund ID + as-of date</td>
+              <td><code>lp-pack.xlsx</code></td>
+              <td>Portfolio system</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>GL Reconciler</strong></td>
+              <td>GL-vs-subledger breaks, trace root cause, exception report. Has <em>critic</em> tier (4 agents total)</td>
+              <td>Trade date + asset class</td>
+              <td>Exception report <code>.xlsx</code></td>
+              <td>GL, Subledger</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td><strong>Month-End Closer</strong></td>
+              <td>Accruals, roll-forward, variance commentary, JE drafts (NOT posted to GL)</td>
+              <td>Entity + period</td>
+              <td><code>close-package.xlsx</code></td>
+              <td>GL</td>
+              <td>Medium</td>
+            </tr>
+            <tr>
+              <td><strong>Statement Auditor</strong></td>
+              <td>Audit LP statements before distribution, tie balances to NAV pack</td>
+              <td>Batch ID + NAV ref</td>
+              <td><code>signoff.xlsx</code> (pass/hold)</td>
+              <td>NAV</td>
+              <td>Medium</td>
+            </tr>
+            <tr>
+              <td><strong>KYC Screener</strong></td>
+              <td>Parse onboarding docs, KYC/AML rules, sanctions/PEP screening</td>
+              <td>Onboarding packet ID</td>
+              <td><code>escalation.xlsx</code></td>
+              <td>Screening service</td>
+              <td>Medium</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>7 Vertical Plugins</strong> (slash commands, ไม่ใช่ full agents): Financial Analysis, Investment Banking, Equity Research, Private Equity, Wealth Management, Fund Admin, Operations. Slash commands: <code>/dcf</code>, <code>/comps</code>, <code>/lbo</code>, <code>/earnings</code>, <code>/merger-model</code>, <code>/ic-memo</code></p>
+        <p><strong>Install:</strong> paste <code>https://github.com/anthropics/financial-services</code> ใน Cowork Settings &gt; Plugins &gt; Add plugin. หรือ CLI: <code>claude plugin marketplace add anthropics/financial-services</code></p>
+        <p><strong>Deploy via API:</strong> <code>POST /v1/agents</code> &mdash; Managed Agents API (public beta). Cookbooks ใน <code>managed-agent-cookbooks/</code></p>
+
+        <!-- ============================================ -->
+        <!-- PART 4: MCP DATA CONNECTORS                  -->
+        <!-- ============================================ -->
+
+        <h2>4. MCP Data Connectors (17+)</h2>
+        <div class="callout warning">
+          <strong>ทุก official connector ต้อง subscription กับ data provider แยก</strong> &mdash; ไม่มี "free via Claude" access. Claude API cost เป็นค่าใช้จ่ายเพิ่ม.
+        </div>
+        <table>
+          <thead><tr><th>Provider</th><th>Type</th><th>Data</th><th>Setup</th></tr></thead>
+          <tbody>
+            <tr><td><strong>FactSet</strong></td><td>Official</td><td>9 datasets: fundamentals, estimates, prices, ownership, M&amp;A, news</td><td>FactSet Developer Portal credentials. 800+ institutional beta users</td></tr>
+            <tr><td><strong>S&amp;P Capital IQ</strong></td><td>Official</td><td>Company financials, credit ratings, estimates</td><td>S&amp;P subscription + API credentials</td></tr>
+            <tr><td><strong>MSCI</strong></td><td>Official</td><td>ESG/index data, performance, exposures, constituents</td><td>MSCI subscription</td></tr>
+            <tr><td><strong>Moody's</strong></td><td>Official (เม.ย. 2026)</td><td>Credit ratings + data on <strong>600M+ companies</strong>. Credit memos, peer comps, KYC, sanctions screening</td><td>Moody's subscription</td></tr>
+            <tr><td><strong>PitchBook</strong></td><td>Official</td><td>Firms, deals, funds, key players</td><td>PitchBook subscription</td></tr>
+            <tr><td><strong>Morningstar</strong></td><td>Official</td><td>Global analyst research, fund/stock data</td><td>Morningstar subscription</td></tr>
+            <tr><td><strong>LSEG (Refinitiv)</strong></td><td>Official</td><td>8 workflows: yield curves, bond data, FX, swap pricing, volatility, time series, news</td><td>LSEG subscription. GitHub: <code>LSEG-API-Samples/lseg-claude-plugin</code></td></tr>
+            <tr><td><strong>Daloopa</strong></td><td>Official</td><td>Company discovery, financials, stock prices. MCP at <code>mcp.daloopa.com</code></td><td>OAuth (browser) or API key. Docs: <code>docs.daloopa.com/docs/mcp</code></td></tr>
+            <tr><td><strong>Dun &amp; Bradstreet</strong></td><td>Official</td><td>Commercial Graph + D-U-N-S Number</td><td>D&amp;B subscription</td></tr>
+            <tr><td><strong>IBISWorld</strong></td><td>Official (พ.ค. 2026)</td><td>Industry revenue, financial ratios, risk scores, cost structures</td><td>IBISWorld subscription</td></tr>
+            <tr><td><strong>Third Bridge</strong></td><td>Official (พ.ค. 2026)</td><td>Primary-source expert interviews</td><td>Third Bridge subscription</td></tr>
+            <tr><td><strong>Verisk</strong></td><td>Official (พ.ค. 2026)</td><td>Property/casualty/specialty insurance data</td><td>Verisk subscription</td></tr>
+            <tr><td><strong>Chronograph</strong></td><td>Official</td><td>PE/VC portfolio monitoring</td><td>Chronograph subscription</td></tr>
+            <tr><td><strong>Aiera</strong></td><td>Official</td><td>Earnings call analytics</td><td>Aiera subscription</td></tr>
+          </tbody>
+        </table>
+        <h3>Third-Party MCP Servers (ราคาถูกกว่า)</h3>
+        <table>
+          <thead><tr><th>Provider</th><th>Cost</th><th>Setup</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td><strong>EODHD</strong></td><td>$19.99/mo+</td><td>GitHub: <code>EodHistoricalData/EODHD-MCP-Server</code>. 77 tools, 100+ resources. Clone, pip install, set API key</td><td>NOT Anthropic partnership</td></tr>
+            <tr><td><strong>Alpha Vantage</strong></td><td>Free tier (limited)</td><td>GitHub: <code>alphavantage/alpha_vantage_mcp</code>. 25 req/day premium, 500/day standard</td><td>Free tier returns <strong>demo/placeholder data</strong> on premium endpoints</td></tr>
           </tbody>
         </table>
 
-        <h2>MCP Data Connectors</h2>
-        <p>Claude เชื่อมต่อ institutional-grade data ผ่าน MCP:</p>
+        <!-- ============================================ -->
+        <!-- PART 5: MICROSOFT 365 INTEGRATION            -->
+        <!-- ============================================ -->
+
+        <h2>5. Microsoft 365 Integration (GA พ.ค. 2026)</h2>
+        <p>Claude operates as <strong>single agent across Excel, PowerPoint, Word, Outlook</strong>. Context carries between apps automatically.</p>
+        <table>
+          <thead><tr><th>App</th><th>Status</th><th>Capabilities</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Excel</strong></td><td>GA</td><td>Build models from filings/feeds, audit formulas, sensitivity analysis. <strong>Reads and edits formulas natively.</strong></td></tr>
+            <tr><td><strong>PowerPoint</strong></td><td>GA</td><td>Draft decks, auto-update when underlying numbers change</td></tr>
+            <tr><td><strong>Word</strong></td><td>GA</td><td>Edit credit memos against firm templates</td></tr>
+            <tr><td><strong>Outlook</strong></td><td>Beta</td><td>Open emails straight into Word drafts</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Install:</strong> admin provisioning via <code>claude-for-msft-365-install/</code> directory ใน GitHub repo</p>
+        <p><strong>Cross-app context:</strong> Excel assumptions propagate ไปยัง linked PowerPoint/Word documents automatically</p>
+        <div class="callout warning">
+          <strong>Known risk:</strong> Claude for Excel สามารถ replace complex historical formulas with static values หรือ delete hidden calculation tabs (tax carryforwards, working capital adjustments). ต้อง review changes ก่อน accept.
+        </div>
+
+        <!-- ============================================ -->
+        <!-- PART 6: PROMPT ENGINEERING                   -->
+        <!-- ============================================ -->
+
+        <h2>6. Prompt Engineering for Finance</h2>
+
+        <h3>Role-Based Setup</h3>
+        <pre><code>You are assisting a sell-side equity research analyst covering the
+software sector. We use a standard DCF framework with a 10-year
+projection period and terminal growth rate. All figures should be
+in millions USD unless stated otherwise.</code></pre>
+
+        <h3>Earnings Analysis</h3>
+        <pre><code>Analyze the attached earnings transcript for [Company]. Extract:
+(1) reported revenue vs. consensus estimate,
+(2) EPS reported vs. consensus,
+(3) three most significant changes in forward guidance,
+(4) management commentary on margins and cost structure,
+(5) any changes to capital allocation priorities.
+Flag anything that contradicts the previous quarter's guidance.</code></pre>
+
+        <h3>DCF Planning (Two-Step)</h3>
+        <pre><code>Create a plan for valuing [Company] (TICKER) using DCF methodology.
+List the data you'll need, calculations you'll perform, and
+assumptions you'll make. Let me review before you proceed.</code></pre>
+
+        <h3>Scenario Modeling</h3>
+        <pre><code>Based on the following assumptions, project [Company]'s income
+statement for the next three years under three scenarios:
+base case (revenue growth X%), bull case (Y%), bear case (Z%).
+Hold operating expense growth at [rate] across all scenarios.
+Show projected revenue, EBITDA, EBITDA margin, and free cash flow.
+Highlight the key sensitivities.</code></pre>
+
+        <h3>Competitive Financial Comparison</h3>
+        <pre><code>Compare the financial performance of [Company A] and [Company B]
+over the last three fiscal years. Create a side-by-side table of
+revenue growth, gross margin, operating margin, FCF margin, and
+net debt/EBITDA. Identify the three most significant differences
+and explain what drives each.</code></pre>
+
+        <h3>Three-Way Model Verification</h3>
+        <pre><code>I am going to test this scenario: [describe transaction]. Before I
+enter the data, tell me exactly what I should expect to see in the
+P&amp;L, balance sheet, and cash flow for each affected month. I will
+compare your prediction against the actual output. If they do not
+match, we will identify where the logic has broken down.</code></pre>
+
+        <h3>M&amp;A Analysis (from Anthropic's hallucination guide)</h3>
+        <pre><code>As our M&amp;A advisor, analyze this report on the potential acquisition
+of AcmeCo by ExampleCorp.
+
+&lt;report&gt;{{REPORT}}&lt;/report&gt;
+
+Focus on financial projections, integration risks, and regulatory
+hurdles. If you're unsure about any aspect or if the report lacks
+necessary information, say "I don't have enough information to
+confidently assess this."</code></pre>
+
+        <!-- ============================================ -->
+        <!-- PART 7: ANTI-HALLUCINATION                   -->
+        <!-- ============================================ -->
+
+        <h2>7. Anti-Hallucination Techniques (5 Stacking Methods)</h2>
+        <div class="callout warning">
+          <strong>Claude still hallucinated historical financial data even with grounding techniques</strong> (Wall Street Prep testing, 2026). ALWAYS provide source data. NEVER ask Claude to recall specific financial figures from memory.
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>Technique</th><th>Prompt Pattern</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A</strong></td><td>Permission to say "I don't know"</td><td>"If you're unsure or the report lacks necessary information, say 'I don't have enough information to confidently assess this.'"</td></tr>
+            <tr><td><strong>B</strong></td><td>Extract-then-analyze (direct quotes first)</td><td>"Extract exact quotes most relevant to [topic]. If none found, state 'No relevant quotes found.' Then analyze referencing each quote by number."</td></tr>
+            <tr><td><strong>C</strong></td><td>Post-draft citation verification</td><td>"After drafting, review each claim. Find a direct quote supporting it. If no supporting quote, remove the claim and mark with empty [] brackets."</td></tr>
+            <tr><td><strong>D</strong></td><td>External knowledge restriction</td><td>"Use ONLY the data provided. Do not use general knowledge for any financial figures, ratios, or statistics."</td></tr>
+            <tr><td><strong>E</strong></td><td>Blind-spot check (CFO Connect)</td><td>"Identify three most likely failure points. For each: cause, what silent failure looks like, safeguard to add. Then add those safeguards."</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================ -->
+        <!-- PART 8: MODEL SELECTION                      -->
+        <!-- ============================================ -->
+
+        <h2>8. Model Selection Guide</h2>
+        <table>
+          <thead><tr><th>Use Case</th><th>Model</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Contract review</td><td><strong>Opus 4.7</strong></td><td>Accuracy-critical; missed clauses = legal liability</td></tr>
+            <tr><td>Data extraction (financial statements)</td><td>Sonnet 4.6 / Haiku 4.5</td><td>Structured extraction within Sonnet capability. Haiku for high-volume simple tables</td></tr>
+            <tr><td>Real-time market analysis</td><td>Haiku 4.5 / Sonnet 4.6</td><td>Latency matters; Haiku fastest</td></tr>
+            <tr><td>Compliance checks</td><td><strong>Opus 4.7</strong></td><td>Regulatory risk = highest accuracy. Extended thinking for multi-step regulatory logic</td></tr>
+            <tr><td>Earnings call analysis</td><td>Sonnet 4.6</td><td>Long context (1M tokens), good reasoning, cost-effective</td></tr>
+            <tr><td>DCF / valuation models</td><td><strong>Opus 4.7</strong></td><td>Multi-step reasoning, auditor subagent verifies</td></tr>
+            <tr><td>High-volume screening</td><td>Haiku 4.5</td><td>Cost: ~$0.25/1M input tokens. Template generation, formatting</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================ -->
+        <!-- PART 9: BENCHMARKS                           -->
+        <!-- ============================================ -->
+
+        <h2>9. Benchmarks &amp; Accuracy</h2>
+        <table>
+          <thead><tr><th>Benchmark</th><th>Score</th><th>What It Tests</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Vals AI Finance Agent v1</strong></td><td>Opus 4.7: <strong>64.37%</strong> (SOTA)</td><td>927 expert-verified questions simulating junior analyst workflow: 10-K/10-Q extraction, DCF inputs, segment reconciliation. 9 task categories by bank/HF/PE experts.</td></tr>
+            <tr><td><strong>Vals AI Finance Agent v2</strong></td><td>Opus 4.7: <strong>51.51%</strong>; GPT-5.5: ~52%</td><td>Harder version. <strong>AI still cannot replace financial analysts on complex multi-step tasks.</strong></td></tr>
+            <tr><td><strong>FinanceBench</strong> (Patronus AI)</td><td>Opus 4.6: <strong>87.3%</strong>; Opus 4.7: <strong>82.7%</strong></td><td>10,000+ Q&amp;A from SEC 10-Ks, 10-Qs, 8-Ks, earnings reports. Score varies by retrieval strategy.</td></tr>
+            <tr><td><strong>Hallucination rate</strong></td><td>~3% (vs ~6% GPT-5.5, ~6% Gemini)</td><td>Benchmark-averaged. In finance context: a hallucinated P/E of 18.3 looks identical to a real one.</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================ -->
+        <!-- PART 10: CASE STUDIES                        -->
+        <!-- ============================================ -->
+
+        <h2>10. Real-World Case Studies</h2>
+        <table>
+          <thead><tr><th>Firm</th><th>Use Case</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Bridgewater Associates</strong></td><td>Investment Analyst Assistant</td><td>ใช้ Claude ตั้งแต่ 2023. Python code gen, data visualization, complex financial analysis</td></tr>
+            <tr><td><strong>Citadel</strong></td><td>Claude for Excel</td><td>Build/update coverage models, pressure-test work</td></tr>
+            <tr><td><strong>Carlyle</strong></td><td>Core AI tool</td><td>Investing, operations, portfolio management</td></tr>
+            <tr><td><strong>Walleye Capital</strong></td><td>Claude Code</td><td>100% ของ employees (400-person hedge fund) ใช้สำหรับ due diligence + financial modeling</td></tr>
+            <tr><td><strong>JPMorgan, Goldman, Citi, AIG, Visa</strong></td><td>Production deployments</td><td>Confirmed but specific workflows not publicly disclosed</td></tr>
+          </tbody>
+        </table>
+        <h3>Products Built on Claude</h3>
         <ul>
-          <li><strong>FactSet</strong>, <strong>S&amp;P Capital IQ</strong>, <strong>MSCI</strong>, <strong>PitchBook</strong></li>
-          <li><strong>Morningstar</strong>, <strong>LSEG</strong>, <strong>Daloopa</strong>, <strong>Dun &amp; Bradstreet</strong></li>
-          <li><strong>IBISWorld</strong>, <strong>Third Bridge</strong>, <strong>Verisk</strong></li>
-          <li>Third-party: <strong>EODHD MCP server</strong>, <strong>Alpha Vantage MCP</strong></li>
+          <li><strong>Harvey</strong> &mdash; Legal+finance AI. $11B valuation (มี.ค. 2026). $190M ARR. 1,000+ customers, 60 countries. Majority of AmLaw 100</li>
+          <li><strong>Moody's integration</strong> &mdash; Full platform embedded as native MCP app. Credit memos, peer comparisons, KYC profiling, sanctions screening</li>
+        </ul>
+        <h3>Failure Cases</h3>
+        <ul>
+          <li><strong>Anthropic office store experiment</strong>: Claude offered 25% discount to all employees after minimal persuasion, guaranteeing losses. Researchers: "full-blown identity crisis"</li>
+          <li><strong>Excel formula destruction</strong>: Claude for Excel replaced complex historical formulas with static values, deleted hidden calculation tabs</li>
+          <li><strong>FINRA 2026 Regulatory Report</strong>: Dedicated GenAI section for first time. Requires robust testing, continuous monitoring. Existing securities laws apply regardless of technology</li>
         </ul>
 
-        <h2>Excel &amp; Google Sheets Integration</h2>
+        <!-- ============================================ -->
+        <!-- PART 11: COMPLIANCE                          -->
+        <!-- ============================================ -->
+
+        <h2>11. Compliance &amp; Regulatory</h2>
+        <h3>Certifications</h3>
+        <table>
+          <thead><tr><th>Cert</th><th>Status</th><th>Practical Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>SOC 2 Type II</td><td>Completed</td><td>Security, availability, confidentiality. Report available under NDA</td></tr>
+            <tr><td>ISO 27001:2022</td><td>Certified</td><td>Information security management system</td></tr>
+            <tr><td>ISO 42001:2023</td><td>Certified</td><td>AI management: risk management, responsible development, bias monitoring</td></tr>
+            <tr><td>HIPAA BAA</td><td>Enterprise tier only</td><td>Not available on standard API plans</td></tr>
+            <tr><td>FedRAMP</td><td>Via AWS Bedrock</td><td>Anthropic ไม่มี direct FedRAMP. ใช้ Bedrock ซึ่งเป็น FedRAMP authorized</td></tr>
+          </tbody>
+        </table>
+        <h3>Data Handling</h3>
         <ul>
-          <li>Claude available เป็น <strong>Office Add-in</strong> (Excel) และ <strong>Workspace Add-on</strong> (Google Sheets)</li>
-          <li>Sort/filter data, edit pivot tables, conditional formatting, data validation</li>
-          <li>DCF skill: build discounted cash flow model from scratch ใน Excel/Sheets</li>
-          <li>Variance analysis, budget vs actual, cash flow summaries, scenario narratives</li>
+          <li><strong>Zero Data Retention (ZDR)</strong>: Available on API. Anthropic ไม่เก็บ prompts/completions. อาจ log metadata (timestamps, token counts) สำหรับ abuse monitoring</li>
+          <li><strong>Data residency</strong>: US regions เป็นหลัก (AWS us-east, us-west). EU: ผ่าน AWS Bedrock EU regions หรือ Google Vertex EU</li>
+          <li><strong>Audit trails</strong>: Claude API returns request ID, timestamps, model version, token usage. <strong>ต้อง implement logging layer เอง</strong> สำหรับ compliance-grade audit</li>
+        </ul>
+        <h3>Financial Regulations</h3>
+        <table>
+          <thead><tr><th>Regulator</th><th>Position</th></tr></thead>
+          <tbody>
+            <tr><td><strong>SEC</strong></td><td>AI outputs subject to existing supervisory obligations. Reg BI applies. Advisor bears liability, not the model.</td></tr>
+            <tr><td><strong>FINRA</strong></td><td>2026 Report: dedicated GenAI section. Firms must demonstrate supervisory controls. No separate AI rule yet.</td></tr>
+            <tr><td><strong>SR 11-7 / OCC 2011-12</strong></td><td><strong>LLM used for financial analysis IS a model under SR 11-7.</strong> Requires validation, monitoring, documentation. Most firms not treating it as such.</td></tr>
+            <tr><td><strong>EU AI Act</strong></td><td>Financial credit scoring + insurance risk assessment = <strong>high-risk</strong> (Annex III). Conformity assessments, human oversight required.</td></tr>
+            <tr><td><strong>Thailand BOT</strong></td><td>FEAT principles (Fairness, Ethics, Accountability, Transparency). Principles-based. Key: explainability of AI-driven credit/insurance decisions.</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================ -->
+        <!-- PART 12: COMPETITIVE LANDSCAPE               -->
+        <!-- ============================================ -->
+
+        <h2>12. Competitive Landscape</h2>
+        <table>
+          <thead><tr><th>Task</th><th>Leader</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Long document analysis (10-K, prospectus)</td><td><strong>Claude</strong></td><td>200K+ context, fewer truncation errors</td></tr>
+            <tr><td>Numerical reasoning (multi-step calc)</td><td><strong>GPT-4o/5</strong></td><td>Slight edge in arithmetic chains</td></tr>
+            <tr><td>Lowest hallucination on financial facts</td><td><strong>Claude</strong></td><td>FinanceBench data; margin narrow</td></tr>
+            <tr><td>Chart/table extraction from PDFs</td><td><strong>Gemini 1.5+</strong></td><td>Native multimodal strength</td></tr>
+            <tr><td>Regulatory/legal compliance text</td><td><strong>Claude (via Harvey)</strong></td><td>Production validation in legal+finance</td></tr>
+            <tr><td>Financial NLP (sentiment, NER)</td><td><strong>BloombergGPT</strong></td><td>Not publicly accessible</td></tr>
+            <tr><td>Ecosystem/integration breadth</td><td><strong>GPT (OpenAI)</strong></td><td>Microsoft Office, Azure dominance</td></tr>
+          </tbody>
+        </table>
+        <h3>Specialized Tools</h3>
+        <ul>
+          <li><strong>BloombergGPT</strong>: 50B model, internal use only, no public API. Status appears stalled vs general-purpose LLMs</li>
+          <li><strong>Kensho (S&amp;P)</strong>: NLP for earnings transcripts, SEC filings. Narrow-task, not general LLM</li>
+          <li><strong>AlphaSense</strong>: Market intelligence search. Data access moat, not model quality</li>
+          <li><strong>Tegus</strong>: Expert transcript AI. Similar data-moat play</li>
+          <li><strong>FinGPT</strong> (open-source): Columbia University. Research framework, not production-ready</li>
+        </ul>
+        <p><strong>Bottom line:</strong> Claude leads on context length + hallucination + regulated-domain trust. GPT leads on ecosystem + math. Gemini leads on multimodal. <em>The real moat belongs to data providers wrapping LLMs around proprietary corpora.</em></p>
+
+        <!-- ============================================ -->
+        <!-- PART 13: LIMITATIONS & RISKS                 -->
+        <!-- ============================================ -->
+
+        <h2>13. Limitations &amp; Risks (Brutally Honest)</h2>
+
+        <div class="callout warning">
+          <strong>Failure modes are silent, plausible, and lawsuit-shaped.</strong> A hallucinated P/E ratio of 18.3 looks exactly like a real one. No downstream system can distinguish without independent verification.
+        </div>
+
+        <h3>Hallucination</h3>
+        <ul>
+          <li>~3% = benchmark-averaged. In finance: fabricated earnings figures, invented ticker symbols, wrong fiscal year data, blended data from similar-named companies</li>
+          <li>Hallucinations are <strong>coherent and plausible</strong>, not random noise</li>
+          <li>Precedent: Mata v. Avianca (2023) &mdash; ChatGPT invented six court cases. Same failure mode applies to SEC filings, EDGAR references</li>
         </ul>
 
-        <h2>How-To Workflow</h2>
+        <h3>Numerical Reasoning</h3>
+        <ul>
+          <li><strong>Claude is NOT a calculator.</strong> Token prediction approximates arithmetic</li>
+          <li>Multi-step DCF: accuracy degrades with each step. 10+ operation chains frequently produce wrong answers</li>
+          <li>Large numbers (&gt;8 digits): multiplication unreliable. $1.2B &times; 1.073 may produce wrong answer</li>
+          <li>Basis points, compound interest, tax-adjusted returns: unreliable without code execution</li>
+          <li><strong>Mitigation: ALWAYS delegate arithmetic to Python/calculator tools</strong></li>
+        </ul>
+
+        <h3>Data Freshness</h3>
+        <ul>
+          <li>Knowledge cutoff = no current stock prices, interest rates, recent earnings</li>
+          <li>Without live feeds: may provide <em>last price seen in training data</em> as if current</li>
+          <li>6-month-old bond yield is worse than no data</li>
+        </ul>
+
+        <h3>Security</h3>
+        <ul>
+          <li><strong>Prompt injection via documents</strong>: malicious PDF 10-K could alter Claude's analysis</li>
+          <li><strong>MNPI exposure</strong>: prompts containing material non-public information sent to API = insider trading exposure</li>
+          <li><strong>Context window attack</strong>: long financial documents may push safety instructions out of effective context</li>
+        </ul>
+
+        <h3>Operational</h3>
+        <ul>
+          <li>API downtime during market hours = business continuity event</li>
+          <li>Rate limiting spikes during earnings season / Fed announcements</li>
+          <li>Cost: processing 500 10-K filings for screening adds up fast. Budget 10-50x more tokens than prototype testing suggests</li>
+        </ul>
+
+        <!-- ============================================ -->
+        <!-- PART 14: PRICING & ROI                       -->
+        <!-- ============================================ -->
+
+        <h2>14. Pricing &amp; ROI</h2>
+        <h3>Cost Estimates (Sonnet 4.6 tier)</h3>
+        <table>
+          <thead><tr><th>Task</th><th>~Cost (Sonnet)</th><th>~Cost (Opus)</th></tr></thead>
+          <tbody>
+            <tr><td>Single earnings call analysis</td><td>~$0.10</td><td>~$0.50</td></tr>
+            <tr><td>100-page 10-K filing</td><td>~$0.38</td><td>~$1.88</td></tr>
+            <tr><td>Full DCF model build (multi-turn)</td><td>~$0.45</td><td>~$2.25</td></tr>
+            <tr><td>Monthly per analyst (50 queries/day)</td><td>$30-150</td><td>$150-750</td></tr>
+          </tbody>
+        </table>
+        <h3>ROI</h3>
+        <ul>
+          <li>Junior analyst cost: ~$50-80/hour fully loaded</li>
+          <li>If Claude saves 2 hours/day on document review: $100-160/day saved vs $1.50-7.50/day API cost = <strong>~20-100x ROI</strong></li>
+          <li>Time savings estimates: 30-60% reduction document review, 50-70% reduction data extraction</li>
+        </ul>
+        <h3>Enterprise</h3>
+        <ul>
+          <li><strong>Claude Enterprise</strong>: SSO/SAML, admin console, higher rate limits, dedicated support. Pricing negotiated</li>
+          <li>Volume discounts: available for committed spend $10K+/month</li>
+          <li><strong>Deployment options</strong>: Direct API, Amazon Bedrock (FedRAMP), Google Vertex AI. No on-premises hosting</li>
+        </ul>
+
+        <!-- ============================================ -->
+        <!-- PART 15: QUICK START                         -->
+        <!-- ============================================ -->
+
+        <h2>15. Quick Start Guide</h2>
         <ol>
-          <li><strong>Install</strong> — add templates จาก <code>anthropics/financial-services</code> เป็น Claude Cowork plugin หรือ deploy via Managed Agents API</li>
-          <li><strong>Connect data</strong> — configure MCP connectors (FactSet, internal DBs, CSV/PDF uploads)</li>
-          <li><strong>Prompt with structure</strong> — ใช้ role-specific prompts ("You are a senior equity analyst...") + explicit output format</li>
-          <li><strong>Validate outputs</strong> — ทุก financial claim ต้อง cross-check. Never trust raw LLM output for numbers</li>
-          <li><strong>Audit trail</strong> — Claude generates full audit trails สำหรับ financial models</li>
+          <li><strong>Choose deployment</strong>: Cowork plugins (easiest) vs Managed Agents API (programmatic) vs M365 add-ins (Excel/PowerPoint)</li>
+          <li><strong>Install</strong>: Cowork &rarr; Settings &gt; Plugins &gt; paste <code>https://github.com/anthropics/financial-services</code>. หรือ CLI: <code>claude plugin marketplace add anthropics/financial-services</code></li>
+          <li><strong>Connect data</strong>: Configure MCP connectors (FactSet, internal DBs, CSV/PDF uploads). ต้อง subscription กับ data provider แยก</li>
+          <li><strong>Use slash commands</strong>: <code>/dcf</code>, <code>/comps</code>, <code>/lbo</code>, <code>/earnings</code>, <code>/merger-model</code>, <code>/ic-memo</code></li>
+          <li><strong>Apply anti-hallucination</strong>: Stack techniques A-E from section 7. Always provide source data.</li>
+          <li><strong>Validate EVERYTHING</strong>: Every number, every citation, every regulatory reference. Human sign-off required.</li>
+          <li><strong>Audit trail</strong>: Implement your own logging layer. Claude API ไม่มี built-in compliance-grade audit</li>
         </ol>
 
-        <h2>Compliance</h2>
-        <table>
-          <thead><tr><th>Cert</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td>SOC 2 Type II</td><td>Completed</td></tr>
-            <tr><td>ISO 27001:2022</td><td>Certified</td></tr>
-            <tr><td>ISO 42001:2023</td><td>Certified (AI management)</td></tr>
-            <tr><td>HIPAA BAA</td><td>Available (API + Enterprise)</td></tr>
-            <tr><td>Zero Data Retention</td><td>API option</td></tr>
-            <tr><td>Compliance API</td><td>Launched ส.ค. 2025</td></tr>
-          </tbody>
-        </table>
-
-        <h2>Model Performance</h2>
-        <ul>
-          <li>Opus 4.7: <strong>64.37%</strong> Vals AI Finance Agent benchmark (SOTA)</li>
-          <li>FinanceBench: <strong>82.7%</strong> financial document analysis</li>
-          <li>Hallucination rate: <strong>~3%</strong> (vs ~6% GPT-5.5, ~6% Gemini 3.1 Pro)</li>
-        </ul>
-
-        <h2>Limitations &amp; Risks</h2>
-        <div class="callout warning">
-          <strong>Hallucination in numbers:</strong> hallucinated account number หรือ fabricated regulatory citation = lawsuit. Always validate numerical outputs against source data.
-        </div>
-        <ul>
-          <li><strong>Regulatory exposure</strong> — incorrect outputs อาจละเมิด SEC, GDPR, sector-specific regulations</li>
-          <li><strong>Human-in-the-loop mandatory</strong> — Claude automates mechanical work; investment decisions ต้อง human review</li>
-          <li><strong>Data freshness</strong> — real-time market data ต้อง live connectors (FactSet, MSCI)</li>
-          <li><strong>Thailand BOT</strong> — FEAT principles (Fairness, Ethics, Accountability, Transparency) สำหรับ financial AI</li>
-        </ul>
+        <!-- ============================================ -->
+        <!-- SOURCES                                      -->
+        <!-- ============================================ -->
 
         <h2>Sources</h2>
         <ul>
           <li><a href="https://claude.com/solutions/financial-services">Claude Financial Services</a></li>
-          <li><a href="https://www.anthropic.com/news/finance-agents">Agents for Financial Services</a></li>
+          <li><a href="https://www.anthropic.com/news/finance-agents">Agents for Financial Services (May 2026)</a></li>
+          <li><a href="https://www.anthropic.com/news/claude-for-financial-services">Claude for Financial Services (July 2025)</a></li>
           <li><a href="https://github.com/anthropics/financial-services">GitHub: anthropics/financial-services</a></li>
-          <li><a href="https://support.claude.com/en/articles/12650343-use-claude-for-excel">Claude for Excel</a></li>
-          <li><a href="https://www.anthropic.com/news/claude-for-financial-services">Claude for Financial Services</a></li>
+          <li><a href="https://platform.claude.com/docs/en/managed-agents/overview">Managed Agents API Docs</a></li>
+          <li><a href="https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations">Reduce Hallucinations Guide</a></li>
+          <li><a href="https://platform.claude.com/docs/en/build-with-claude/structured-outputs">Structured Outputs Docs</a></li>
+          <li><a href="https://claude.com/resources/tutorials/prompting-strategies-for-financial-analysis">Prompting Strategies for Financial Analysis</a></li>
+          <li><a href="https://www.cfoconnect.eu/resources/finance-insights/25-claude-prompts-finance-teams-cowork-code-fpa/">25 Claude Prompts for Finance (CFO Connect)</a></li>
+          <li><a href="https://www.meritforgeai.com/blog/claude-ai-financial-analysis/">Claude AI Financial Analysis (MeritForgeAI)</a></li>
+          <li><a href="https://fortune.com/2026/05/05/anthropic-wall-street-financial-services-agents-jamie-dimon/">Fortune: Anthropic deepens push into Wall Street</a></li>
+          <li><a href="https://www.finra.org/sites/default/files/2025-12/2026-annual-regulatory-oversight-report.pdf">FINRA 2026 Regulatory Oversight Report</a></li>
           <li><a href="https://eodhd.com/financial-apis/mcp-server-for-financial-data-by-eodhd">EODHD MCP Server</a></li>
+          <li><a href="https://mcp.alphavantage.co/">Alpha Vantage MCP</a></li>
+          <li><a href="https://docs.daloopa.com/docs/mcp">Daloopa MCP Docs</a></li>
+          <li><a href="https://developer.factset.com/mcp">FactSet MCP Developer Portal</a></li>
+          <li><a href="https://support.claude.com/en/articles/13851150-install-financial-services-plugins-for-cowork">Install Finance Plugins for Cowork</a></li>
         </ul>
 
         <div class="nav-footer">
