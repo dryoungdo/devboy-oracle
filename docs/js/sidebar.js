@@ -20,7 +20,8 @@
     ['Oracle Tools', [
       ['009-arra-oracle-v3.html', '009 Arra Oracle v3'],
       ['010-thclaws-agent-harness.html', '010 thClaws'],
-      ['040-arra-safety-hooks.html', '040 Safety Hooks']
+      ['040-arra-safety-hooks.html', '040 Safety Hooks'],
+      ['041-discord-plugin-wiring.html', '041 Discord Wiring']
     ]],
     ['Fleet Infrastructure', [
       ['011-fleet-migration.html', '011 Fleet Migration'],
