@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[auto-rrr] session start — hook stub, needs glueboy-unique-auto-rrr install'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[auto-rrr] stop — hook stub, needs glueboy-unique-auto-rrr install'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[auto-rrr] session end — hook stub, needs glueboy-unique-auto-rrr install'",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
