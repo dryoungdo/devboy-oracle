@@ -58,7 +58,8 @@
     ['Claude Industry', [
       ['034-claude-for-finance.html', '034 Claude for Finance'],
       ['035-claude-for-security.html', '035 Claude for Security'],
-      ['036-claude-for-law.html', '036 Claude for Law']
+      ['036-claude-for-law.html', '036 Claude for Law'],
+      ['037-claude-finance-quick-wins.html', '037 Finance Quick Wins']
     ]]
   ];
 
