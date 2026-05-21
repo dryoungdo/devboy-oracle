@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>033 — Antigravity CLI 2.0 | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">033 &mdash; Antigravity CLI 2.0</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>Google Antigravity CLI 2.0 &mdash; Agent-First Development Platform</h1>
+        <div class="article-meta">
+          <span class="tag">antigravity-cli</span>
+          <span class="tag">google-io-2026</span>
+          <span class="tag">gemini-cli-successor</span>
+          <span class="tag">agent-first</span>
+          <span class="tag">go-lang</span>
+          <span class="tag">agentic-coding</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <h2>Antigravity คืออะไร</h2>
+        <p><strong>Google Antigravity</strong> คือ agent-first development platform ของ Google. เวอร์ชันแรก launch พ.ย. 2025 เป็น desktop editor app เดียว. ที่ <strong>Google I/O 2026 (19 พ.ค.)</strong> ขยายเป็น three-component stack: <strong>Desktop App + CLI + SDK</strong></p>
+        <p>Antigravity CLI เป็น <strong>official successor ของ Gemini CLI</strong> — Gemini CLI จะหยุดให้บริการ <strong>18 มิ.ย. 2026</strong></p>
+
+        <h2>Version 1.0 vs 2.0</h2>
+        <table>
+          <thead><tr><th>Feature</th><th>1.0 (พ.ย. 2025)</th><th>2.0 (พ.ค. 2026)</th></tr></thead>
+          <tbody>
+            <tr><td>Architecture</td><td>Single desktop editor</td><td>Desktop App + CLI + SDK</td></tr>
+            <tr><td>Agent management</td><td>One agent at a time</td><td>Dynamic subagents (parallel)</td></tr>
+            <tr><td>Background tasks</td><td>No</td><td>Scheduled background tasks</td></tr>
+            <tr><td>Browser agent</td><td>No</td><td>Built-in visual QA loop</td></tr>
+            <tr><td>Voice</td><td>No</td><td>Native voice commands</td></tr>
+            <tr><td>Integrations</td><td>Basic</td><td>AI Studio, Android, Firebase</td></tr>
+          </tbody>
+        </table>
+
+        <h2>CLI Features</h2>
+        <ul>
+          <li><strong>Built in Go</strong> — เร็ว, resource overhead ต่ำ</li>
+          <li><strong>Agent Skills</strong> — managed via <code>/skills</code> (file authoring หรือ <code>npx skills install</code>)</li>
+          <li><strong>Hooks</strong> — JSON-defined lifecycle interceptors (before tool call, after file edit, on session start)</li>
+          <li><strong>Subagents</strong> — spawn parallel work (refactors, research ทำ background ได้)</li>
+          <li><strong>Plugins</strong> — Gemini CLI Extensions rebranded เป็น Antigravity plugins</li>
+          <li><strong>Shared harness</strong> — Desktop app กับ CLI ใช้ agent harness เดียวกัน</li>
+        </ul>
+
+        <h2>Installation</h2>
+        <table>
+          <thead><tr><th>Platform</th><th>Command</th></tr></thead>
+          <tbody>
+            <tr><td>macOS/Linux</td><td><code>curl -fsSL https://antigravity.google/cli/install.sh | bash</code></td></tr>
+            <tr><td>Windows</td><td><code>irm https://antigravity.google/cli/install.ps1 | iex</code></td></tr>
+            <tr><td>Homebrew</td><td><code>brew install --cask antigravity</code></td></tr>
+          </tbody>
+        </table>
+        <p>GitHub repo: <code>google-antigravity/antigravity-cli</code></p>
+
+        <h2>Pricing</h2>
+        <table>
+          <thead><tr><th>Tier</th><th>Cost</th><th>Limits</th></tr></thead>
+          <tbody>
+            <tr><td>Free</td><td>$0</td><td>20 req/day (ลดจาก 250 ตอน launch)</td></tr>
+            <tr><td>AI Pro</td><td>$20/mo</td><td>Standard</td></tr>
+            <tr><td>AI Ultra (new)</td><td>$100/mo</td><td>5x Pro</td></tr>
+            <tr><td>AI Ultra (top)</td><td>$200/mo</td><td>20x Pro</td></tr>
+            <tr><td>Pay-as-you-go</td><td>$0.01/credit</td><td>Bulk: $199/20,000</td></tr>
+          </tbody>
+        </table>
+        <p>Models ทุก tier: Gemini 3.1 Pro, Claude Sonnet 4.6, Claude Opus 4.6, GPT-OSS 120B</p>
+        <div class="callout warning">
+          <strong>Free tier ถูกตัดหนัก:</strong> จาก 250 req/day (พ.ย. 2025) เหลือ 20 req/day (ธ.ค. 2025) — ลด 92%
+        </div>
+
+        <h2>Antigravity vs Claude Code vs Cursor</h2>
+        <table>
+          <thead><tr><th>Tool</th><th>Surface</th><th>Strength</th></tr></thead>
+          <tbody>
+            <tr><td>Antigravity 2.0</td><td>Desktop + CLI + SDK</td><td>Google ecosystem, dynamic subagents, scheduled tasks</td></tr>
+            <tr><td>Claude Code</td><td>Terminal-first</td><td>Deep filesystem/shell access, agentic coding, strong reasoning</td></tr>
+            <tr><td>Cursor</td><td>VS Code fork</td><td>Visual polish, Composer multi-file editing</td></tr>
+            <tr><td>Codex</td><td>Cloud + CLI + editor</td><td>Async cloud tasks, parallel review</td></tr>
+          </tbody>
+        </table>
+
+        <h2>npm Ecosystem</h2>
+        <table>
+          <thead><tr><th>Package</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>antigravity-usage</code></td><td>Quota/usage tracker</td></tr>
+            <tr><td><code>antigravity-claude-proxy</code></td><td>Anthropic-compatible API proxy via Antigravity Cloud Code</td></tr>
+            <tr><td><code>antigravity-awesome-skills</code></td><td>1,400+ agentic skills (shared across Claude Code, Cursor, etc.)</td></tr>
+            <tr><td><code>antigravity-kit-cli</code></td><td>Skills/MCP installer</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Community</h2>
+        <ul>
+          <li>GitHub: 167 stars, 5 contributors (brand new — predecessor Gemini CLI had 100k+ stars)</li>
+          <li>Docs: <a href="https://antigravity.google/docs/cli-overview">antigravity.google/docs/cli-overview</a></li>
+          <li>Codelabs: <a href="https://codelabs.developers.google.com/getting-started-google-antigravity">Getting Started</a></li>
+        </ul>
+
+        <h2>Migration จาก Gemini CLI</h2>
+        <div class="callout warning">
+          <strong>Deadline: 18 มิ.ย. 2026</strong> — Gemini CLI + Gemini Code Assist IDE extensions จะหยุดให้บริการ. ต้อง migrate ไป Antigravity CLI ก่อนวันนั้น.
+        </div>
+        <p>Features ที่ preserved: Agent Skills, Hooks, Subagents, Extensions (→ Antigravity plugins)</p>
+
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://techcrunch.com/2026/05/19/google-launches-antigravity-2-0-with-an-updated-desktop-app-and-cli-tool-at-io-2026/">TechCrunch: Antigravity 2.0</a></li>
+          <li><a href="https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/">Google Blog: Transitioning Gemini CLI</a></li>
+          <li><a href="https://github.com/google-antigravity/antigravity-cli">GitHub: antigravity-cli</a></li>
+          <li><a href="https://www.marktechpost.com/2026/05/19/google-launches-antigravity-2-0-at-i-o-2026-a-standalone-agent-first-platform-with-cli-sdk-managed-execution-and-enterprise-support/">MarkTechPost: Antigravity 2.0</a></li>
+          <li><a href="https://agentpedia.codes/blog/antigravity-cli-deep-dive">Agentpedia: CLI Deep Dive</a></li>
+          <li><a href="https://antigravity.google/pricing">Antigravity Pricing</a></li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="032-gemini-spark.html">&larr; 032 Gemini Spark</a>
+          <a href="034-claude-for-finance.html">034 Claude for Finance &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>032 — Gemini Spark | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">032 &mdash; Gemini Spark</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>Gemini Spark &mdash; Google&rsquo;s 24/7 Agentic AI Assistant</h1>
+        <div class="article-meta">
+          <span class="tag">gemini-spark</span>
+          <span class="tag">google-io-2026</span>
+          <span class="tag">agentic-ai</span>
+          <span class="tag">antigravity-2.0</span>
+          <span class="tag">gemini-3.5-flash</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <h2>Gemini Spark คืออะไร</h2>
+        <p><strong>Gemini Spark</strong> (ไม่ใช่ "Sparks") คือ persistent agentic AI personal assistant จาก Google ประกาศที่ <strong>Google I/O 2026</strong> (19 พ.ค. 2026). Sundar Pichai อธิบายว่า &ldquo;your personal AI agent that helps you navigate your digital life, taking action on your behalf and under your direction.&rdquo;</p>
+        <p>ต่างจาก chatbot ทั่วไป — Spark รัน <strong>24/7 บน dedicated cloud VMs</strong> ใน Google Cloud ทำงานต่อแม้ปิดมือถือหรือ laptop</p>
+
+        <h2>Architecture</h2>
+        <table>
+          <thead><tr><th>Component</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Base model</td><td>Gemini 3.5 Flash (4x faster, 76.2% Terminal-Bench 2.1, 83.6% MCP Atlas)</td></tr>
+            <tr><td>Agent harness</td><td>Antigravity 2.0 — goal persistence, task decomposition, tool orchestration, safety constraints, state recovery</td></tr>
+            <tr><td>Infrastructure</td><td>Dedicated Google Cloud VMs per user, always-on</td></tr>
+            <tr><td>Safety layer</td><td>Three-layer: model + harness constraints + explicit user authorization for high-stakes actions</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Key Features</h2>
+        <ul>
+          <li><strong>Always-on background operation</strong> — ทำงานขณะคุณนอน</li>
+          <li><strong>Google Workspace integration</strong> — Gmail, Calendar, Drive, Docs, Sheets, Slides, YouTube, Maps (out of the box)</li>
+          <li><strong>Dedicated Gmail address</strong> — email Spark ได้ตรง</li>
+          <li><strong>Chrome integration</strong> — interact กับ web ผ่าน Chrome (coming later 2026)</li>
+          <li><strong>Proactive tasks</strong> — parse credit card statements, monitor school emails, create daily digests, turn meeting notes into polished Docs</li>
+          <li><strong>Custom sub-agents</strong> — coming later 2026</li>
+          <li><strong>Third-party</strong> — Canva, OpenTable, Instacart, Uber, Zillow (coming months)</li>
+          <li><strong>Mac app</strong> — standalone Gemini Mac app with local file access (summer 2026)</li>
+          <li><strong>MCP support</strong> — adopted at I/O 2026, Linux Foundation standard</li>
+        </ul>
+
+        <h2>Pricing</h2>
+        <table>
+          <thead><tr><th>Plan</th><th>Price</th><th>Spark Access</th><th>Usage vs Pro</th></tr></thead>
+          <tbody>
+            <tr><td>Google AI Ultra (new)</td><td><strong>$100/mo</strong></td><td>Yes (beta)</td><td>5x</td></tr>
+            <tr><td>Google AI Ultra (top)</td><td><strong>$200/mo</strong> (ลดจาก $250)</td><td>Yes (beta)</td><td>20x</td></tr>
+            <tr><td>Google AI Pro</td><td>$20/mo</td><td>No</td><td>Baseline</td></tr>
+          </tbody>
+        </table>
+        <p>ทั้ง Ultra tiers มี 20 TB cloud storage + YouTube Premium</p>
+
+        <h2>Availability</h2>
+        <ul>
+          <li>19 พ.ค. 2026 — Trusted testers</li>
+          <li>สัปดาห์ 26 พ.ค. 2026 — Beta rollout US Google AI Ultra subscribers (18+)</li>
+          <li><strong>US-only</strong> at launch</li>
+          <li>ไม่มี free tier — ต้อง AI Ultra ($100 หรือ $200/mo)</li>
+        </ul>
+
+        <h2>Gemini Spark vs Competitors</h2>
+        <table>
+          <thead><tr><th>Dimension</th><th>Gemini Spark</th><th>Claude</th><th>ChatGPT</th></tr></thead>
+          <tbody>
+            <tr><td>Core model</td><td>Gemini 3.5 Flash</td><td>Opus 4.6 / Sonnet 4.6</td><td>GPT-4.5+</td></tr>
+            <tr><td>Agent runtime</td><td>Persistent cloud VM (24/7)</td><td>Session-based CLI</td><td>Operator / agents</td></tr>
+            <tr><td>Integration</td><td>Gmail, Docs, Sheets + MCP</td><td>MCP native, CLI-first</td><td>Plugins, GPT Actions</td></tr>
+            <tr><td>Pricing</td><td>$100-200/mo</td><td>API usage-based</td><td>Plus/Pro tiers</td></tr>
+            <tr><td>Autonomy</td><td>Long-horizon background</td><td>Tool-use within sessions</td><td>Task-specific</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Gemini Spark vs DGX Spark</h2>
+        <div class="callout info">
+          <strong>ไม่เกี่ยวกัน — name collision เท่านั้น</strong><br>
+          Gemini Spark = cloud AI assistant (software, $100-200/mo).<br>
+          DGX Spark = NVIDIA desktop AI workstation hardware (GB10 superchip, 128GB, ~$4,699).
+        </div>
+
+        <h2>Fleet v3 Assessment</h2>
+        <table>
+          <thead><tr><th>Factor</th><th>Assessment</th></tr></thead>
+          <tbody>
+            <tr><td>Replace Claude Code?</td><td>No — Spark เป็น consumer-oriented ไม่ใช่ dev tool</td></tr>
+            <tr><td>Complement fleet?</td><td>Possibly — Antigravity 2.0 SDK น่าศึกษาเป็น alternative agent harness</td></tr>
+            <tr><td>Gemini API?</td><td>1M token context + MCP tooling อาจ complement Codex co-review เป็น 3rd engine</td></tr>
+            <tr><td>Action needed?</td><td>Low priority — monitor Antigravity 2.0 SDK</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://techcrunch.com/2026/05/19/google-introduces-gemini-spark-a-24-7-agentic-assistant-with-gmail-integration/">TechCrunch: Google introduces Gemini Spark</a></li>
+          <li><a href="https://www.cnbc.com/2026/05/19/google-ai-ultra-gemini-spark-omni.html">CNBC: Google unveils Gemini 3.5 and Spark</a></li>
+          <li><a href="https://www.androidauthority.com/google-gemini-spark-3668600/">Android Authority: Google announces Gemini Spark</a></li>
+          <li><a href="https://blog.google/products-and-platforms/products/google-one/google-ai-subscriptions/">Google Blog: AI subscriptions</a></li>
+          <li><a href="https://gemini.google/overview/agent/spark/">Gemini Spark official page</a></li>
+          <li><a href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-5/">Google Blog: Gemini 3.5 Flash</a></li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="031-team-tile-bootstrap.html">&larr; 031 Team-Tile Bootstrap</a>
+          <a href="033-antigravity-cli.html">033 Antigravity CLI &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

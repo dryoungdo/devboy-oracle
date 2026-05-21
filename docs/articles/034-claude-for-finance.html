@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>034 — Claude for Finance | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">034 &mdash; Claude for Finance</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>Claude for Finance &mdash; How to Use</h1>
+        <div class="article-meta">
+          <span class="tag">claude-finance</span>
+          <span class="tag">financial-agents</span>
+          <span class="tag">MCP</span>
+          <span class="tag">compliance</span>
+          <span class="tag">excel-integration</span>
+          <span class="tag">anthropic</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <h2>Overview</h2>
+        <p>Anthropic มี <strong>Claude for Financial Services</strong> เป็น dedicated initiative:</p>
+        <ul>
+          <li>กลาง 2025: Launch กับ FactSet + MSCI data partnerships</li>
+          <li>5 พ.ค. 2026: <strong>10 finance agent templates</strong> open-source บน GitHub (<code>anthropics/financial-services</code>)</li>
+          <li>พ.ค. 2026: Full <strong>Microsoft 365 integration</strong> (Excel, PowerPoint, Word, Outlook)</li>
+        </ul>
+
+        <h2>10 Agent Templates</h2>
+        <p>แต่ละ agent มี 3 components: <strong>skills</strong> (Markdown instructions), <strong>connectors</strong> (MCP data access), <strong>subagents</strong> (Claude models สำหรับ sub-tasks)</p>
+        <table>
+          <thead><tr><th>Agent</th><th>Use Case</th><th>Difficulty</th></tr></thead>
+          <tbody>
+            <tr><td>Pitch Builder</td><td>Generate pitchbooks จาก deal parameters</td><td>Medium</td></tr>
+            <tr><td>Model Builder</td><td>สร้าง financial models จาก assumptions</td><td>Hard</td></tr>
+            <tr><td>Earnings Reviewer</td><td>Analyze quarterly earnings</td><td>Easy</td></tr>
+            <tr><td>Market Researcher</td><td>Competitive landscape analysis</td><td>Easy</td></tr>
+            <tr><td>Meeting Preparer</td><td>Pre-meeting briefing packages</td><td>Easy</td></tr>
+            <tr><td>Valuation Reviewer</td><td>Audit DCF/comparable valuations</td><td>Hard</td></tr>
+            <tr><td>GL Reconciler</td><td>General ledger reconciliation</td><td>Medium</td></tr>
+            <tr><td>Month-End Closer</td><td>Automate month-end close</td><td>Medium</td></tr>
+            <tr><td>Financial Statement Auditor</td><td>Audit financial statements</td><td>Hard</td></tr>
+            <tr><td>KYC Screener</td><td>Know-Your-Customer compliance</td><td>Medium</td></tr>
+          </tbody>
+        </table>
+
+        <h2>MCP Data Connectors</h2>
+        <p>Claude เชื่อมต่อ institutional-grade data ผ่าน MCP:</p>
+        <ul>
+          <li><strong>FactSet</strong>, <strong>S&amp;P Capital IQ</strong>, <strong>MSCI</strong>, <strong>PitchBook</strong></li>
+          <li><strong>Morningstar</strong>, <strong>LSEG</strong>, <strong>Daloopa</strong>, <strong>Dun &amp; Bradstreet</strong></li>
+          <li><strong>IBISWorld</strong>, <strong>Third Bridge</strong>, <strong>Verisk</strong></li>
+          <li>Third-party: <strong>EODHD MCP server</strong>, <strong>Alpha Vantage MCP</strong></li>
+        </ul>
+
+        <h2>Excel &amp; Google Sheets Integration</h2>
+        <ul>
+          <li>Claude available เป็น <strong>Office Add-in</strong> (Excel) และ <strong>Workspace Add-on</strong> (Google Sheets)</li>
+          <li>Sort/filter data, edit pivot tables, conditional formatting, data validation</li>
+          <li>DCF skill: build discounted cash flow model from scratch ใน Excel/Sheets</li>
+          <li>Variance analysis, budget vs actual, cash flow summaries, scenario narratives</li>
+        </ul>
+
+        <h2>How-To Workflow</h2>
+        <ol>
+          <li><strong>Install</strong> — add templates จาก <code>anthropics/financial-services</code> เป็น Claude Cowork plugin หรือ deploy via Managed Agents API</li>
+          <li><strong>Connect data</strong> — configure MCP connectors (FactSet, internal DBs, CSV/PDF uploads)</li>
+          <li><strong>Prompt with structure</strong> — ใช้ role-specific prompts ("You are a senior equity analyst...") + explicit output format</li>
+          <li><strong>Validate outputs</strong> — ทุก financial claim ต้อง cross-check. Never trust raw LLM output for numbers</li>
+          <li><strong>Audit trail</strong> — Claude generates full audit trails สำหรับ financial models</li>
+        </ol>
+
+        <h2>Compliance</h2>
+        <table>
+          <thead><tr><th>Cert</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>SOC 2 Type II</td><td>Completed</td></tr>
+            <tr><td>ISO 27001:2022</td><td>Certified</td></tr>
+            <tr><td>ISO 42001:2023</td><td>Certified (AI management)</td></tr>
+            <tr><td>HIPAA BAA</td><td>Available (API + Enterprise)</td></tr>
+            <tr><td>Zero Data Retention</td><td>API option</td></tr>
+            <tr><td>Compliance API</td><td>Launched ส.ค. 2025</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Model Performance</h2>
+        <ul>
+          <li>Opus 4.7: <strong>64.37%</strong> Vals AI Finance Agent benchmark (SOTA)</li>
+          <li>FinanceBench: <strong>82.7%</strong> financial document analysis</li>
+          <li>Hallucination rate: <strong>~3%</strong> (vs ~6% GPT-5.5, ~6% Gemini 3.1 Pro)</li>
+        </ul>
+
+        <h2>Limitations &amp; Risks</h2>
+        <div class="callout warning">
+          <strong>Hallucination in numbers:</strong> hallucinated account number หรือ fabricated regulatory citation = lawsuit. Always validate numerical outputs against source data.
+        </div>
+        <ul>
+          <li><strong>Regulatory exposure</strong> — incorrect outputs อาจละเมิด SEC, GDPR, sector-specific regulations</li>
+          <li><strong>Human-in-the-loop mandatory</strong> — Claude automates mechanical work; investment decisions ต้อง human review</li>
+          <li><strong>Data freshness</strong> — real-time market data ต้อง live connectors (FactSet, MSCI)</li>
+          <li><strong>Thailand BOT</strong> — FEAT principles (Fairness, Ethics, Accountability, Transparency) สำหรับ financial AI</li>
+        </ul>
+
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://claude.com/solutions/financial-services">Claude Financial Services</a></li>
+          <li><a href="https://www.anthropic.com/news/finance-agents">Agents for Financial Services</a></li>
+          <li><a href="https://github.com/anthropics/financial-services">GitHub: anthropics/financial-services</a></li>
+          <li><a href="https://support.claude.com/en/articles/12650343-use-claude-for-excel">Claude for Excel</a></li>
+          <li><a href="https://www.anthropic.com/news/claude-for-financial-services">Claude for Financial Services</a></li>
+          <li><a href="https://eodhd.com/financial-apis/mcp-server-for-financial-data-by-eodhd">EODHD MCP Server</a></li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="033-antigravity-cli.html">&larr; 033 Antigravity CLI</a>
+          <a href="035-claude-for-security.html">035 Claude for Security &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>036 — Claude for Law | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">036 &mdash; Claude for Law</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>Claude for Law &mdash; How to Use</h1>
+        <div class="article-meta">
+          <span class="tag">claude-legal</span>
+          <span class="tag">contract-review</span>
+          <span class="tag">legal-research</span>
+          <span class="tag">compliance</span>
+          <span class="tag">ethics</span>
+          <span class="tag">MCP</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <h2>Claude for Legal</h2>
+        <p>Anthropic launch <strong>Claude for Legal</strong> อย่างเป็นทางการ <strong>12 พ.ค. 2026</strong>:</p>
+        <ul>
+          <li><strong>20+ MCP connectors</strong> — DocuSign, Box, Thomson Reuters/Westlaw</li>
+          <li><strong>12 role-specific plugins</strong> — Commercial, Corporate, M&amp;A, Employment, Privacy, Product, Regulatory, AI Governance, IP, Litigation</li>
+          <li><strong>Microsoft 365 integration</strong> — Word, Outlook, Excel, PowerPoint (public beta ตั้งแต่ เม.ย. 2026)</li>
+        </ul>
+
+        <h2>Legal Use Cases</h2>
+        <table>
+          <thead><tr><th>Use Case</th><th>Workflow</th><th>Sample Prompt</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Contract Review</strong></td><td>Upload → specify checklist → clause-by-clause analysis</td><td>"Review SaaS agreement, note risk level H/M/L per clause"</td></tr>
+            <tr><td><strong>Legal Research</strong></td><td>State jurisdiction → ask for elements/cases → verify externally</td><td>"Under Texas law since 2020, identify elements of tortious interference"</td></tr>
+            <tr><td><strong>Document Drafting</strong></td><td>Provide outline → specify jurisdiction, parties → iterate</td><td>"Draft NDA under California law, 2-year term, mutual"</td></tr>
+            <tr><td><strong>Due Diligence</strong></td><td>Upload data room docs → M&amp;A plugin → flag risks</td><td>"Flag undisclosed liabilities, change-of-control clauses"</td></tr>
+            <tr><td><strong>Regulatory Compliance</strong></td><td>Specify regulation → upload docs → gap analysis</td><td>"Compare privacy policy vs GDPR Articles 13-14"</td></tr>
+            <tr><td><strong>Litigation Support</strong></td><td>Upload depositions → extract admissions/contradictions</td><td>"Identify key admissions against interest"</td></tr>
+            <tr><td><strong>Legal Translation</strong></td><td>Source doc → target language + jurisdiction terms</td><td>"Translate Thai commercial lease into English"</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Model Selection</h2>
+        <table>
+          <thead><tr><th>Model</th><th>Best For</th><th>Benchmark</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Opus 4.7</strong></td><td>Hardest legal reasoning</td><td>90.9% Harvey's BigLaw Bench</td></tr>
+            <tr><td><strong>Sonnet 4.6</strong></td><td>Long-document work</td><td>1M token context (full depositions, data rooms)</td></tr>
+            <tr><td><strong>Haiku 4.5</strong></td><td>Fast routine tasks</td><td>Template generation, formatting</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Accuracy</h2>
+        <ul>
+          <li>MBE (bar exam): <strong>88.5-93.5%</strong></li>
+          <li>BigLaw Bench: <strong>90.9%</strong></li>
+          <li>Contract analysis: <strong>79.4%</strong> (vs GPT-5.4 73.9%)</li>
+          <li>Attorney preference: <strong>64%</strong> prefer Claude's legal writing</li>
+        </ul>
+
+        <h2>Law Firms Using Claude</h2>
+        <p><strong>Freshfields</strong>, <strong>Quinn Emanuel</strong>, <strong>Holland &amp; Knight</strong>, <strong>Crosby Legal</strong> ใช้ Claude on live matters. Legal AI products built on Claude: <strong>Harvey</strong>, <strong>Legora</strong>, <strong>Solve Intelligence</strong>, <strong>Eve</strong></p>
+
+        <h2>Ethics &amp; Risks</h2>
+        <div class="callout warning">
+          <strong>Citation hallucination = non-negotiable risk.</strong> Latham &amp; Watkins (Anthropic's own counsel) ถูกตำหนิในศาลเพราะ Claude สร้าง citation ปลอม. ต้อง verify ทุก citation กับ primary source เสมอ.
+        </div>
+
+        <h3>ABA Ethics Rules</h3>
+        <ul>
+          <li><strong>Rule 1.1</strong> (Competence) — ต้องเข้าใจ AI capabilities + limitations</li>
+          <li><strong>Rule 1.6</strong> (Confidentiality) — ใช้ enterprise/API tier เท่านั้น ไม่ใช่ consumer</li>
+          <li><strong>Rule 3.3</strong> (Candor to tribunal) — verify ทุก citation</li>
+          <li><strong>Rule 5.3</strong> (Supervision) — treat AI output เหมือน junior associate's work</li>
+        </ul>
+
+        <h3>Privilege Risk</h3>
+        <p><em>United States v. Heppner</em> (S.D.N.Y. ก.พ. 2026) — ศาลตัดสินว่า privilege อาจ waived เมื่อใช้ consumer-grade AI. ต้องใช้ enterprise tier with zero-retention</p>
+
+        <h2>Regulatory Landscape</h2>
+        <table>
+          <thead><tr><th>Jurisdiction</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>ABA</td><td>Formal Opinion 512 (2024); Task Force Year 2 Report (2025)</td></tr>
+            <tr><td>California</td><td>COPRAC proposed amendments to 6 Rules (มี.ค. 2026)</td></tr>
+            <tr><td>EU AI Act</td><td>High-risk AI obligations effective <strong>2 ส.ค. 2026</strong></td></tr>
+            <tr><td>Thailand</td><td>AI Act effective <strong>1 มี.ค. 2026</strong>; mandatory court disclosure</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Citation Hallucination Rates</h2>
+        <div class="callout warning">
+          <strong>LLM citation hallucination rates: 58-88%</strong> depending on model and court hierarchy. ทุก citation ต้อง verify กับ Westlaw/LexisNexis/primary source
+        </div>
+
+        <h2>3-Phase Adoption Roadmap</h2>
+        <ol>
+          <li><strong>Phase 1</strong>: Internal research acceleration (summarization, first-draft memos)</li>
+          <li><strong>Phase 2</strong>: Workflow integration via MCP connectors (document management, e-discovery)</li>
+          <li><strong>Phase 3</strong>: Client-facing deployment with guardrails + human oversight</li>
+        </ol>
+
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://claude.com/blog/claude-for-the-legal-industry">Claude for the Legal Industry</a></li>
+          <li><a href="https://claude.com/solutions/legal">Claude Legal Solutions</a></li>
+          <li><a href="https://claude.com/blog/deploying-claude-across-the-legal-industry">Deploying Claude for Legal</a></li>
+          <li><a href="https://www.abajournal.com/news/article/anthropic-launches-claude-for-legal-giving-lawyers-20-new-program-integrations-and-12-practice-area-plugins">ABA Journal: Claude for Legal</a></li>
+          <li><a href="https://platform.claude.com/docs/en/about-claude/use-case-guides/legal-summarization">Legal Summarization Guide</a></li>
+          <li><a href="https://thelegalprompts.com/blog/claude-ai-for-lawyers-prompts-use-cases-2026">Claude AI for Lawyers: Best Prompts 2026</a></li>
+        </ul>
+
+        <div class="nav-footer">
+          <a href="035-claude-for-security.html">&larr; 035 Claude for Security</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

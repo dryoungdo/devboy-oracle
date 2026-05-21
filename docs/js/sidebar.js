@@ -50,6 +50,15 @@
     ]],
     ['Multi-Agent', [
       ['031-team-tile-bootstrap.html', '031 Team-Tile Bootstrap']
+    ]],
+    ['Google I/O 2026', [
+      ['032-gemini-spark.html', '032 Gemini Spark'],
+      ['033-antigravity-cli.html', '033 Antigravity CLI']
+    ]],
+    ['Claude Industry', [
+      ['034-claude-for-finance.html', '034 Claude for Finance'],
+      ['035-claude-for-security.html', '035 Claude for Security'],
+      ['036-claude-for-law.html', '036 Claude for Law']
     ]]
   ];
 
