@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="maw-js Advanced Guide — 40+ commands, federation setup, team workflows, gotchas, architecture. Complete reference for Oracle fleet operators.">
+  <title>042 &mdash; maw-js Advanced Guide | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">042 &mdash; maw-js Advanced Guide</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw-js &mdash; Advanced Command Guide</h1>
+        <div class="article-meta">
+          <span class="tag">maw</span>
+          <span class="tag">maw-js</span>
+          <span class="tag">federation</span>
+          <span class="tag">multi-agent</span>
+          <span class="tag">fleet</span>
+          <span class="tag">tmux</span>
+          <span class="tag">commands</span>
+          <span class="tag">soul-brews</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge solid">&#128994; solid</span>
+        </div>
+
+        <p>ถ้ามีเวลาน้อย อ่าน Part A ก็พอ. ถ้าอยากเข้าใจลึก Part B มี decision trees, real workflow examples, และ gotchas จาก 46 ชั่วโมง fleet usage data.</p>
+
+        <!-- ======================== PART A ======================== -->
+        <h2>Part A &mdash; สรุปที่ต้องรู้</h2>
+
+        <h3>maw คืออะไร?</h3>
+        <p><strong>maw</strong> คือ multi-oracle session manager &mdash; สร้างบน tmux + HTTP federation. จัดการ lifecycle ของ Oracle (AI agent) ข้ามหลายเครื่อง, ส่งข้อความระหว่าง agents, และ orchestrate multi-agent teams.</p>
+        <p>คิดง่ายๆ: <strong>tmux + federation + agent orchestration</strong> ใน CLI เดียว.</p>
+
+        <table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Repo</td><td>Soul-Brews-Studio/maw-js</td></tr>
+            <tr><td>Version</td><td>v26.5.21-alpha.1608</td></tr>
+            <tr><td>Runtime</td><td>Bun + Elysia HTTP</td></tr>
+            <tr><td>License</td><td>BUSL-1.1</td></tr>
+            <tr><td>Author</td><td>Nat (Soul-Brews-Studio)</td></tr>
+            <tr><td>Commands</td><td>40+ (12 plugin modules)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Core Concepts</h3>
+        <table>
+          <thead><tr><th>Concept</th><th>คืออะไร</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Oracle</strong></td><td>AI agent ที่รันใน tmux pane (ปกติคือ Claude Code)</td></tr>
+            <tr><td><strong>Session</strong></td><td>tmux session ที่ host oracle panes</td></tr>
+            <tr><td><strong>Node</strong></td><td>เครื่องที่รัน maw (เช่น mac-studio, clinic-drdo)</td></tr>
+            <tr><td><strong>Peer</strong></td><td>remote node ที่เชื่อมผ่าน HTTP federation</td></tr>
+            <tr><td><strong>Fleet</strong></td><td>ทุก nodes + oracles ใน mesh ทั้งหมด</td></tr>
+            <tr><td><strong>Team</strong></td><td>กลุ่ม agents ที่ทำงานร่วมกัน</td></tr>
+            <tr><td><strong>Plugin</strong></td><td>extensible command module</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Commands ที่ใช้ทุกวัน (Top 10)</h3>
+        <table>
+          <thead><tr><th>Command</th><th>ทำอะไร</th><th>ใช้เมื่อ</th></tr></thead>
+          <tbody>
+            <tr><td><code>maw ls</code></td><td>ดู sessions ที่ run</td><td>เริ่ม session ใหม่ ตรวจสถานะ</td></tr>
+            <tr><td><code>maw wake &lt;oracle&gt;</code></td><td>เปิด oracle</td><td>เริ่มทำงาน</td></tr>
+            <tr><td><code>maw kill &lt;oracle&gt;</code></td><td>ปิด oracle</td><td>เลิกงาน หรือ oracle ค้าง</td></tr>
+            <tr><td><code>maw hey &lt;target&gt; 'msg'</code></td><td>ส่งข้อความข้ามเครื่อง</td><td>สื่อสารกับ oracle อื่น</td></tr>
+            <tr><td><code>maw peek &lt;target&gt;</code></td><td>อ่าน output (read-only)</td><td>ตรวจสอบหลังส่ง / ดูสถานะ</td></tr>
+            <tr><td><code>maw attach &lt;session&gt;</code></td><td>เข้า session</td><td>switch ไป oracle อื่น</td></tr>
+            <tr><td><code>maw bring &lt;oracle&gt;</code></td><td>split pane + wake</td><td>ทำงานคู่กัน</td></tr>
+            <tr><td><code>maw federation status</code></td><td>ดู peer connectivity</td><td>debug cross-node</td></tr>
+            <tr><td><code>maw team create/spawn/send</code></td><td>multi-agent coordination</td><td>parallel research/work</td></tr>
+            <tr><td><code>maw preflight</code></td><td>health check ทั้งระบบ</td><td>หลัง install/upgrade</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Real Usage Data (46h session, DEVBOY)</h3>
+        <table>
+          <thead><tr><th>Command</th><th>References</th><th>% of usage</th></tr></thead>
+          <tbody>
+            <tr><td><code>maw team</code></td><td>816</td><td>62%</td></tr>
+            <tr><td><code>maw hey</code></td><td>504</td><td>38%</td></tr>
+            <tr><td><code>maw wake</code></td><td>115</td><td>&mdash;</td></tr>
+            <tr><td><code>maw federation</code></td><td>12</td><td>&mdash;</td></tr>
+            <tr><td><code>maw kill</code></td><td>9</td><td>&mdash;</td></tr>
+            <tr><td><code>maw peek</code></td><td>7</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Insight</strong>: <code>maw team</code> + <code>maw hey</code> = 90%+ ของ daily usage. Master สองตัวนี้ก็ใช้งานได้เกือบทุกสถานการณ์.</p>
+
+        <!-- ======================== PART B ======================== -->
+        <h2>Part B &mdash; Deep Dive</h2>
+
+        <h3>1. Lifecycle Commands</h3>
+
+        <h4>maw wake &lt;oracle&gt;</h4>
+        <p>Primary way to start. Fuzzy-match name, auto-clone จาก GitHub ถ้าจำเป็น, สร้าง tmux session.</p>
+<pre><code>maw wake glueboy              # wake by name
+maw wake glueboy --split      # wake ใน split pane
+maw wake glueboy --model opus # override model
+maw wake --all                # wake ทุก oracle</code></pre>
+
+        <h4>maw kill &lt;target&gt;</h4>
+<pre><code>maw kill glueboy              # kill pane
+maw kill 01-devboy            # kill by session name
+maw kill --all                # kill ทุกอัน (ระวัง!)</code></pre>
+
+        <h4>maw new &lt;name&gt;</h4>
+        <p>สร้าง tmux session เปล่า (ไม่มี oracle) สำหรับ shell tasks.</p>
+
+        <h4>maw scaffold &lt;name&gt;</h4>
+        <p>สร้าง repo skeleton (CLAUDE.md, ψ/, .claude/) โดยไม่ start อะไร.</p>
+
+        <h3>2. Communication Commands</h3>
+
+        <h4>maw hey &lt;target&gt; 'msg' &mdash; Primary IPC</h4>
+        <p><strong>คำสั่งที่สำคัญที่สุด.</strong> ส่งข้อความระหว่าง oracles ข้ามเครื่อง ผ่าน federation. เห็นใน maw web UI.</p>
+<pre><code># Cross-node (ใช้บ่อยสุด)
+maw hey mac-studio:11-glueboy:glueboy-oracle 'update [clinic-drdo:devboy]'
+
+# Local
+maw hey devboy 'quick question'
+
+# Format: &lt;node&gt;:&lt;session&gt;:&lt;pane&gt; หรือ &lt;agent-name&gt;</code></pre>
+
+        <p><strong>สำคัญ:</strong></p>
+        <ul>
+          <li>ต้อง mutual peer handshake (<code>maw peers add</code> ทั้ง 2 ฝั่ง)</li>
+          <li>ลงท้ายด้วย <code>[node:handle]</code> เสมอ เพื่อบอกว่าใครส่ง</li>
+          <li>หลังส่ง ตรวจด้วย <code>maw peek</code> ภายใน 3-5 วินาที</li>
+        </ul>
+
+        <h4>maw send &lt;target&gt; &lt;text&gt;</h4>
+        <p>Low-level tmux typing. ไม่มี federation, ไม่มี auth. ใช้ local automation เท่านั้น.</p>
+
+        <h4>maw broadcast 'msg'</h4>
+        <p>ส่งทุก agent. กว้างเกินสำหรับ 1:1 &mdash; ใช้ <code>maw hey</code> แทน.</p>
+
+        <h3>3. View &amp; Inspection</h3>
+
+        <h4>maw ls</h4>
+<pre><code>maw ls                # compact
+maw ls -v             # verbose (pids, memory, uptime)
+maw ls -r             # recent (sorted by activity)
+maw ls -a             # roster (ทุกตัว, run หรือไม่ run)
+maw ls --json         # machine-readable</code></pre>
+
+        <h4>maw peek &lt;target&gt;</h4>
+<pre><code>maw peek devboy                                    # local
+maw peek mac-studio:11-glueboy:glueboy-oracle      # remote
+maw peek devboy --lines 50                          # last 50 lines</code></pre>
+        <p><strong>Pattern:</strong> หลัง <code>maw hey</code> ให้ <code>maw peek</code> เสมอ 3-5 วิ เพื่อ verify delivery.</p>
+
+        <h4>maw panes</h4>
+        <p>List ทุก panes ทุก sessions.</p>
+
+        <h3>4. Navigation</h3>
+        <table>
+          <thead><tr><th>Command</th><th>Shortcut</th><th>ทำอะไร</th></tr></thead>
+          <tbody>
+            <tr><td><code>maw attach &lt;session&gt;</code></td><td><code>maw a</code></td><td>switch ไป session</td></tr>
+            <tr><td><code>maw bring &lt;oracle&gt;</code></td><td><code>maw b</code></td><td>split + wake ใน pane ปัจจุบัน</td></tr>
+            <tr><td><code>maw split &lt;target&gt;</code></td><td>&mdash;</td><td>แยก pane</td></tr>
+            <tr><td><code>maw tile [N]</code></td><td>&mdash;</td><td>จัด grid layout</td></tr>
+            <tr><td><code>maw zoom</code></td><td>&mdash;</td><td>toggle zoom</td></tr>
+            <tr><td><code>maw layout . tiled</code></td><td>&mdash;</td><td>apply layout preset</td></tr>
+          </tbody>
+        </table>
+
+        <h3>5. Federation</h3>
+
+        <h4>Architecture &mdash; 2-Layer Auth</h4>
+        <p>Federation auth มี <strong>2 layers ที่ต้อง pass ทั้งคู่</strong>:</p>
+        <table>
+          <thead><tr><th>Layer</th><th>Mechanism</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>1. HMAC</td><td>SHA-256 sign body + timestamp</td><td><code>federationToken</code> ใน config</td></tr>
+            <tr><td>2. ed25519</td><td>Per-peer signature on "from" field</td><td><code>~/.maw/peers.json</code></td></tr>
+          </tbody>
+        </table>
+
+        <h4>Setup (New Node)</h4>
+<pre><code># บน NEW node:
+# 1. แก้ ~/.config/maw/maw.config.json &mdash; เพิ่ม namedPeers
+# 2. ตั้ง federationToken (ต้องตรงกับ fleet)
+# 3. Add peer
+maw peers add &lt;existing-node&gt;
+
+# บน EXISTING node (mutual!):
+maw peers add &lt;new-node&gt;
+
+# Verify
+maw federation status --verify
+maw hey &lt;new-node&gt;:&lt;agent&gt; 'test [my-node:my-handle]'</code></pre>
+
+        <h4>Federation Commands</h4>
+<pre><code>maw federation status           # peer health
+maw federation status --verify  # health check ทุก pair
+maw federation sync             # sync peer state
+maw federation sync --dry-run   # preview
+maw federation sync --prune     # ลบ stale entries
+maw discover                    # inventory ทั้งหมด
+maw discover --tree             # hierarchical view</code></pre>
+
+        <h3>6. Team Commands (Multi-Agent)</h3>
+<pre><code># Workflow เต็ม
+maw team create research --description "5-agent parallel research"
+maw team spawn research analyst --model opus --prompt "You analyze papers"
+maw team spawn research coder --model sonnet --prompt "You write code"
+maw team send research analyst "Find papers on RAG architecture"
+maw team lives research          # ใครยัง alive
+maw team shutdown research       # ปิดทีม
+maw team cleanup --zombie-agents # ล้าง zombie panes</code></pre>
+
+        <h3>7. Oracle Management</h3>
+<pre><code>maw oracle ls                 # ดู registered oracles
+maw oracle ls --awake         # เฉพาะที่ run
+maw oracle scan               # scan หา oracle ใหม่
+maw oracle scan --stale       # หา orphaned entries
+maw oracle register &lt;name&gt;   # ลงทะเบียน
+maw oracle prune              # ลบ stale
+maw oracle about &lt;name&gt;      # ดู metadata</code></pre>
+
+        <h3>8. Fleet Management</h3>
+<pre><code>maw fleet ls                  # fleet registry
+maw fleet health              # สุขภาพรวม
+maw fleet doctor              # diagnostics
+maw fleet doctor --fix        # auto-repair
+maw fleet validate            # ตรวจ config
+maw fleet snapshot            # capture state
+maw fleet restore --all       # restore จาก snapshot</code></pre>
+
+        <h3>9. Plugin System</h3>
+<pre><code>maw plugin ls                 # installed plugins
+maw plugin install &lt;name&gt;    # จาก registry
+maw plugin install owner/repo # จาก GitHub
+maw plugin install ./file.tgz # จาก file
+maw plugin search &lt;query&gt;    # ค้นหา
+maw plugin build --watch      # dev mode
+maw plugin init &lt;name&gt; --ts  # scaffold TypeScript plugin</code></pre>
+
+        <h3>10. Maintenance</h3>
+<pre><code>maw preflight                 # pre-flight check
+maw cleanup                   # ล้าง zombie panes
+maw snapshots list            # recovery snapshots
+pm2 logs maw --err            # error logs
+pm2 restart maw               # restart หลังแก้ config</code></pre>
+
+        <!-- ======================== GOTCHAS ======================== -->
+        <h2>Part C &mdash; Gotchas &amp; Anti-Patterns</h2>
+
+        <h3>Critical Gotchas</h3>
+        <table>
+          <thead><tr><th>#</th><th>Gotcha</th><th>อาการ</th><th>แก้ยังไง</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Federation auth 2 layers</td><td>401 แม้ token ถูก</td><td>ตรวจ <code>pm2 logs maw --err</code>: missing_signature = ต้อง <code>maw peers add</code></td></tr>
+            <tr><td>2</td><td>Body-read-failed (v26.5.17)</td><td>401 ทุก request</td><td>Upgrade เป็น v26.5.21+</td></tr>
+            <tr><td>3</td><td>Mutual handshake</td><td>ส่งได้ทางเดียว</td><td><code>maw peers add</code> ทั้ง 2 ฝั่ง</td></tr>
+            <tr><td>4</td><td><code>maw talk-to</code> = LOCAL only</td><td>Silent no-op ข้ามเครื่อง</td><td>ใช้ <code>maw hey</code> แทน</td></tr>
+            <tr><td>5</td><td>PM2 PATH stripping (Apple Silicon)</td><td>sessions return []</td><td>Prepend <code>/opt/homebrew/bin</code> to pm2 env</td></tr>
+            <tr><td>6</td><td>Config needs restart</td><td>แก้ config ไม่มีผล</td><td><code>pm2 restart maw</code></td></tr>
+            <tr><td>7</td><td>federationToken plaintext</td><td>Token leak ถ้า commit</td><td>อย่า commit config. ใช้ pre-commit secret scanning</td></tr>
+            <tr><td>8</td><td>Mixed versions</td><td>Auth failures</td><td>ทุก node ต้อง version เดียวกัน</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Anti-Patterns</h3>
+        <table>
+          <thead><tr><th>อย่าทำ</th><th>ทำไม</th><th>ทำแทน</th></tr></thead>
+          <tbody>
+            <tr><td><code>maw talk-to</code> cross-node</td><td>เห็นแค่ local tmux</td><td><code>maw hey</code></td></tr>
+            <tr><td><code>maw hey</code> ไม่ลงท้าย [node:handle]</td><td>ผู้รับไม่รู้ว่าใครส่ง</td><td>ลงท้ายเสมอ</td></tr>
+            <tr><td><code>maw hey</code> ไม่ <code>maw peek</code> follow-up</td><td>ไม่มี delivery confirmation</td><td>peek 3-5 วิหลังส่ง</td></tr>
+            <tr><td><code>maw kill --all</code> ไม่ดู <code>maw ls</code></td><td>kill หมดไม่รู้ตัว</td><td>ดู ls ก่อนเสมอ</td></tr>
+            <tr><td>One-way <code>maw peers add</code></td><td>Federation = mutual</td><td>Add ทั้ง 2 ฝั่ง</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ======================== ARCHITECTURE ======================== -->
+        <h2>Part D &mdash; Architecture</h2>
+
+        <h3>System Overview</h3>
+<pre><code>&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;                    maw CLI                       &#9474;
+&#9474;  (Bun + Elysia HTTP server + tmux integration)  &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;  Commands   &#9474;   Plugins   &#9474;      API Server      &#9474;
+&#9474;  (40+ verbs)&#9474;  (registry) &#9474;  (HTTP + WebSocket)  &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;              Core Engine                         &#9474;
+&#9474;  Sessions &#9474; PTY Capture &#9474; Agent Lifecycle        &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;              Transport Layer                     &#9474;
+&#9474;  tmux &#9474; HTTP Federation &#9474; Zenoh (experimental)   &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;              Auth Layer                          &#9474;
+&#9474;  HMAC-SHA256 &#9474; ed25519 per-peer &#9474; TLS (optional)&#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</code></pre>
+
+        <h3>Message Delivery Flow</h3>
+        <p><strong>Local</strong>: CLI &rarr; resolve agent &rarr; tmux send-keys &rarr; oracle receives</p>
+        <p><strong>Cross-node</strong>: CLI &rarr; resolve agent &rarr; lookup namedPeers URL &rarr; HTTP POST /api/send &rarr; HMAC sign &rarr; ed25519 sign &rarr; remote maw verifies &rarr; tmux send-keys &rarr; oracle receives</p>
+
+        <h3>Config Schema (Key Fields)</h3>
+        <table>
+          <thead><tr><th>Category</th><th>Fields</th></tr></thead>
+          <tbody>
+            <tr><td>Identity</td><td><code>host</code>, <code>port</code>, <code>node</code>, <code>oracle</code></td></tr>
+            <tr><td>Commands</td><td><code>commands</code> (template per oracle), <code>sessions</code> (name&rarr;tmux mapping)</td></tr>
+            <tr><td>Federation</td><td><code>federationToken</code>, <code>namedPeers</code>, <code>agents</code> (agent&rarr;node routing)</td></tr>
+            <tr><td>Discovery</td><td><code>zenoh</code> (experimental), <code>discovery.transport</code></td></tr>
+            <tr><td>Tuning</td><td><code>intervals</code> (capture 50ms, sessions 5s), <code>timeouts</code> (http 5s, health 3s)</td></tr>
+            <tr><td>Security</td><td><code>tls</code>, <code>pin</code> (web UI), <code>trustLoopback</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>File Locations</h3>
+        <table>
+          <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>~/.config/maw/maw.config.json</code></td><td>Main config</td></tr>
+            <tr><td><code>~/.maw/peers.json</code></td><td>Federation peer keys</td></tr>
+            <tr><td><code>~/.maw/peer-key</code></td><td>Local ed25519 private key (mode 0600)</td></tr>
+            <tr><td><code>~/.maw/plugins/</code></td><td>Installed plugins</td></tr>
+            <tr><td><code>~/.bun/bin/maw</code></td><td>CLI entry point</td></tr>
+          </tbody>
+        </table>
+
+        <h3>API Endpoints</h3>
+        <table>
+          <thead><tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>/api/send</code></td><td>POST</td><td>ส่งข้อความ (federation primary)</td></tr>
+            <tr><td><code>/api/config</code></td><td>GET</td><td>Node identity + agents map</td></tr>
+            <tr><td><code>/api/feed</code></td><td>GET</td><td>Live event log</td></tr>
+            <tr><td><code>/api/federation/status</code></td><td>GET</td><td>Peer connectivity</td></tr>
+            <tr><td><code>/api/teams</code></td><td>GET</td><td>Active teams</td></tr>
+            <tr><td><code>/api/costs</code></td><td>GET</td><td>Token usage &amp; costs</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ======================== WORKFLOWS ======================== -->
+        <h2>Part E &mdash; Decision Trees &amp; Workflows</h2>
+
+        <h3>Decision Tree: "ฉันอยาก..."</h3>
+
+        <h4>เปิด Oracle</h4>
+        <ul>
+          <li>Oracle ใหม่ (ยังไม่เคย init) &rarr; <code>maw scaffold &lt;name&gt;</code> + <code>maw wake</code></li>
+          <li>Oracle เดิม, session ใหม่ &rarr; <code>maw wake &lt;name&gt;</code></li>
+          <li>ทำงานคู่กัน &rarr; <code>maw bring &lt;name&gt;</code></li>
+          <li>Wake ทั้งหมด &rarr; <code>maw wake --all</code></li>
+          <li>Shell เปล่า &rarr; <code>maw new &lt;name&gt;</code></li>
+        </ul>
+
+        <h4>ส่งข้อความ</h4>
+        <ul>
+          <li>ข้ามเครื่อง &rarr; <code>maw hey &lt;node&gt;:&lt;session&gt;:&lt;pane&gt; 'msg'</code></li>
+          <li>เครื่องเดียวกัน &rarr; <code>maw hey &lt;agent&gt; 'msg'</code></li>
+          <li>ทั้ง fleet &rarr; <code>maw broadcast 'msg'</code></li>
+          <li>Verify delivery &rarr; <code>maw peek &lt;target&gt;</code> (3-5 วิหลังส่ง)</li>
+        </ul>
+
+        <h4>ดูสถานะ</h4>
+        <ul>
+          <li>Sessions ที่ run &rarr; <code>maw ls</code></li>
+          <li>Oracle ที่ลงทะเบียน &rarr; <code>maw oracle ls</code></li>
+          <li>Oracle เฉพาะตัว &rarr; <code>maw peek &lt;target&gt;</code></li>
+          <li>Federation connectivity &rarr; <code>maw federation status</code></li>
+          <li>Full inventory &rarr; <code>maw discover</code></li>
+        </ul>
+
+        <h4>แก้ปัญหา</h4>
+        <ul>
+          <li>401 auth failure &rarr; <code>pm2 logs maw --err</code> &rarr; ดู error type</li>
+          <li>Oracle ไม่ตอบ &rarr; <code>maw peek &lt;target&gt;</code></li>
+          <li>Zombie panes &rarr; <code>maw cleanup</code></li>
+          <li>Config ผิด &rarr; <code>maw fleet validate</code> + <code>maw fleet doctor --fix</code></li>
+          <li>หลัง crash &rarr; <code>maw fleet restore --all</code></li>
+        </ul>
+
+        <h3>Workflow: Morning Fleet Startup</h3>
+<pre><code>maw ls                           # ดูอะไร run อยู่
+maw wake --all                   # เปิดทั้งหมด
+maw federation status --verify   # ตรวจ federation
+maw preflight                    # health check</code></pre>
+
+        <h3>Workflow: Cross-Node Communication</h3>
+<pre><code># 1. ส่ง
+maw hey mac-studio:11-glueboy:glueboy-oracle 'msg [clinic-drdo:devboy]'
+# 2. Verify (3-5 วิ)
+maw peek mac-studio:11-glueboy:glueboy-oracle
+# 3. รอ response</code></pre>
+
+        <h3>Workflow: Multi-Agent Research</h3>
+<pre><code>maw team create deep-research
+maw team spawn deep-research analyst --model opus
+maw team spawn deep-research coder --model sonnet
+maw team send deep-research analyst "Find papers on RAG"
+maw team lives deep-research     # monitor
+maw team shutdown deep-research  # done</code></pre>
+
+        <h3>Workflow: Post-Upgrade Verification</h3>
+<pre><code>pm2 restart maw
+maw preflight
+maw federation status --verify
+maw hey &lt;peer&gt; 'test ping [my-node:my-handle]'
+maw peek &lt;peer&gt;</code></pre>
+
+        <!-- ======================== RELATED ======================== -->
+        <h2>Related Articles</h2>
+        <ul>
+          <li><a href="039-maw-rs.html">039 &mdash; maw-rs: Rust Port</a> &mdash; Rust rewrite ของ maw-js</li>
+          <li><a href="041-discord-plugin-wiring.html">041 &mdash; Discord Plugin Wiring</a> &mdash; plugin system ของ maw</li>
+        </ul>
+
+        <h2>Source</h2>
+        <p>Traced 2026-05-21 via <code>/trace --deep --dig</code> (3 agents, Wave 1). Data from Soul-Brews-Studio/maw-js v26.5.21 source code + 46h real session usage (DEVBOY fleet). Friction score: 0.7 (well-documented in code, now indexed in Oracle).</p>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
