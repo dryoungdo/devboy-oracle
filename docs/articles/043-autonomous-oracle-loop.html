@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Autonomous Oracle Loop — Wind's gale-oracle pattern: /goal + team spawn + maw peek + cleanup + rrr + idle. Unified composition for autonomous AI workflows.">
+  <title>043 &mdash; Autonomous Oracle Loop | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">043 &mdash; Autonomous Oracle Loop</span>
+        <span class="topbar-date">2026-05-22</span>
+      </div>
+      <div class="content-shell">
+        <h1>Autonomous Oracle Loop &mdash; วงจรอัตโนมัติจาก gale-oracle</h1>
+        <div class="article-meta">
+          <span class="tag">autonomous</span>
+          <span class="tag">goal-command</span>
+          <span class="tag">team-spawn</span>
+          <span class="tag">maw</span>
+          <span class="tag">multi-agent</span>
+          <span class="tag">wind-oracle</span>
+          <span class="tag">idle-loop</span>
+          <span class="tag">codex</span>
+          <span class="maturity solid">&#10004; solid research</span>
+        </div>
+
+        <!-- Part A: Summary -->
+        <section>
+          <h2>A &mdash; สรุป</h2>
+          <p>Wind (deachawatss) สร้าง <strong>gale-oracle</strong> ที่ทำงานเป็น <strong>วงจรอัตโนมัติ</strong> &mdash; ตั้งเป้า (/goal) &rarr; spawn workers &rarr; monitor ด้วย maw peek &rarr; workers เสร็จ &rarr; cleanup team &rarr; /rrr &rarr; manage context &rarr; idle รอเป้าต่อไป</p>
+          <p><strong>จุดสำคัญ</strong>: ไม่ได้ใช้ technology ใหม่ &mdash; ใช้ features ที่มีอยู่แล้ว (<code>/goal</code>, <code>maw team</code>, <code>maw peek</code>, <code>/rrr</code>) แล้ว <strong>ประกอบ</strong> เข้าด้วยกันเป็นวงจรเดียวที่ไหลต่อเนื่อง</p>
+          <p>บทความนี้มาจาก 5-agent deep trace + screenshot analysis + cross-repo research จาก DO fleet ทั้งหมด</p>
+        </section>
+
+        <!-- Part B: The Loop -->
+        <section>
+          <h2>B &mdash; วงจรอัตโนมัติ (The Unified Loop)</h2>
+
+          <h3>B.1 &mdash; /goal Command</h3>
+          <p><code>/goal</code> คือ Claude Code built-in command ที่เปลี่ยนเกม:</p>
+          <pre><code>/goal "Complete issue #27 &mdash; add decision gate to CLAUDE.md"</code></pre>
+          <p>หลังทุก turn, <strong>Haiku-class validator model</strong> ตรวจว่า "goal สำเร็จหรือยัง?" ถ้ายัง &rarr; Claude ทำต่ออัตโนมัติ ถ้าเสร็จ &rarr; หยุด + report</p>
+          <p>รวมกับ <code>/bg</code> (background session) = <strong>fully autonomous session</strong> ที่ทำงานจนเสร็จโดยไม่ต้องมีคนมาสั่ง</p>
+
+          <h3>B.2 &mdash; Tier-Based Spawning</h3>
+          <table>
+            <tr><th>Tier</th><th>เมื่อไหร่</th><th>คำสั่ง</th></tr>
+            <tr><td>1</td><td>&lt;5 min, 1 file</td><td>Main oracle ทำเอง</td></tr>
+            <tr><td>2a</td><td>5-30 min, หลาย files</td><td><code>maw team spawn --codex</code></td></tr>
+            <tr><td>2b</td><td>Parallel batch</td><td><code>maw swarm codex codex codex</code></td></tr>
+            <tr><td>3</td><td>&gt;30 min, ข้ามเครื่อง</td><td><code>maw workon</code> / <code>maw wake</code></td></tr>
+          </table>
+
+          <h3>B.3 &mdash; Worker Monitoring</h3>
+          <p>Main oracle ใช้ <code>maw peek</code> ดู output ของ workers ทุก 2-3 นาที:</p>
+          <pre><code>maw peek 03-gale:gale-oracle.2    # worker 2
+maw peek 03-gale:gale-oracle.3    # worker 3</code></pre>
+          <p>Workers naming convention: <code>&lt;session&gt;:&lt;oracle&gt;.N</code> &mdash; เป็น maw convention ไม่ใช่ Claude Code built-in</p>
+
+          <h3>B.4 &mdash; File-Based Status</h3>
+          <p>Workers signal เสร็จผ่าน filesystem:</p>
+          <pre><code>.codex-reports/
+├── analyst-done.md      # เสร็จแล้ว
+├── coder-stuck.md       # ติดปัญหา
+└── reviewer-progress.md # กำลังทำ</code></pre>
+          <p>ดีกว่า message-based เพราะ <strong>durable</strong> &mdash; ไม่หายแม้ main oracle compact context</p>
+
+          <h3>B.5 &mdash; The Full Cycle</h3>
+          <pre><code>IDLE (รอเป้า)
+  │
+  ├── /goal set → ACTIVE
+  │     │
+  │     ├── Spawn workers (Tier 2a/2b/3)
+  │     ├── maw peek monitor loop
+  │     ├── Workers write .done.md
+  │     ├── Haiku validator: goal met? → YES
+  │     │
+  │     ▼
+  │   CLEANUP
+  │     │
+  │     ├── maw team shutdown
+  │     ├── worktree prune
+  │     ├── /rrr retrospective
+  │     ├── /compact (ถ้า context สูง)
+  │     │
+  │     ▼
+  └── IDLE (รอเป้าต่อไป)</code></pre>
+        </section>
+
+        <!-- Part C: Architecture -->
+        <section>
+          <h2>C &mdash; Architecture</h2>
+
+          <h3>C.1 &mdash; oracle-build.sh</h3>
+          <p>Wind ใช้ script สร้าง CLAUDE.md อัตโนมัติ:</p>
+          <pre><code>cat shared-claude.md &gt; CLAUDE.md        # กฎ fleet-wide
+cat oracle-gale-claude.md &gt;&gt; CLAUDE.md   # identity เฉพาะ
+# Backup ทุกครั้ง
+cp CLAUDE.md .oracle-build-backups/CLAUDE.md.$(date +%s)</code></pre>
+          <p><strong>ข้อดี</strong>: แก้ shared-claude.md ทีเดียว propagate ไปทุก oracle</p>
+          <p><strong>ข้อเสีย</strong>: bug ใน shared file = bug ทุก oracle พร้อมกัน</p>
+
+          <h3>C.2 &mdash; Dual Engine (Claude + Codex)</h3>
+          <p>gale-oracle ใช้ <strong>2 engines</strong> พร้อมกัน:</p>
+          <ul>
+            <li><strong>Claude Opus 4.6</strong> &mdash; orchestrator + primary worker</li>
+            <li><strong>GPT-5.5 xhigh (Codex)</strong> &mdash; parallel worker (docs, review, secondary tasks)</li>
+          </ul>
+          <p>ทั้งคู่ access ψ/ vault + arra-oracle MCP เดียวกัน &mdash; ไม่มี knowledge silo</p>
+
+          <h3>C.3 &mdash; 6-Phase Worker Cycle</h3>
+          <pre><code>SEARCH → EXPLORE → PLAN → IMPLEMENT → VERIFY → REPORT</code></pre>
+          <p>ทุก worker ต้องผ่าน <code>arra_search</code> ก่อน explore (search-first gate)</p>
+        </section>
+
+        <!-- Part D: Gap Analysis -->
+        <section>
+          <h2>D &mdash; เปรียบเทียบ DO Fleet</h2>
+          <table>
+            <tr><th>Feature</th><th>gale-oracle</th><th>DO Fleet (DEVBOY)</th></tr>
+            <tr><td>Goal tracking</td><td><code>/goal</code> (built-in)</td><td>ไม่มี (manual)</td></tr>
+            <tr><td>Worker spawn</td><td>Tier 1-3 auto</td><td>Manual <code>maw team</code></td></tr>
+            <tr><td>Monitoring</td><td><code>maw peek</code> loop</td><td>Ad-hoc peek</td></tr>
+            <tr><td>Status reporting</td><td>File-based (.done.md)</td><td>Heartbeat messages</td></tr>
+            <tr><td>Cleanup</td><td>Auto post-goal</td><td>Hook-prompted</td></tr>
+            <tr><td>Co-engine</td><td>Codex GPT-5.5 coprocessor</td><td>Codex review only</td></tr>
+            <tr><td>Idle state</td><td>Explicit idle</td><td>Session ends</td></tr>
+            <tr><td>Identity build</td><td><code>oracle-build.sh</code></td><td>Individual CLAUDE.md</td></tr>
+          </table>
+
+          <h3>D.1 &mdash; มีอยู่แล้ว</h3>
+          <ul>
+            <li><code>maw team spawn</code>, <code>maw peek</code>, <code>maw cleanup</code></li>
+            <li><code>/rrr</code> + auto-rrr hooks</li>
+            <li><code>/morpheus</code> idle dreaming</li>
+            <li><code>triggers-idle.ts</code> (maw-js runtime idle detection)</li>
+            <li><code>worktrees-cleanup.ts</code> (maw-js auto-cleanup)</li>
+            <li>arra-oracle MCP search-first gate</li>
+          </ul>
+
+          <h3>D.2 &mdash; ยังไม่มี</h3>
+          <ul>
+            <li><code>/goal</code> command adoption</li>
+            <li>Unified loop orchestrator skill</li>
+            <li>File-based status reporting (.done.md pattern)</li>
+            <li>Codex as coprocessor (ไม่ใช่แค่ reviewer)</li>
+            <li>Auto-context management (gated /compact)</li>
+          </ul>
+        </section>
+
+        <!-- Part E: Gotchas -->
+        <section>
+          <h2>E &mdash; Gotchas &amp; ความเสี่ยง</h2>
+          <ol>
+            <li><strong>/goal validator อาจผิดพลาด</strong> &mdash; Haiku อาจบอก "เสร็จ" ก่อนจริง (false positive) หรือไม่บอก "เสร็จ" เลย (infinite loop)</li>
+            <li><strong>Worktree conflicts</strong> &mdash; workers หลายตัวแก้ไฟล์เดียวกัน → merge conflict</li>
+            <li><strong>Codex ≠ Claude</strong> &mdash; model ต่างกัน, style ต่างกัน, อาจไม่เคารพ CLAUDE.md (ต้องใช้ AGENTS.md)</li>
+            <li><strong>Idle timeout ~1 ชั่วโมง</strong> &mdash; background session อาจถูก stop โดย supervisor</li>
+            <li><strong>oracle-build.sh = single point of failure</strong> &mdash; bug ใน shared-claude.md กระทบทุก oracle</li>
+          </ol>
+        </section>
+
+        <!-- Part F: Dream -->
+        <section>
+          <h2>F &mdash; Dream: DEVBOY กับ Unified Loop</h2>
+          <p>ถ้า DEVBOY ใช้ pattern นี้:</p>
+          <pre><code>Captain drops Discord message:
+"DEVBOY, study Anthropic's new agent SDK"
+
+DEVBOY:
+1. /goal "Study agent SDK, create ψ/lab/ experiment"
+2. Spawn 3 workers (research + code + cross-ref)
+3. maw peek monitor ทุก 2 min
+4. Workers เสร็จ → synthesize → 5-dim template
+5. /rrr → arra learn → cleanup → idle
+6. Captain ตื่นมาเห็น learning สำเร็จรูป พร้อม citations</code></pre>
+          <p><strong>ข้อคิด</strong>: Wind's fleet เล็กกว่า (7 oracles, 1 human) &mdash; DO fleet มี chain of command ซับซ้อนกว่า ต้อง adapt ไม่ใช่ copy</p>
+          <p><strong>Adoption path</strong>: Lab experiment ก่อน (ψ/lab/unified-loop/) → วัดผล → propose to GLUEBOY ถ้าได้ผล</p>
+        </section>
+
+        <!-- Part G: Source -->
+        <section>
+          <h2>G &mdash; แหล่งข้อมูล</h2>
+          <ul>
+            <li>Discord screenshot: windsoracle.png (Captain forwarded, 2026-05-21)</li>
+            <li>5-agent deep trace: gale-oracle repo, autonomous loop patterns, Claude Code docs, session mining, cross-repo analysis</li>
+            <li>Claude Code docs: <code>code.claude.com/docs/en/agent-teams</code>, <code>agent-view</code>, <code>worktrees</code></li>
+            <li>maw-js source: <code>triggers-idle.ts</code>, <code>worktrees-cleanup.ts</code></li>
+            <li>DO fleet knowledge: team-agents skill, auto-rrr hooks, /morpheus skill</li>
+          </ul>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: <code>&psi;/learn/wind-gale-oracle/2026-05-22/</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
