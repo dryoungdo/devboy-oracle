@@ -29,55 +29,44 @@
           &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
         </div>
 
-        <p>5 tutorials &mdash; zero setup, copy-paste prompts, works on claude.ai Free or Pro tier. No API, no enterprise features needed.</p>
+        <p>5 สิ่งที่ลองได้เลย ไม่ต้อง setup อะไร. เปิด <a href="https://claude.ai">claude.ai</a> (Free หรือ Pro), copy prompt ไปวาง, ได้ผลลัพธ์ทันที.</p>
 
-        <!-- ============================================ -->
-        <!-- TUTORIAL 1: EARNINGS CALL                    -->
-        <!-- ============================================ -->
+        <!-- TUTORIAL 1 -->
+        <h2>1. วิเคราะห์ Earnings Call ใน 5 นาที</h2>
+        <p><strong>ต้องมี:</strong> PDF หรือ text ของ earnings call transcript (โหลดฟรีจากหน้า IR ของบริษัท หรือ <a href="https://seekingalpha.com">Seeking Alpha</a>)</p>
 
-        <h2>1. Earnings Call Instant Analyst</h2>
-        <table>
-          <tbody>
-            <tr><td><strong>Time</strong></td><td>5 minutes</td></tr>
-            <tr><td><strong>What you need</strong></td><td>A PDF or text copy of any company's earnings call transcript (free from <a href="https://seekingalpha.com">Seeking Alpha</a> or company IR pages)</td></tr>
-          </tbody>
-        </table>
-
-        <p><strong>Step 1:</strong> Go to <a href="https://claude.ai">claude.ai</a> and start a new conversation.</p>
-        <p><strong>Step 2:</strong> Upload the transcript PDF (click the paperclip icon).</p>
-        <p><strong>Step 3:</strong> Paste this prompt:</p>
+        <p><strong>ทำยังไง:</strong></p>
+        <ol>
+          <li>เปิด claude.ai &rarr; เริ่ม conversation ใหม่</li>
+          <li>Upload PDF transcript (กดรูปคลิปหนีบ)</li>
+          <li>วาง prompt นี้:</li>
+        </ol>
 
         <pre><code>Analyze this earnings call transcript. Give me:
 
 1. **3 key takeaways** management wants investors to remember
 2. **3 things management avoided or downplayed** (read between the lines)
-3. **Revenue and margin guidance** — extract exact numbers with quarter/year
-4. **Analyst sentiment** — were the Q&A questions hostile, friendly, or routine?
+3. **Revenue and margin guidance** — extract exact numbers
+4. **Analyst sentiment** — were Q&A questions hostile, friendly, or routine?
 5. **One-paragraph summary** I could send to my boss right now
 
-Format as a clean briefing. Use bullet points. Quote exact phrases from the transcript when flagging anything management downplayed.</code></pre>
+Quote exact phrases when flagging anything downplayed.</code></pre>
 
-        <p><strong>What Claude gives you:</strong> A structured briefing that highlights both what management said AND what they dodged. The "downplayed" section is where the real insight lives &mdash; Claude catches hedging language, topic redirects, and non-answers that are easy to miss when listening live.</p>
+        <p><strong>ได้อะไร:</strong> สรุปแบบ analyst briefing &mdash; ทั้งสิ่งที่ management พูด และสิ่งที่ <em>ไม่พูด</em>. ส่วน "downplayed" คือ insight จริง &mdash; Claude จับ hedging language, การเปลี่ยนเรื่อง, การไม่ตอบคำถาม ที่คนฟัง live อาจพลาด.</p>
 
-        <blockquote><strong>Pro tip:</strong> Add "Compare tone vs. last quarter's call" and upload both transcripts. Tone shifts between quarters often signal trouble before the numbers do.</blockquote>
+        <blockquote><strong>เคล็ดลับ:</strong> upload transcript 2 ไตรมาสแล้วเพิ่ม "Compare tone vs. last quarter" &mdash; โทนเปลี่ยนมักบอกปัญหาก่อนตัวเลข.</blockquote>
 
-        <!-- ============================================ -->
-        <!-- TUTORIAL 2: FINANCIAL COMPARISON TABLE        -->
-        <!-- ============================================ -->
+        <!-- TUTORIAL 2 -->
+        <h2>2. เทียบตัวเลข 2 บริษัทใน 60 วินาที</h2>
+        <p><strong>ต้องมี:</strong> งบการเงินที่อยากเทียบ (annual report, screenshot, หรือพิมพ์ตัวเลขเองก็ได้)</p>
 
-        <h2>2. Side-by-Side Financial Comparison in 60 Seconds</h2>
-        <table>
-          <tbody>
-            <tr><td><strong>Time</strong></td><td>3 minutes</td></tr>
-            <tr><td><strong>What you need</strong></td><td>Financial data you want to compare (annual reports, screenshots of financials, or just the numbers in your head)</td></tr>
-          </tbody>
-        </table>
+        <ol>
+          <li>เปิด claude.ai</li>
+          <li>Upload เอกสาร หรือพิมพ์ตัวเลขตรงๆ</li>
+          <li>วาง prompt:</li>
+        </ol>
 
-        <p><strong>Step 1:</strong> Open <a href="https://claude.ai">claude.ai</a>.</p>
-        <p><strong>Step 2:</strong> Upload your source documents OR just type the numbers directly.</p>
-        <p><strong>Step 3:</strong> Paste this prompt:</p>
-
-        <pre><code>Build a comparison table for [Company A] vs [Company B] covering:
+        <pre><code>Build a comparison table for [Company A] vs [Company B]:
 - Revenue (3-year trend)
 - Gross margin %
 - Operating margin %
@@ -85,127 +74,115 @@ Format as a clean briefing. Use bullet points. Quote exact phrases from the tran
 - Debt-to-equity ratio
 - Free cash flow
 
-Use the data from the uploaded documents. Where data is missing, write "N/A" — do NOT estimate or fill in from memory.
+Use only uploaded data. Where data is missing, write "N/A"
+— do NOT estimate from memory.
 
-After the table, give me a 3-sentence verdict: which company is in stronger financial shape and why?</code></pre>
+After the table, give a 3-sentence verdict: which company
+is in stronger shape and why?</code></pre>
 
-        <p><strong>What Claude gives you:</strong> A clean markdown table ready to paste into a slide deck or email, plus a concise analytical verdict. Works great for board prep, investment committee memos, or quick competitor analysis.</p>
+        <p><strong>ได้อะไร:</strong> ตารางเทียบเรียบร้อย พร้อมสรุป 3 ประโยค. วางลง slide หรือ email ได้เลย. ใช้เตรียม board meeting หรือ วิเคราะห์คู่แข่งแบบเร็ว.</p>
 
-        <blockquote><strong>Pro tip:</strong> Add "Include a row for [your custom KPI]" &mdash; Claude handles industry-specific metrics (SaaS magic number, insurance combined ratio, bank NIM) without extra explanation.</blockquote>
+        <blockquote><strong>เคล็ดลับ:</strong> เพิ่ม "Include a row for [ตัวชี้วัดที่คุณสนใจ]" &mdash; Claude รู้จัก KPI เฉพาะอุตสาหกรรม เช่น SaaS magic number, combined ratio, NIM.</blockquote>
 
-        <!-- ============================================ -->
-        <!-- TUTORIAL 3: FINANCIAL MEMO                   -->
-        <!-- ============================================ -->
+        <!-- TUTORIAL 3 -->
+        <h2>3. เขียน Financial Memo ใน 10 นาที</h2>
+        <p><strong>ต้องมี:</strong> ข้อมูลหลักหรือเอกสารประกอบ (งบ, ข้อมูลตลาด). แม้แค่ bullet notes ก็พอ.</p>
 
-        <h2>3. Draft a Financial Memo in 10 Minutes</h2>
-        <table>
-          <tbody>
-            <tr><td><strong>Time</strong></td><td>10 minutes</td></tr>
-            <tr><td><strong>What you need</strong></td><td>Key data points or supporting docs (P&amp;L, balance sheet, market data). Even rough notes work.</td></tr>
-          </tbody>
-        </table>
+        <ol>
+          <li>เปิด conversation ใหม่ &rarr; upload เอกสาร (ถ้ามี)</li>
+          <li>บอกจุดประสงค์ของ memo สั้นๆ 1 ประโยค</li>
+          <li>วาง prompt:</li>
+        </ol>
 
-        <p><strong>Step 1:</strong> Open a new conversation. Upload any supporting docs.</p>
-        <p><strong>Step 2:</strong> Describe the memo's purpose in plain language (one sentence is fine).</p>
-        <p><strong>Step 3:</strong> Paste this prompt:</p>
+        <pre><code>Write a financial memo for [ผู้อ่าน เช่น "CFO" หรือ "investment committee"].
 
-        <pre><code>Write a financial memo for [audience, e.g., "the CFO" or "the investment committee"].
+Purpose: [เช่น "recommend whether to proceed with Series B investment in XYZ Corp"]
 
-Purpose: [e.g., "recommend whether to proceed with the Series B investment in XYZ Corp"]
-
-Structure it as:
+Structure:
 1. **Executive Summary** (3 sentences max)
 2. **Key Financials** (table format)
 3. **Risk Factors** (bullet points, ranked by severity)
-4. **Recommendation** (clear yes/no/conditional with reasoning)
+4. **Recommendation** (clear yes/no/conditional + reasoning)
 
-Tone: professional, direct, no filler. If the data supports a clear recommendation, say it. If it doesn't, say that too.
+Professional tone, no filler. If data supports a clear
+recommendation, say it. If not, say that too.
+Use only provided data — flag gaps where you need more info.</code></pre>
 
-Use only the data I've provided — flag any gaps where you'd need more info to be confident.</code></pre>
+        <p><strong>ได้อะไร:</strong> Memo สำเร็จรูป มีโครงสร้างชัด จัดลำดับความเสี่ยง แนะนำชัดเจน. คำสั่ง "flag gaps" บังคับให้ Claude บอกว่าข้อมูลตรงไหนไม่พอ แทนที่จะแต่งเติมเอง.</p>
 
-        <p><strong>What Claude gives you:</strong> A publication-ready memo with proper structure, risk ranking, and a clear recommendation. The "flag gaps" instruction forces Claude to tell you where the analysis is thin instead of papering over weak spots.</p>
+        <blockquote><strong>เคล็ดลับ:</strong> ถามต่อว่า "Now write the opposing view &mdash; why might this be wrong?" เพื่อทดสอบ argument ของตัวเองก่อนนำเสนอ.</blockquote>
 
-        <blockquote><strong>Pro tip:</strong> Follow up with "Now write the opposing view &mdash; why might this recommendation be wrong?" to stress-test your own argument before presenting.</blockquote>
+        <!-- TUTORIAL 4 -->
+        <h2>4. หาจุดเสี่ยงทางการเงินในสัญญา</h2>
+        <p><strong>ต้องมี:</strong> PDF สัญญา, ข้อตกลงกับ vendor, หรือ term sheet อะไรก็ได้</p>
 
-        <!-- ============================================ -->
-        <!-- TUTORIAL 4: CONTRACT RISK REVIEW             -->
-        <!-- ============================================ -->
+        <ol>
+          <li>Upload PDF สัญญาเข้า claude.ai (รับเอกสาร 50+ หน้าได้)</li>
+          <li>ให้ Claude อ่านจบ</li>
+          <li>วาง prompt:</li>
+        </ol>
 
-        <h2>4. Contract Financial Risk Spotter</h2>
-        <table>
-          <tbody>
-            <tr><td><strong>Time</strong></td><td>8 minutes</td></tr>
-            <tr><td><strong>What you need</strong></td><td>A PDF of any contract, vendor agreement, or term sheet</td></tr>
-          </tbody>
-        </table>
+        <pre><code>Review this contract — focus on FINANCIAL RISKS only.
+For each risk found:
 
-        <p><strong>Step 1:</strong> Upload the contract PDF to a new claude.ai conversation.</p>
-        <p><strong>Step 2:</strong> Let Claude read it (it handles 50+ page documents fine).</p>
-        <p><strong>Step 3:</strong> Paste this prompt:</p>
-
-        <pre><code>Review this contract focusing ONLY on financial risks. For each risk found, give me:
-
-1. **Clause reference** (section number + page)
-2. **What it says** (one-sentence plain English summary)
-3. **Why it's a risk** (what could go wrong financially)
+1. **Clause reference** (section + page)
+2. **What it says** (สรุป 1 ประโยค ภาษาง่าย)
+3. **Why it's a risk** (เกิดอะไรได้ทางการเงิน)
 4. **Severity** (HIGH / MEDIUM / LOW)
 
-Specifically look for:
-- Uncapped liability or indemnification
-- Auto-renewal with price escalation
-- Termination penalties or lock-in periods
-- Variable pricing tied to benchmarks you can't control
-- Audit rights (or lack thereof)
-- Payment terms that create cash flow risk (net-90+, milestone disputes)
+Look for:
+- Uncapped liability (ความรับผิดไม่จำกัด)
+- Auto-renewal with price increase
+- Termination penalties / lock-in
+- Variable pricing tied to external benchmarks
+- Payment terms over net-60
 - Insurance requirements that shift cost
 
-Sort by severity (HIGH first). End with a one-paragraph overall risk assessment.</code></pre>
+Sort by severity (HIGH first).
+End with one-paragraph overall risk assessment.</code></pre>
 
-        <p><strong>What Claude gives you:</strong> A clause-by-clause financial risk register with page references you can verify. This does not replace legal counsel &mdash; but it gives you a 15-minute head start before the expensive meeting.</p>
+        <p><strong>ได้อะไร:</strong> รายการจุดเสี่ยงทางการเงินแยกตาม clause พร้อมอ้างอิงหน้า ตรวจสอบได้. <strong>ไม่ใช่การให้คำปรึกษาทางกฎหมาย</strong> &mdash; แต่ช่วยเตรียมตัวก่อนประชุมกับทนาย ประหยัดเวลาได้มาก.</p>
 
-        <blockquote><strong>Pro tip:</strong> Add "Highlight anything that would concern a CFO but that a lawyer might consider standard" &mdash; this surfaces the commercially risky clauses that are legally normal but financially painful.</blockquote>
+        <blockquote><strong>เคล็ดลับ:</strong> เพิ่ม "Highlight anything a CFO would worry about but a lawyer might consider standard" &mdash; จับ clause ที่ทางกฎหมายปกติ แต่ทางการเงินเจ็บ.</blockquote>
 
-        <!-- ============================================ -->
-        <!-- TUTORIAL 5: BUDGET VARIANCE                  -->
-        <!-- ============================================ -->
+        <!-- TUTORIAL 5 -->
+        <h2>5. วิเคราะห์ Budget vs Actual</h2>
+        <p><strong>ต้องมี:</strong> ข้อมูล budget เทียบ actual &mdash; export จาก spreadsheet (CSV/Excel), PDF, หรือแม้แต่ screenshot</p>
 
-        <h2>5. Budget Variance Analysis Made Easy</h2>
-        <table>
-          <tbody>
-            <tr><td><strong>Time</strong></td><td>7 minutes</td></tr>
-            <tr><td><strong>What you need</strong></td><td>Your budget vs. actuals data &mdash; a spreadsheet export (CSV/Excel), PDF report, or even a screenshot of the numbers</td></tr>
-          </tbody>
-        </table>
+        <ol>
+          <li>Upload ข้อมูล budget vs actual เข้า claude.ai</li>
+          <li>บอกว่าวิเคราะห์งวดไหน</li>
+          <li>วาง prompt:</li>
+        </ol>
 
-        <p><strong>Step 1:</strong> Upload your budget-vs-actuals data to claude.ai.</p>
-        <p><strong>Step 2:</strong> Tell Claude which period you're analyzing.</p>
-        <p><strong>Step 3:</strong> Paste this prompt:</p>
+        <pre><code>Analyze budget vs actuals for [เดือน/ไตรมาส]. Give me:
 
-        <pre><code>Analyze this budget vs. actuals data for [month/quarter]. Give me:
+1. **Variance table** — each line: budgeted, actual,
+   variance ($), variance (%), flag (over/under/on-track, 5% threshold)
+2. **Top 3 unfavorable variances** — likely root cause +
+   question to ask department head
+3. **Top 3 favorable variances** — flag timing differences
+   vs genuine savings
+4. **Cash flow impact** — which variances hit cash this
+   period vs accrual only?
+5. **One-paragraph narrative** for monthly finance report
 
-1. **Variance summary table** — each line item with: budgeted, actual, variance ($), variance (%), and a flag (over/under/on-track using a 5% threshold)
-2. **Top 3 unfavorable variances** — for each, suggest one likely root cause and one question I should ask the department head
-3. **Top 3 favorable variances** — flag any that look like timing differences vs. genuine savings
-4. **Cash flow impact** — which variances actually hit cash this period vs. accrual-only?
-5. **One-paragraph narrative** I can paste into the monthly finance report
+Use tables. Reference specific line items from the data.</code></pre>
 
-Keep it concise. Use tables. No generic advice — reference specific line items from the data.</code></pre>
+        <p><strong>ได้อะไร:</strong> ชุดวิเคราะห์ variance ครบ: ตารางสรุป, สาเหตุที่น่าจะเป็น, คำถามที่ควรถาม, และ narrative พร้อมใช้. การแยก "timing vs genuine savings" คือสิ่งที่ทำให้วิเคราะห์มีค่า ไม่ใช่แค่ตัวเลขหลอกตา.</p>
 
-        <p><strong>What Claude gives you:</strong> A complete variance analysis package: summary table, root cause hypotheses, the right questions to ask, and a ready-to-use narrative. The "timing vs. genuine savings" distinction is what separates useful analysis from misleading numbers.</p>
+        <blockquote><strong>เคล็ดลับ:</strong> Upload 3 เดือนแทน 1 เดือน แล้วถาม "Which variances are recurring vs one-time?" &mdash; variance ที่เกิดซ้ำ = ต้องแก้ budget ไม่ใช่แค่อธิบาย.</blockquote>
 
-        <blockquote><strong>Pro tip:</strong> Upload three months of data instead of one. Ask "Which variances are recurring vs. one-time?" &mdash; recurring variances mean your budget assumptions need updating, not just explaining.</blockquote>
-
-        <!-- ============================================ -->
-        <!-- IMPORTANT REMINDER                           -->
-        <!-- ============================================ -->
-
-        <h2>Important Reminder</h2>
-        <p>Claude works with the data you give it. It does NOT have live market data or access to your company's systems. Always:</p>
+        <!-- IMPORTANT -->
+        <h2>สิ่งสำคัญที่ต้องจำ</h2>
+        <p>Claude ทำงานกับข้อมูลที่คุณให้. <strong>ไม่มี live market data</strong> และ<strong>เข้าระบบบริษัทไม่ได้</strong>.</p>
         <ul>
-          <li><strong>Upload source documents</strong> &mdash; don't ask Claude to recall specific financial figures from memory</li>
-          <li><strong>Verify outputs</strong> &mdash; spot-check numbers against your source before sharing</li>
-          <li><strong>Treat it as a first draft</strong> &mdash; Claude accelerates your analysis, it doesn't replace your judgment</li>
+          <li><strong>Upload เอกสารต้นฉบับ</strong> &mdash; อย่าให้ Claude นึกตัวเลขเอง</li>
+          <li><strong>ตรวจตัวเลข</strong> &mdash; เช็คกับต้นฉบับก่อนส่งต่อ</li>
+          <li><strong>ถือเป็น draft แรก</strong> &mdash; Claude เร่งงานให้เร็ว แต่ไม่ได้แทนวิจารณญาณของคุณ</li>
         </ul>
+
+        <p>&larr; ดู <a href="034-claude-for-finance.html">034 Claude for Finance (Expert Guide)</a> สำหรับเนื้อหาเชิงลึก</p>
 
         <div class="nav-footer">
           <a href="036-claude-for-law.html">&larr; 036 Claude for Law</a>
