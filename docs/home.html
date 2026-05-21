@@ -28,7 +28,19 @@
 
     <section class="hero-art" aria-label="สารบัญ">
       <div class="toc-shell">
+        <!-- Search bar -->
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="ค้นหาบทความ... (keyword, tag, ชื่อ)" autocomplete="off">
+          <div id="search-results" class="search-results" style="display:none"></div>
+        </div>
+
         <div class="chapter-sections">
+          <!-- ล่าสุด — auto-generated from page tiles -->
+          <section class="chapter-section" aria-labelledby="recent-title">
+            <h2 id="recent-title">&#128293; ล่าสุด</h2>
+            <nav class="chapter-list" aria-label="บทความล่าสุด" id="recent-articles"></nav>
+          </section>
+
           <section class="chapter-section" aria-labelledby="day1-title">
             <h2 id="day1-title">วันที่ 1 &mdash; 19 พ.ค. 2026</h2>
             <nav class="chapter-list" aria-label="บทความวันที่ 1">
@@ -261,5 +273,6 @@
       </div>
     </section>
   </main>
+  <script src="js/search.js"></script>
 </body>
 </html>
