@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[auto-rrr] session start — hook stub, needs glueboy-unique-auto-rrr install'"
+            "command": "bun run $HOME/.claude/skills/glueboy-unique-auto-rrr/hooks/session-start-hook.ts"
           }
         ]
       }
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[auto-rrr] stop — hook stub, needs glueboy-unique-auto-rrr install'",
+            "command": "bun run $HOME/.claude/skills/glueboy-unique-auto-rrr/hooks/stop-hook.ts",
             "timeout": 10
           }
         ]
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[auto-rrr] session end — hook stub, needs glueboy-unique-auto-rrr install'",
+            "command": "bun run $HOME/.claude/skills/glueboy-unique-auto-rrr/hooks/session-end-hook.ts",
             "timeout": 30
           }
         ]
