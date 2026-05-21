@@ -144,10 +144,22 @@ EOF</code></pre>
           </tbody>
         </table>
 
-        <h4>Step 7: Restart Claude Session</h4>
-        <pre><code># ออกจาก claude session แล้วเข้าใหม่
-# Plugin จะ load ตอน session start
-claude --dangerously-skip-permissions --continue</code></pre>
+        <h4>Step 7: Restart Claude Session with --channels Flag</h4>
+        <div style="background:var(--warn-bg,#fff3cd);border:2px solid var(--warn-border,#ffc107);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:var(--warn-text,#856404);">&#9888;&#65039; CRITICAL: --channels flag จำเป็น!</h4>
+          <p><strong>ถ้าไม่ใส่ <code>--channels</code></strong> &mdash; plugin จะ load แต่ <strong>inbound messages จะถูก skip ทั้งหมด</strong>. Plugin log จะแสดง: <code>"Channel notifications skipped: server plugin:discord:discord not in --channels list for this session"</code></p>
+          <p>Bot จะส่งได้ (outbound ไม่ต้อง --channels) แต่ <strong>รับ message ไม่ได้เลย</strong>. <code>/reload-plugins</code> แก้ไม่ได้ &mdash; channel registration ถูก fix ตอน session start เท่านั้น. <strong>ต้อง restart session ใหม่.</strong></p>
+        </div>
+        <pre><code># ออกจาก claude session แล้วเข้าใหม่ด้วย --channels flag
+# ค่าที่ถูกต้องคือ marketplace-qualified name ไม่ใช่ internal MCP server id
+claude --channels plugin:discord@claude-plugins-official --continue
+
+# ถ้าต้องการ fresh start (ไม่ continue):
+claude --channels plugin:discord@claude-plugins-official
+
+# ผิด (internal MCP id — ใช้ไม่ได้):
+# claude --channels plugin:discord:discord  ← ผิด!</code></pre>
+        <p><strong>Post-mortem (2026-05-21):</strong> GLUEBOY เสียเวลาหลายชั่วโมง debug เพราะขาด flag นี้. Plugin log message ชัดเจน แต่หา root cause ยาก เพราะ outbound ทำงานปกติ ทำให้คิดว่า plugin load ถูกต้องแล้ว.</p>
 
         <h4>Step 8: ทดสอบ</h4>
         <ol>
@@ -186,6 +198,11 @@ claude --dangerously-skip-permissions --continue</code></pre>
               <td>Plugin ไม่ load เลย</td>
               <td><code>enabledPlugins</code> ไม่มี</td>
               <td>เพิ่ม <code>"discord@claude-plugins-official": true</code> ใน settings.json</td>
+            </tr>
+            <tr>
+              <td>Plugin loaded แต่ inbound ตาย 100%</td>
+              <td>ไม่ได้ใส่ <code>--channels</code> flag ตอน start session</td>
+              <td>Restart: <code>claude --channels plugin:discord@claude-plugins-official</code></td>
             </tr>
             <tr>
               <td>Bot offline</td>
@@ -459,6 +476,10 @@ Oracle processes message</code></pre>
   |     Yes --&gt; @mention bot หรือเปลี่ยนเป็น false
   |     No  --&gt;
   |
+  +--&gt; Session start ด้วย --channels flag?
+  |     No  --&gt; *** restart: claude --channels plugin:discord@claude-plugins-official ***
+  |     Yes --&gt;
+  |
   +--&gt; MESSAGE_CONTENT intent เปิดใน Developer Portal?
   |     No  --&gt; เปิด + restart bot
   |     Yes --&gt;
@@ -473,7 +494,7 @@ Oracle processes message</code></pre>
           </thead>
           <tbody>
             <tr><td>2026-05-19</td><td>DEVBOY</td><td>Bot online แต่หูหนวก</td><td><code>dmPolicy: "disabled"</code></td><td>100 min</td></tr>
-            <tr><td>2026-05-21</td><td>GLUEBOY</td><td>ส่งได้ รับไม่ได้</td><td>Under investigation (likely dmPolicy or intents)</td><td>ongoing</td></tr>
+            <tr><td>2026-05-21</td><td>GLUEBOY</td><td>ส่งได้ รับไม่ได้</td><td>ไม่ได้ใส่ <code>--channels plugin:discord@claude-plugins-official</code> ตอน start + ไม่มี <code>enabledPlugins</code> ใน settings.json</td><td>~4 hrs</td></tr>
           </tbody>
         </table>
 
