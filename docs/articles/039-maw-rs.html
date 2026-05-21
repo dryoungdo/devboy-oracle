@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>039 — maw-rs: Rust Port of maw-js | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">039 &mdash; maw-rs</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw-rs &mdash; Rust Port ของ maw-js</h1>
+        <div class="article-meta">
+          <span class="tag">maw</span>
+          <span class="tag">rust</span>
+          <span class="tag">cli</span>
+          <span class="tag">soul-brews</span>
+          <span class="tag">multi-agent</span>
+          <span class="tag">federation</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <p>ถ้ามีเวลาน้อย อ่าน Part A ก็พอ.</p>
+
+        <!-- ======================== PART A ======================== -->
+        <h2>Part A &mdash; สรุปที่ต้องรู้</h2>
+
+        <h3>มันคืออะไร?</h3>
+        <p><strong>maw-rs</strong> คือ Rust rewrite ของ <strong>maw-js</strong> &mdash; CLI ที่จัดการ multi-agent fleet ผ่าน tmux. ใช้บริหาร Oracle agents ทั้งหมด: ตั้งชื่อ session, federation auth, plugin management, target routing, peer discovery.</p>
+
+        <ul>
+          <li><strong>Version</strong>: v0.1.0-alpha.1</li>
+          <li><strong>License</strong>: BUSL-1.1</li>
+          <li><strong>Author</strong>: Nat (Soul-Brews-Studio)</li>
+          <li><strong>สถานะ</strong>: Phase 1 done (pure logic) &mdash; ยังไม่รัน production</li>
+        </ul>
+
+        <h3>ทำไมเขียนใหม่เป็น Rust?</h3>
+        <table>
+          <thead>
+            <tr><th>ด้าน</th><th>maw-js (TypeScript/Bun)</th><th>maw-rs (Rust)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Startup time</td><td>~200ms (Bun)</td><td>&lt;5ms (native binary)</td></tr>
+            <tr><td>Dependencies</td><td>node_modules</td><td>2 external crates (hmac, serde)</td></tr>
+            <tr><td>Memory safety</td><td>Runtime GC</td><td>Compile-time, unsafe forbidden</td></tr>
+            <tr><td>Testability</td><td>IO entangled</td><td>IO-free by design, injectable</td></tr>
+            <tr><td>Distribution</td><td>npm/bun install</td><td>Single binary (future)</td></tr>
+            <tr><td>WASM plugins</td><td>JS only</td><td>Rust + AssemblyScript scaffold</td></tr>
+          </tbody>
+        </table>
+
+        <h3>3 Phases &mdash; Roadmap</h3>
+        <ol>
+          <li><strong>Phase 1</strong> (done) &mdash; Port pure/deterministic logic. 21 crates, 95.53% coverage. JSON fixture parity กับ maw-js.</li>
+          <li><strong>Phase 2</strong> (in progress) &mdash; Wire runtime IO: tmux process adapter, HTTP federation, Zenoh transport. ใช้ fake-backed adapters ก่อน real IO.</li>
+          <li><strong>Phase 3</strong> (future) &mdash; clap CLI binary. Port <code>ls</code>, <code>hey</code>, <code>peek</code> ทีละ command. maw-js + maw-rs run side-by-side จนกว่าจะ proven.</li>
+        </ol>
+
+        <h3>Design Principles</h3>
+        <ul>
+          <li><strong>Same-test-first</strong> &mdash; Rust behavior ยอมรับได้ก็ต่อเมื่อ match maw-js fixture/golden output</li>
+          <li><strong>Fake before IO</strong> &mdash; tmux, filesystem, HTTP ใช้ test doubles ก่อน real side effects</li>
+          <li><strong>unsafe = forbid</strong> &mdash; ห้าม unsafe code ทั้ง workspace</li>
+          <li><strong>Stabilize before expand</strong> &mdash; จบ crate ปัจจุบันก่อนเปิด lane ใหม่</li>
+        </ul>
+
+        <!-- ======================== PART B ======================== -->
+        <h2>Part B &mdash; Technical Deep Dive</h2>
+
+        <h3>21 Crates &mdash; Workspace Architecture</h3>
+        <table>
+          <thead>
+            <tr><th>Crate</th><th>หน้าที่</th><th>maw-js Source</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>maw-auth</code></td><td>Federation auth (HMAC-SHA256, consent, pair codes)</td><td>federation-auth.ts</td></tr>
+            <tr><td><code>maw-auto-wake</code></td><td>Auto-wake policy decision</td><td>should-auto-wake.ts</td></tr>
+            <tr><td><code>maw-bind</code></td><td>Bind-host resolution heuristic</td><td>bind-host.ts</td></tr>
+            <tr><td><code>maw-bring</code></td><td>bring command flag/alias parser</td><td>bring-flags.ts</td></tr>
+            <tr><td><code>maw-calver</code></td><td>Calendar versioning</td><td>calver.ts</td></tr>
+            <tr><td><code>maw-cli</code></td><td>Binary entry point (dispatch)</td><td>cli.ts</td></tr>
+            <tr><td><code>maw-feed</code></td><td>Oracle activity feed parser</td><td>feed.ts</td></tr>
+            <tr><td><code>maw-fuzzy</code></td><td>Levenshtein fuzzy match / typo suggestion</td><td>fuzzy.ts</td></tr>
+            <tr><td><code>maw-hub</code></td><td>Hub workspace config loader</td><td>hub-config.ts</td></tr>
+            <tr><td><code>maw-identity</code></td><td>Session/node naming + oracle name validation</td><td>session-name.ts</td></tr>
+            <tr><td><code>maw-matcher</code></td><td>Name resolution (exact/fuzzy/ambiguous)</td><td>resolve-target.ts</td></tr>
+            <tr><td><code>maw-peer</code></td><td>Peer source resolution + probe helpers</td><td>peer-sources.ts</td></tr>
+            <tr><td><code>maw-plugin-manifest</code></td><td>Plugin manifest validator + WASM invoke</td><td>manifest-validate.ts</td></tr>
+            <tr><td><code>maw-plugin-scaffold</code></td><td>Plugin scaffold name/manifest validator</td><td>plugin-create-scaffold.ts</td></tr>
+            <tr><td><code>maw-policy</code></td><td>Plugin tier/policy defaults</td><td>tier.ts</td></tr>
+            <tr><td><code>maw-routing</code></td><td>Target routing + federation sync diff</td><td>routing.ts</td></tr>
+            <tr><td><code>maw-split</code></td><td>Split-pane policy decision engine</td><td>safety.ts</td></tr>
+            <tr><td><code>maw-tmux</code></td><td>tmux command builder + output parser</td><td>tmux-class.ts</td></tr>
+            <tr><td><code>maw-transport</code></td><td>Transport classification + failover</td><td>transport.ts</td></tr>
+            <tr><td><code>maw-worktree</code></td><td>Worktree-window match resolution</td><td>worktree-window-match.ts</td></tr>
+            <tr><td><code>maw-xdg</code></td><td>XDG/legacy path resolution</td><td>xdg.ts, paths.ts</td></tr>
+          </tbody>
+        </table>
+
+        <h3>CLI Commands (Phase 1 &mdash; dry-run)</h3>
+        <p>Binary: <code>maw-rs</code>. ปัจจุบันเป็น hand-rolled dispatcher (ยังไม่ใช้ clap):</p>
+        <pre><code>maw-rs auth sign|verify|from-address ...
+maw-rs auto-wake --site &lt;name&gt; ...
+maw-rs bring &lt;target&gt; [--split|--tab|--self]
+maw-rs calver
+maw-rs consent-pin|consent-request|consent-approve ...
+maw-rs discover
+maw-rs federation-identity|federation-health|federation-sync
+maw-rs feed &lt;lines&gt;
+maw-rs fuzzy &lt;input&gt; &lt;candidates&gt;
+maw-rs hub
+maw-rs identity
+maw-rs ls
+maw-rs normalize &lt;target&gt;
+maw-rs pair-code|pair-code-store|pair-api ...
+maw-rs peer-sources|peer-probe
+maw-rs plugin-manifest|plugin-scaffold
+maw-rs policy|plugin-policy
+maw-rs resolve &lt;name&gt;
+maw-rs route &lt;target&gt;
+maw-rs split-policy
+maw-rs transport
+maw-rs worktree-window
+maw-rs xdg</code></pre>
+
+        <p>ทุก command มี <code>constants</code> sub-subcommand + <code>--plan-json</code> flag สำหรับ machine-readable output.</p>
+
+        <h3>Fixture Parity Testing</h3>
+        <p>ระบบทดสอบ key ของ maw-rs &mdash; JSON fixtures คัดลอกจาก <code>maw-js/test/spec/</code> มาใช้ตรงๆ:</p>
+        <pre><code>// maw-rs test loads same JSON as maw-js test
+#[test]
+fn resolve_target_fixtures() {
+    let fixtures: Vec&lt;Fixture&gt; = serde_json::from_str(
+        include_str!("fixtures/resolve-target.fixtures.json")
+    ).unwrap();
+    for f in fixtures {
+        assert_eq!(resolve_target(&amp;f.input), f.expected);
+    }
+}</code></pre>
+        <p>ทั้ง 2 engines ต้อง agree &mdash; ถ้า Rust output ไม่ตรง maw-js = test fail.</p>
+
+        <h3>Dependencies &mdash; Minimal</h3>
+        <table>
+          <thead>
+            <tr><th>External Crate</th><th>ใช้ใน</th><th>หน้าที่</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>hmac 0.12</code> + <code>sha2 0.10</code></td><td>maw-auth</td><td>HMAC-SHA256 federation signing</td></tr>
+            <tr><td><code>serde 1</code> + <code>serde_json 1</code></td><td>หลาย crates</td><td>JSON fixture loading + config deserialize</td></tr>
+          </tbody>
+        </table>
+        <p>อื่นๆ ใช้ Rust std library เท่านั้น &mdash; ไม่มี async runtime, ไม่มี tokio.</p>
+
+        <h3>Key Rust Patterns</h3>
+        <ul>
+          <li><code>#[must_use]</code> บน query functions ทุกตัว</li>
+          <li><code>BTreeMap</code>/<code>BTreeSet</code> แทน HashMap &mdash; deterministic output</li>
+          <li>Newtype wrapper <code>Headers(BTreeMap)</code> with case-folding on insert</li>
+          <li><code>TmuxRunner</code> trait injection &mdash; test ไม่ต้องรัน tmux จริง</li>
+          <li><code>CliOutput { code, stdout, stderr }</code> &mdash; every command testable in-process</li>
+          <li><code>OnceLock&lt;Mutex&lt;...&gt;&gt;</code> สำหรับ plugin registry static state</li>
+        </ul>
+
+        <h3>เทียบ Feature Coverage</h3>
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>maw-js</th><th>maw-rs</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Target resolution</td><td>&#10004;</td><td>&#10004; fixture-locked</td></tr>
+            <tr><td>Federation auth</td><td>&#10004;</td><td>&#10004; HMAC-SHA256</td></tr>
+            <tr><td>Plugin system</td><td>&#10004; JS</td><td>&#10004; + WASM (Rust/AS)</td></tr>
+            <tr><td>tmux management</td><td>&#10004; live</td><td>&#9888; parser only (no IO)</td></tr>
+            <tr><td>HTTP server (:3456)</td><td>&#10004;</td><td>&#10008; not ported</td></tr>
+            <tr><td>Web UI</td><td>&#10004; (maw-ui)</td><td>&#10008;</td></tr>
+            <tr><td>Zenoh federation</td><td>&#10004;</td><td>&#10008; planned Phase 2</td></tr>
+            <tr><td>maw team</td><td>&#10004;</td><td>&#10008;</td></tr>
+            <tr><td>maw osmosis</td><td>&#10004;</td><td>&#10008;</td></tr>
+            <tr><td>CLI commands (real)</td><td>&#10004; all</td><td>&#9888; dry-run only</td></tr>
+          </tbody>
+        </table>
+
+        <h3>GitHub Stats</h3>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Repo</td><td><a href="https://github.com/Soul-Brews-Studio/maw-rs">Soul-Brews-Studio/maw-rs</a></td></tr>
+            <tr><td>Commits</td><td>50 (all 2026-05-21)</td></tr>
+            <tr><td>Contributors</td><td>Nat (solo)</td></tr>
+            <tr><td>Release</td><td>v0.1.0-alpha.1 (pre-release)</td></tr>
+            <tr><td>Issues / PRs</td><td>0 / 0</td></tr>
+            <tr><td>Coverage</td><td>95.53%</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Fleet Relevance</h3>
+        <p><strong>ทำไมสำคัญ</strong>: maw คือ backbone ของ fleet ทั้งหมด. ถ้า maw-rs สำเร็จ:</p>
+        <ul>
+          <li>Startup &lt;5ms แทน ~200ms &mdash; <code>maw hey</code> จะเร็วขึ้น 40x</li>
+          <li>Single binary ไม่ต้อง Bun/Node runtime</li>
+          <li>WASM plugins เปิดโอกาสให้เขียน plugin เป็น Rust compile ลง WASM</li>
+          <li>Memory-safe federation auth ไม่ต้องห่วง runtime vulnerabilities</li>
+        </ul>
+
+        <h3>Links</h3>
+        <ul>
+          <li><strong>Repo</strong>: <a href="https://github.com/Soul-Brews-Studio/maw-rs">github.com/Soul-Brews-Studio/maw-rs</a></li>
+          <li><strong>maw-js (original)</strong>: <a href="https://github.com/Soul-Brews-Studio/maw-js">github.com/Soul-Brews-Studio/maw-js</a></li>
+          <li><strong>Port plan</strong>: <code>.omx/plans/port-maw-js-to-maw-rs-1801.md</code></li>
+        </ul>
+
+        <p>&larr; ดู <a href="007-maw-js-orchestrator.html">007 maw-js Orchestrator</a> สำหรับ maw-js original</p>
+
+        <div class="nav-footer">
+          <a href="038-omnivoice-thai.html">&larr; 038 OmniVoice-Thai</a>
+          <a href="040-arra-safety-hooks.html">040 Safety Hooks &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

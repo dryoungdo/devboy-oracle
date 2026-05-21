@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>038 — OmniVoice-Thai: Open-Source Thai TTS | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">038 &mdash; OmniVoice-Thai</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>OmniVoice-Thai &mdash; Open-Source Thai TTS + Voice Cloning</h1>
+        <div class="article-meta">
+          <span class="tag">voice</span>
+          <span class="tag">tts</span>
+          <span class="tag">thai</span>
+          <span class="tag">huggingface</span>
+          <span class="tag">open-source</span>
+          <span class="tag">voice-cloning</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+        </div>
+
+        <p>ถ้ามีเวลาน้อย อ่าน Part A ก็พอ. Part B คือ technical deep dive.</p>
+
+        <!-- ======================== PART A ======================== -->
+        <h2>Part A &mdash; สรุปที่ต้องรู้</h2>
+
+        <h3>มันคืออะไร?</h3>
+        <p><strong>omnivoice-thai</strong> คือ Thai fine-tune ของ <strong>k2-fsa/OmniVoice</strong> &mdash; โมเดล TTS (Text-to-Speech) รุ่นใหม่จากทีม Daniel Povey (คนสร้าง <a href="https://github.com/kaldi-asr/kaldi">Kaldi</a> &mdash; ตำนานวงการ speech).</p>
+
+        <ul>
+          <li><strong>ทำได้</strong>: แปลงข้อความเป็นเสียงพูดไทย, clone เสียงจากตัวอย่างสั้นๆ, ออกแบบเสียง (เลือกเพศ/pitch/accent)</li>
+          <li><strong>Open-source</strong>: Apache 2.0 &mdash; ใช้ commercial ได้เลย</li>
+          <li><strong>Self-host ได้</strong>: รันบนเครื่องตัวเอง ไม่ต้องพึ่ง API ใคร</li>
+          <li><strong>สถานะ</strong>: proof-of-concept &mdash; ยังไม่ production-ready</li>
+        </ul>
+
+        <h3>ทำไมน่าสนใจ?</h3>
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Cartesia Sonic-3.5 (ใช้อยู่)</th><th>edge-tts (fallback)</th><th>OmniVoice-Thai</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Thai TTS</td><td>&#10004; production</td><td>&#10004; ดี</td><td>&#9888; experimental</td></tr>
+            <tr><td>Voice Cloning</td><td>&#10008;</td><td>&#10008;</td><td>&#10004; zero-shot</td></tr>
+            <tr><td>Voice Design</td><td>&#10008;</td><td>&#10008;</td><td>&#10004; เลือกเพศ/pitch/accent</td></tr>
+            <tr><td>Self-host</td><td>&#10008; API only</td><td>&#10008; Microsoft API</td><td>&#10004; local GPU</td></tr>
+            <tr><td>ราคา</td><td>paid</td><td>free</td><td>free (Apache 2.0)</td></tr>
+            <tr><td>Speed</td><td>40ms TTFA</td><td>ปานกลาง</td><td>40x real-time (RTF 0.025)</td></tr>
+          </tbody>
+        </table>
+
+        <p><strong>จุดขาย</strong>: open-source Thai TTS ที่มี voice cloning + voice design ในตัว. ตัวอื่นไม่มี. แต่คุณภาพยังไม่พิสูจน์.</p>
+
+        <h3>ลองใช้ยังไง?</h3>
+
+        <pre><code>pip install omnivoice
+
+from omnivoice import OmniVoice
+import soundfile as sf
+
+model = OmniVoice.from_pretrained("hotdogs/omnivoice-thai")
+
+# TTS ปกติ
+audio = model.generate(
+    text="สวัสดีครับ วันนี้อากาศดีมากเลย",
+    instruct="male, low pitch",
+)
+sf.write("output.wav", audio[0], 24000)
+
+# Voice cloning — ใช้เสียงตัวอย่าง
+audio = model.generate(
+    text="ยินดีต้อนรับเข้าสู่ระบบ",
+    prompt_speech="reference_voice.wav",
+)
+sf.write("cloned.wav", audio[0], 24000)</code></pre>
+
+        <p>มี <strong>Colab notebook</strong> ใน HuggingFace repo &mdash; กด Run ได้เลยไม่ต้อง setup เอง.</p>
+
+        <blockquote><strong>ข้อควรระวัง</strong>: โมเดลหนัก ~7.4 GB, ต้องการ GPU (แนะนำ VRAM 8GB+). CPU ช้ามาก.</blockquote>
+
+        <h3>Voice Design &mdash; สั่งด้วยข้อความ</h3>
+        <p>สิ่งที่ OmniVoice ทำได้แต่ Cartesia/edge-tts ทำไม่ได้ &mdash; สั่ง <code>instruct</code> เป็นภาษาอังกฤษ:</p>
+
+        <pre><code># เสียงผู้หญิง pitch สูง
+model.generate(text="...", instruct="female, high pitch, young")
+
+# เสียงผู้ชายแก่ พูดช้า
+model.generate(text="...", instruct="male, low pitch, elderly, slow")
+
+# ใส่เสียงหัวเราะ
+model.generate(text="นี่มัน [laughter] ตลกมาก")</code></pre>
+
+        <h3>สถานะ &mdash; ใช้ production ได้ยัง?</h3>
+        <p><strong>ยังไม่ได้.</strong> เหตุผล:</p>
+        <ul>
+          <li>Train ด้วย data แค่ <strong>12.6 ชม. / 2 speakers</strong> &mdash; น้อยมากสำหรับ TTS</li>
+          <li>ไม่มี evaluation metrics (MOS, WER, speaker similarity)</li>
+          <li>Base model เน้น English/Chinese &mdash; Thai เป็น "new territory"</li>
+          <li>Loss ยัง fluctuate (smoothed ~4.4)</li>
+        </ul>
+        <p>แต่ <strong>base model แข็งมาก</strong> (581K ชม., 600+ ภาษา, 2.1M+ downloads). ถ้ามีคนมา fine-tune ด้วย data ไทยเยอะกว่านี้ คุณภาพจะดีขึ้นมาก.</p>
+
+        <!-- ======================== PART B ======================== -->
+        <h2>Part B &mdash; Technical Deep Dive</h2>
+
+        <h3>Architecture: Masked Diffusion TTS</h3>
+        <p>OmniVoice ใช้สถาปัตยกรรมที่ต่างจาก TTS ทั่วไป:</p>
+
+        <table>
+          <thead>
+            <tr><th>แบบเดิม (Autoregressive)</th><th>OmniVoice (Non-Autoregressive)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>สร้างเสียงทีละ token ตามลำดับ</td><td>สร้างทุก token พร้อมกัน แล้ว refine</td></tr>
+            <tr><td>ช้า (ต้องรอ token ก่อนหน้า)</td><td>เร็ว (parallel generation)</td></tr>
+            <tr><td>Text &rarr; Semantic &rarr; Acoustic (2 ขั้น)</td><td>Text &rarr; Acoustic โดยตรง (1 ขั้น)</td></tr>
+            <tr><td>เช่น VALL-E, XTTS</td><td>MaskGIT-style discrete masked diffusion</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Technical Stack</h3>
+        <table>
+          <thead>
+            <tr><th>Component</th><th>Detail</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>LLM Backbone</td><td>Qwen3-0.6B (612M params) &mdash; pre-trained text understanding</td></tr>
+            <tr><td>Audio Tokenizer</td><td>eustlb/higgs-audio-v2-tokenizer @ 24kHz</td></tr>
+            <tr><td>Training Strategy</td><td>Full-codebook random masking across all codebooks</td></tr>
+            <tr><td>Base Training Data</td><td>581,000 hours, 600+ languages</td></tr>
+            <tr><td>Inference Speed</td><td>RTF 0.025 (40x real-time)</td></tr>
+            <tr><td>Output</td><td>24kHz WAV</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Thai Fine-tune Spec</h3>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Dataset</td><td>Thanarit/Thai-Voice-Test7</td></tr>
+            <tr><td>Utterances</td><td>20,000</td></tr>
+            <tr><td>Audio</td><td>12.6 ชั่วโมง</td></tr>
+            <tr><td>Speakers</td><td>2</td></tr>
+            <tr><td>Sources</td><td>GigaSpeech2 + ProcessedVoiceTH + MozillaCommonVoice</td></tr>
+            <tr><td>GPU</td><td>1x NVIDIA RTX 3090 24GB (Vast.ai cloud)</td></tr>
+            <tr><td>Training Time</td><td>~1.5 ชั่วโมง</td></tr>
+            <tr><td>Steps</td><td>1,747 / 30,000 (auto-stop at loss &lt; 3.0)</td></tr>
+            <tr><td>Learning Rate</td><td>1e-5, cosine schedule, 2% warmup</td></tr>
+            <tr><td>Precision</td><td>fp16, SDPA attention</td></tr>
+            <tr><td>Best Loss</td><td>2.8775 per-step; smoothed ~4.4</td></tr>
+          </tbody>
+        </table>
+
+        <h3>ใครทำ?</h3>
+        <table>
+          <thead>
+            <tr><th>Role</th><th>Who</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Thai Fine-tune</td><td><strong>UKA</strong> (GitHub: <a href="https://github.com/nanofatdog">nanofatdog</a>) &mdash; Thai dev, AI agent &amp; cybersecurity</td></tr>
+            <tr><td>Base Model</td><td><strong>k2-fsa team</strong> &mdash; Daniel Povey (creator of Kaldi), Han Zhu et al.</td></tr>
+            <tr><td>Paper</td><td><a href="https://arxiv.org/abs/2604.00688">arXiv:2604.00688</a></td></tr>
+            <tr><td>HuggingFace Org</td><td>hotdogs (independent)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Capabilities ทั้งหมด</h3>
+        <ol>
+          <li><strong>Text-to-Speech</strong> &mdash; ข้อความ &rarr; เสียงพูด (Thai + English)</li>
+          <li><strong>Zero-shot Voice Cloning</strong> &mdash; clone เสียงจาก audio สั้นๆ ไม่ต้อง train เพิ่ม</li>
+          <li><strong>Voice Design</strong> &mdash; สั่งลักษณะเสียงด้วยข้อความ (gender, pitch, accent, age)</li>
+          <li><strong>Non-verbal Symbols</strong> &mdash; <code>[laughter]</code>, pauses</li>
+          <li><strong>Pronunciation Control</strong> &mdash; กำกับเสียงอ่านด้วย pinyin/phonemes</li>
+        </ol>
+
+        <h3>OmniVoice Ecosystem</h3>
+        <p>Base model มี ecosystem ที่โตเร็ว:</p>
+        <table>
+          <thead>
+            <tr><th>Project</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><a href="https://github.com/k2-fsa/OmniVoice">k2-fsa/OmniVoice</a></td><td>Official repo &mdash; 600+ languages, 2.1M+ downloads</td></tr>
+            <tr><td>omnivoice.cpp</td><td>C++17 GGML port &mdash; CPU/CUDA/ROCm/Metal/Vulkan</td></tr>
+            <tr><td>ComfyUI-OmniVoice-TTS</td><td>ComfyUI nodes for OmniVoice</td></tr>
+            <tr><td>omnivoice-server</td><td>OpenAI-compatible HTTP server</td></tr>
+            <tr><td>OmniVoice-Studio</td><td>Desktop app (ElevenLabs alternative)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>เทียบกับ Thai TTS อื่น</h3>
+        <table>
+          <thead>
+            <tr><th>Model</th><th>Type</th><th>Thai Quality</th><th>Open Source</th><th>หมายเหตุ</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>omnivoice-thai</strong></td><td>TTS + clone + design</td><td>&#9888; experimental</td><td>&#10004; Apache 2.0</td><td>12.6h data, 2 speakers</td></tr>
+            <tr><td><strong>OmniVoice base</strong></td><td>TTS 600+ langs</td><td>&#9888; ไม่ได้เน้นไทย</td><td>&#10004; Apache 2.0</td><td>581K hours, strong base</td></tr>
+            <tr><td><strong>Cartesia Sonic-3.5</strong></td><td>TTS</td><td>&#10004; production</td><td>&#10008; API paid</td><td>Suda &#9792; / Somchai &#9794;</td></tr>
+            <tr><td><strong>edge-tts</strong></td><td>TTS</td><td>&#10004; ดี</td><td>free API</td><td>NiwatNeural</td></tr>
+            <tr><td><strong>Google Cloud TTS</strong></td><td>TTS</td><td>&#10004; production</td><td>&#10008; API paid</td><td>หลายเสียง</td></tr>
+            <tr><td><strong>Whisper</strong></td><td>ASR (ไม่ใช่ TTS)</td><td>&#10004; Thai ASR ดี</td><td>&#10004;</td><td>คนละงาน</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Limitations &amp; Risks</h3>
+        <ul>
+          <li><strong>Data น้อยมาก</strong> &mdash; 12.6 ชม. จาก 2 speakers ไม่พอสำหรับ TTS ที่ดี (เทียบ: Cartesia train ด้วย data หลายพันชั่วโมง)</li>
+          <li><strong>ไม่มี evaluation</strong> &mdash; ไม่มี MOS score, WER, speaker similarity ที่วัดจริง</li>
+          <li><strong>Transcript อาจผิด</strong> &mdash; dataset ใช้ ASR-generated transcripts (confidence 0.78&ndash;1.0)</li>
+          <li><strong>Training ไม่จบ</strong> &mdash; 1,747/30,000 steps (auto-stop เมื่อ loss &lt; 3.0)</li>
+          <li><strong>GPU required</strong> &mdash; ต้องมี VRAM 8GB+ สำหรับ inference</li>
+        </ul>
+
+        <h3>โอกาสที่น่าจับตา</h3>
+        <ol>
+          <li><strong>Fine-tune ด้วย data เยอะกว่า</strong> &mdash; GigaSpeech2 มี Thai data อีกมาก. ถ้าใครมา train ด้วย 100+ ชม. คุณภาพจะต่างชัด.</li>
+          <li><strong>omnivoice.cpp</strong> &mdash; C++ port รันบน CPU ได้. ถ้า Thai fine-tune ออกเป็น GGUF format จะรันบน Mac/PC ไม่ต้องมี GPU.</li>
+          <li><strong>Voice cloning สำหรับ fleet</strong> &mdash; ปัจจุบัน fleet ใช้ fixed voices (Suda/Somchai). OmniVoice เปิดโอกาส custom voice per BOY.</li>
+          <li><strong>Self-hosted privacy</strong> &mdash; ไม่ต้องส่งเสียงไปยัง Cartesia/Microsoft. รันในเครื่องเอง.</li>
+        </ol>
+
+        <h3>Links</h3>
+        <ul>
+          <li><strong>Model</strong>: <a href="https://huggingface.co/hotdogs/omnivoice-thai">huggingface.co/hotdogs/omnivoice-thai</a></li>
+          <li><strong>Base model</strong>: <a href="https://huggingface.co/k2-fsa/OmniVoice">huggingface.co/k2-fsa/OmniVoice</a></li>
+          <li><strong>Paper</strong>: <a href="https://arxiv.org/abs/2604.00688">arXiv:2604.00688</a></li>
+          <li><strong>GitHub (base)</strong>: <a href="https://github.com/k2-fsa/OmniVoice">github.com/k2-fsa/OmniVoice</a></li>
+          <li><strong>Dataset</strong>: <a href="https://huggingface.co/datasets/Thanarit/Thai-Voice-Test7">Thanarit/Thai-Voice-Test7</a></li>
+          <li><strong>Creator</strong>: <a href="https://github.com/nanofatdog">github.com/nanofatdog</a></li>
+          <li><strong>Demo (base)</strong>: <a href="https://huggingface.co/spaces/k2-fsa/OmniVoice">huggingface.co/spaces/k2-fsa/OmniVoice</a></li>
+        </ul>
+
+        <p>&larr; ดู <a href="021-thai-voice-pipeline.html">021 Thai Voice Pipeline</a> สำหรับ STT/TTS pipeline ที่ใช้อยู่ในปัจจุบัน</p>
+
+        <div class="nav-footer">
+          <a href="037-claude-finance-quick-wins.html">&larr; 037 Finance Quick Wins</a>
+          <a href="039-maw-rs.html">039 maw-rs &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

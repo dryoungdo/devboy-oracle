@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>040 — ARRA Safety Hooks | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">040 &mdash; ARRA Safety Hooks</span>
+        <span class="topbar-date">2026-05-21</span>
+      </div>
+      <div class="content-shell">
+        <h1>ARRA Safety Hooks &mdash; Enforcement &gt; Documentation</h1>
+        <div class="article-meta">
+          <span class="tag">safety</span>
+          <span class="tag">hooks</span>
+          <span class="tag">claude-code</span>
+          <span class="tag">soul-brews</span>
+          <span class="tag">arra-oracle</span>
+          <span class="tag">security</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge solid">&#128994; solid</span>
+        </div>
+
+        <p>ถ้ามีเวลาน้อย อ่าน Part A ก็พอ.</p>
+
+        <!-- ======================== PART A ======================== -->
+        <h2>Part A &mdash; สรุปที่ต้องรู้</h2>
+
+        <h3>ปัญหาที่แก้</h3>
+        <p>CLAUDE.md บอก AI ว่า "อย่าทำ X" &mdash; แต่ AI อาจจะลืม ทำผิด หรือถูก prompt inject ให้ทำ. <strong>Documentation = suggestion. Hook = wall.</strong></p>
+
+        <p>ARRA Safety Hooks เปลี่ยน "please don't" เป็น <strong>"you can't"</strong> &mdash; Claude Code จะ <code>exit 2</code> (block) ก่อนที่ command อันตรายจะรัน.</p>
+
+        <h3>Install</h3>
+        <pre><code>git clone https://github.com/Soul-Brews-Studio/arra-safety-hooks.git
+cd arra-safety-hooks
+bash install.sh</code></pre>
+        <p>แค่นี้. Script จะ copy <code>safety-check.sh</code> ไป <code>~/.claude/hooks/</code> แล้ว patch <code>~/.claude/settings.json</code> ให้ automatic.</p>
+
+        <h3>12 สิ่งที่ถูก Block</h3>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Command</th><th>ทำไมอันตราย</th><th>ทำแทนยังไง</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><code>rm -rf</code> / <code>rm -f</code></td><td>ลบไฟล์ถาวร</td><td><code>mv</code> ไป <code>/tmp</code></td></tr>
+            <tr><td>2</td><td><code>git push --force</code></td><td>เขียนทับ remote history</td><td>ห้าม. ใช้ merge/rebase ปกติ</td></tr>
+            <tr><td>3</td><td><code>git reset --hard</code></td><td>ทิ้ง uncommitted changes</td><td><code>git stash</code></td></tr>
+            <tr><td>4</td><td><code>git push origin main</code></td><td>Push ตรงไป main</td><td>สร้าง branch + PR</td></tr>
+            <tr><td>5</td><td><code>git commit --amend</code></td><td>แก้ commit ล่าสุด &mdash; พัง hash sync ของ multi-agent</td><td>สร้าง commit ใหม่</td></tr>
+            <tr><td>6</td><td><code>git checkout -- .</code></td><td>ทิ้ง changes ทั้งหมด</td><td><code>git stash</code></td></tr>
+            <tr><td>7</td><td><code>git restore .</code></td><td>เหมือน checkout -- .</td><td><code>git stash</code></td></tr>
+            <tr><td>8</td><td><code>git clean -f</code></td><td>ลบ untracked files</td><td>ลบทีละไฟล์ด้วย <code>rm</code> (ไม่ใช่ -rf)</td></tr>
+            <tr><td>9</td><td><code>git branch -D</code></td><td>Force delete branch</td><td><code>git branch -d</code> (safe delete)</td></tr>
+            <tr><td>10</td><td><code>git stash drop/clear</code></td><td>ทิ้ง stashed work</td><td>เก็บไว้ หรือ apply ก่อน</td></tr>
+            <tr><td>11</td><td><code>--no-verify</code></td><td>ข้าม safety hooks</td><td>แก้ hook ที่ fail ไม่ใช่ข้าม</td></tr>
+            <tr><td>12</td><td><code>gh pr create</code> ไป org ที่ไม่ใช่ของตัวเอง</td><td>สร้าง PR ไปผิด org</td><td>เช็ค org membership ก่อน</td></tr>
+          </tbody>
+        </table>
+
+        <h3>หลักคิด: Oracle Principle 1</h3>
+        <blockquote><strong>"Nothing is Deleted"</strong> &mdash; ทุกอย่าง append-only. ถ้าต้องลบ ให้ย้ายแทน. ถ้าต้องแก้ history ให้สร้าง commit ใหม่.</blockquote>
+        <p>Hook นี้บังคับ Principle 1 ที่ tool layer &mdash; ไม่ว่า AI จะคิดอะไร command อันตรายจะไม่รัน.</p>
+
+        <h3>มันทำงานยังไง?</h3>
+        <pre><code># Claude Code ส่ง JSON ให้ hook ทุกครั้งที่จะรัน Bash:
+{"hook_event_name": "PreToolUse",
+ "tool_name": "Bash",
+ "tool_input": {"command": "git push --force"}}
+
+# safety-check.sh อ่าน command → เทียบ regex → exit 2 (block)
+# exit 0 = allow, exit 2 = block with message</code></pre>
+
+        <h3>Beta Rules (opt-in)</h3>
+        <p>เปิด: <code>touch /tmp/arra-safety-beta-on</code> | ปิด: <code>rm /tmp/arra-safety-beta-on</code></p>
+        <table>
+          <thead>
+            <tr><th>Rule</th><th>Block</th><th>ใช้แทน</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Raw tmux commands</td><td><code>tmux send-keys</code>, <code>list-windows</code> ฯลฯ</td><td><code>maw hey &lt;agent&gt;</code></td></tr>
+            <tr><td>Direct bun CLI</td><td><code>bun run src/cli.ts</code></td><td><code>maw</code> binary ที่ install แล้ว</td></tr>
+            <tr><td>localhost (warn)</td><td><code>localhost</code>, <code>127.0.0.1</code></td><td>WireGuard hostname (<code>.wg</code>)</td></tr>
+            <tr><td>.local (warn)</td><td><code>*.local</code></td><td><code>*.wg</code> fallback</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ======================== PART B ======================== -->
+        <h2>Part B &mdash; Technical Deep Dive</h2>
+
+        <h3>Architecture</h3>
+        <p>ทั้งระบบคือ <strong>3 files</strong>:</p>
+        <table>
+          <thead>
+            <tr><th>File</th><th>หน้าที่</th><th>ขนาด</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>safety-check.sh</code></td><td>Hook script &mdash; regex matching + exit codes</td><td>~150 lines</td></tr>
+            <tr><td><code>install.sh</code></td><td>One-shot installer &mdash; copy hook + patch settings.json</td><td>~40 lines</td></tr>
+            <tr><td><code>README.md</code></td><td>Documentation</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+
+        <p>ไม่มี package.json, ไม่มี Cargo.toml. Pure bash + <code>jq</code>.</p>
+
+        <h3>Regex Anchoring &mdash; False Positive Prevention</h3>
+        <p>Pattern ทุกตัว anchor ด้วย <code>(^|;|&amp;&amp;|\|\|)</code> เพื่อจับเฉพาะ command จริง ไม่ใช่ text ใน string:</p>
+        <pre><code># จับ: rm -rf /tmp/stuff
+# จับ: echo ok && rm -rf /tmp
+# ไม่จับ: echo "don't use rm -rf"
+# ไม่จับ: git commit -m "removed rm -rf usage"
+
+echo "$CMD" | grep -qE '(^|;|&&|\|\|)\s*rm\s+-r?f\s'</code></pre>
+
+        <h3>Org Membership Check</h3>
+        <p><code>gh pr create</code> ไม่ได้ block ทุกกรณี &mdash; block เฉพาะเมื่อ target org ไม่ใช่ของเรา:</p>
+        <pre><code># Cache org membership 24 ชม.
+if [ ! -f /tmp/gh-my-orgs.txt ] || \
+   [ $(find /tmp/gh-my-orgs.txt -mmin +1440) ]; then
+  gh api user/orgs --jq '.[].login' > /tmp/gh-my-orgs.txt
+fi
+# ตรวจว่า target org อยู่ในรายชื่อ</code></pre>
+
+        <h3>Origin &amp; Evolution</h3>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Event</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>2025-12-27</td><td>Nat + Claude Opus 4.5 ค้นพบ enforcement vs documentation gap</td></tr>
+            <tr><td>2025-12-28</td><td>v1 &mdash; safety-check.sh ใน Nat-s-Agents repo</td></tr>
+            <tr><td>2026-01-16</td><td>Bundled เข้า Oracle Starter Kit &mdash; 191+ agents inherit</td></tr>
+            <tr><td>2026-03-22</td><td>Extracted เข้า oracle-skills-cli</td></tr>
+            <tr><td>2026-03-29</td><td>Repo นี้ &mdash; single source of truth</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Security Assessment</h3>
+        <table>
+          <thead>
+            <tr><th>ด้าน</th><th>Status</th><th>หมายเหตุ</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Self-bypass prevention</td><td>&#10004;</td><td><code>--no-verify</code> ถูก block</td></tr>
+            <tr><td>Regex anchoring</td><td>&#10004;</td><td>ลด false positive</td></tr>
+            <tr><td>Command boundary detection</td><td>&#10004;</td><td>จับ <code>&&</code>, <code>;</code>, <code>||</code></td></tr>
+            <tr><td>Heredoc false positive</td><td>&#9888;</td><td>Issue #1 &mdash; PR #2 fixes</td></tr>
+            <tr><td>/tmp state security</td><td>&#9888;</td><td>World-writable &mdash; beta toggle + org cache</td></tr>
+            <tr><td>Non-Bash coverage</td><td>&#10008;</td><td>Write/Edit/MCP tools ไม่ถูก guard</td></tr>
+            <tr><td>Automated tests</td><td>&#10008;</td><td>PR #2 adds 38 tests</td></tr>
+            <tr><td>Network failure</td><td>&#9888;</td><td>gh org check fails open</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Known Issue: Heredoc False Positive</h3>
+        <p><strong>Issue #1</strong>: ถ้าเขียน <code>gh issue create</code> ที่ body มีคำว่า "rm -rf" หรือ "--force" &mdash; hook จะ block ทั้ง command. เพราะ regex ดู text ทั้งหมดไม่ได้แยก body ออก.</p>
+        <p><strong>PR #2</strong> แก้โดยเช็ค first line &mdash; ถ้าเป็น <code>gh issue|pr|gist|release create|comment|edit</code> จะข้าม destructive check. แต่ยังจับ chain เช่น <code>gh issue create &amp;&amp; rm -rf</code>. มี 38 tests.</p>
+
+        <h3>Fleet Relevance</h3>
+        <ul>
+          <li><strong>DEVBOY ควร install</strong> &mdash; ตรงกับ Voice Protocol B ที่ต้อง gate destructive actions</li>
+          <li><strong>ใช้ได้กับทุก BOY</strong> &mdash; global <code>~/.claude/settings.json</code> = ทุก Claude Code session บนเครื่องเดียวกัน</li>
+          <li><strong>เสริม CLAUDE.md</strong> &mdash; documentation บอก "อย่า", hook บังคับ "ทำไม่ได้"</li>
+          <li><strong>Multi-agent safe</strong> &mdash; block <code>--amend</code> ป้องกัน hash sync พัง</li>
+        </ul>
+
+        <h3>GitHub Stats</h3>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Repo</td><td><a href="https://github.com/Soul-Brews-Studio/arra-safety-hooks">Soul-Brews-Studio/arra-safety-hooks</a></td></tr>
+            <tr><td>License</td><td>MIT</td></tr>
+            <tr><td>Commits</td><td>12</td></tr>
+            <tr><td>Stars</td><td>1</td></tr>
+            <tr><td>Forks</td><td>3</td></tr>
+            <tr><td>Issues</td><td>1 open (#1 heredoc false positive)</td></tr>
+            <tr><td>PRs</td><td>1 open (#2 fix + 38 tests)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Links</h3>
+        <ul>
+          <li><strong>Repo</strong>: <a href="https://github.com/Soul-Brews-Studio/arra-safety-hooks">github.com/Soul-Brews-Studio/arra-safety-hooks</a></li>
+          <li><strong>Issue #1</strong>: heredoc false positive</li>
+          <li><strong>PR #2</strong>: fix + 38 tests</li>
+          <li><strong>Oracle Starter Kit</strong>: bundled since 2026-01-16</li>
+        </ul>
+
+        <p>&larr; ดู <a href="039-maw-rs.html">039 maw-rs</a> สำหรับ Rust port ของ maw</p>
+
+        <div class="nav-footer">
+          <a href="039-maw-rs.html">&larr; 039 maw-rs</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

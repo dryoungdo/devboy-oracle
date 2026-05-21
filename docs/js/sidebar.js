@@ -14,11 +14,13 @@
       ['007-maw-js-orchestrator.html', '007 maw-js Orchestrator'],
       ['008-maw-plugin-system.html', '008 Plugin System'],
       ['013-maw-ui-arra-office.html', '013 maw-ui ARRA Office'],
-      ['014-maw-plugin-registry.html', '014 Plugin Registry']
+      ['014-maw-plugin-registry.html', '014 Plugin Registry'],
+      ['039-maw-rs.html', '039 maw-rs (Rust Port)']
     ]],
     ['Oracle Tools', [
       ['009-arra-oracle-v3.html', '009 Arra Oracle v3'],
-      ['010-thclaws-agent-harness.html', '010 thClaws']
+      ['010-thclaws-agent-harness.html', '010 thClaws'],
+      ['040-arra-safety-hooks.html', '040 Safety Hooks']
     ]],
     ['Fleet Infrastructure', [
       ['011-fleet-migration.html', '011 Fleet Migration'],
@@ -39,7 +41,8 @@
     ]],
     ['AI Research', [
       ['024-sovereign-ai.html', '024 Sovereign AI'],
-      ['025-rag-retrieval-augmented-generation.html', '025 RAG']
+      ['025-rag-retrieval-augmented-generation.html', '025 RAG'],
+      ['038-omnivoice-thai.html', '038 OmniVoice-Thai']
     ]],
     ['Local AI', [
       ['026-ollama-local-llm.html', '026 Ollama'],
