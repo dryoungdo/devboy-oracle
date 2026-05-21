@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Complete guide to Claude for Security — official plugins, GitHub Action, Project Glasswing, MCP servers, customer case studies">
   <title>035 — Claude for Security | DEVBOY Lab</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
@@ -19,97 +20,298 @@
         <span class="topbar-date">2026-05-21</span>
       </div>
       <div class="content-shell">
-        <h1>Claude for Security &mdash; How to Use</h1>
+        <h1>Claude for Security &mdash; Complete Guide</h1>
         <div class="article-meta">
           <span class="tag">claude-security</span>
           <span class="tag">vulnerability-scanning</span>
           <span class="tag">claude-mythos</span>
+          <span class="tag">glasswing</span>
           <span class="tag">SIEM</span>
-          <span class="tag">CTF</span>
           <span class="tag">MCP</span>
-          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+          <span class="tag">plugins</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge solid">&#128994; solid</span>
         </div>
 
-        <h2>Products</h2>
+        <p>ถ้ามีเวลาน้อย อ่าน Part A ก็พอ.</p>
+
+        <!-- ======================== PART A ======================== -->
+        <h2 style="border-bottom:2px solid var(--accent);padding-bottom:.5rem">Part A &mdash; Practical Guide</h2>
+
+        <h3>Anthropic Security Products</h3>
         <table>
-          <thead><tr><th>Product</th><th>Status</th><th>Description</th></tr></thead>
+          <thead><tr><th>Product</th><th>Status</th><th>Description</th><th>Access</th></tr></thead>
           <tbody>
-            <tr><td><strong>Claude Security</strong></td><td>Public beta (เม.ย. 2026)</td><td>Enterprise-tier. Scan repos for vulns using Opus 4.7, explain findings, generate patches, export to Slack/Jira/CSV</td></tr>
-            <tr><td><strong>Claude Mythos Preview</strong></td><td>Restricted (เม.ย. 2026)</td><td>Research-only model ผ่าน Project Glasswing (~12 launch partners). พบ zero-days รวมถึง 27-year-old OpenBSD bug</td></tr>
-            <tr><td><strong>/security-review</strong></td><td>Available in Claude Code</td><td>Built-in slash command review pending changes สำหรับ OWASP Top 10</td></tr>
+            <tr><td><strong>Claude Security</strong></td><td>Public beta (เม.ย. 2026)</td><td>Scan repos using Opus 4.6 &mdash; traces data flows, catches vulns SAST tools miss. 500+ vulns found in production OSS</td><td>Enterprise tier</td></tr>
+            <tr><td><strong>/security-review</strong></td><td>Available</td><td>Built-in Claude Code slash command &mdash; review pending changes for OWASP Top 10</td><td>All Claude Code users</td></tr>
+            <tr><td><strong>GitHub Action</strong></td><td>Available</td><td>PR-level security scanning &mdash; inline comments with severity + remediation</td><td>Open source</td></tr>
+            <tr><td><strong>Claude Mythos Preview</strong></td><td>Restricted</td><td>Research model via Project Glasswing &mdash; thousands of zero-days discovered</td><td>Glasswing partners only</td></tr>
           </tbody>
         </table>
 
-        <h2>Security Use Cases</h2>
-        <table>
-          <thead><tr><th>Use Case</th><th>Tool</th><th>Workflow</th></tr></thead>
-          <tbody>
-            <tr><td>Code vulnerability scan</td><td>Claude Security, <code>/security-review</code></td><td>Run command on branch หรือ GitHub Action on PRs</td></tr>
-            <tr><td>OWASP Top 10 audit</td><td>claude-code-owasp skill</td><td>"Audit codebase against OWASP Top 10:2025"</td></tr>
-            <tr><td>Pentesting copilot</td><td>pentest-ai-agents (28 subagents)</td><td>"Analyze Nmap scan, identify exploitable services"</td></tr>
-            <tr><td>Threat hunting</td><td>MCP + mcp-panther (SIEM)</td><td>"Query 24h CloudTrail logs for unusual AssumeRole"</td></tr>
-            <tr><td>CVE lookup</td><td>CVE MCP Server (27 tools, 21 APIs)</td><td>"Look up CVE-2024-3094 — EPSS, CISA KEV, Shodan"</td></tr>
-            <tr><td>Incident response</td><td>n8n + Claude + VirusTotal + Slack</td><td>SIEM alert → analysis → ATT&amp;CK mapping → containment</td></tr>
-            <tr><td>Malware analysis</td><td>15-skill cybersecurity pack</td><td>"Analyze binary strings, identify C2 patterns"</td></tr>
-            <tr><td>Compliance audit</td><td>Security audit skills (850+ checks)</td><td>"Audit infra against NIST CSF 2.0"</td></tr>
-            <tr><td>Bug bounty</td><td>claude-bug-bounty skill</td><td>"Recon target.com — subdomain takeover, IDOR"</td></tr>
-          </tbody>
-        </table>
+        <!-- OFFICIAL TOOLS SETUP -->
+        <h3>Official Tools &mdash; How to Set Up</h3>
 
-        <h2>SIEM Integration</h2>
-        <ul>
-          <li><strong>Splunk / Elastic / Datadog</strong> — Native audit log export + Elastic Bedrock integration</li>
-          <li><strong>Blue Team MCP</strong> — SOC tools directly to Claude</li>
-          <li><strong>Wazuh MCP</strong> — Open-source SIEM integration</li>
-          <li><strong>Threat Intel cookbook</strong> — Raw IOCs → intelligence queries → analyst-ready reports</li>
-        </ul>
+        <h4>1. /security-review (Zero setup)</h4>
+        <p>มาพร้อม Claude Code &mdash; ใช้ได้เลย:</p>
+        <pre><code># ใน Claude Code session:
+/security-review
 
-        <h2>Claude Mythos — Zero-Day Discovery</h2>
+# Claude จะ scan pending changes บน branch ปัจจุบัน
+# report: severity, explanation, remediation</code></pre>
+
+        <h4>2. GitHub Action (PR Security Review)</h4>
+        <p>Add file <code>.github/workflows/claude-security.yml</code>:</p>
+        <pre><code>name: Claude Security Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  security-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-security-review@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          model: claude-sonnet-4-6-20250514</code></pre>
+        <p>Repo: <a href="https://github.com/anthropics/claude-code-security-review">anthropics/claude-code-security-review</a></p>
         <div class="callout warning">
-          <strong>Restricted access</strong> — deployed only through Project Glasswing (controlled consortium)
+          <strong>Not hardened against prompt injection</strong> &mdash; ใช้เฉพาะ trusted PRs (internal team). อย่าเปิดรับ PRs จาก untrusted contributors โดยไม่ review.
         </div>
+
+        <h4>3. Claude Security (Enterprise)</h4>
+        <p>Enterprise tier &rarr; Settings &rarr; Security &rarr; Enable Claude Security. Features:</p>
         <ul>
-          <li>271 zero-days ใน Firefox</li>
-          <li>27-year-old OpenBSD vulnerability</li>
-          <li>17-year-old FreeBSD RCE (CVE-2026-4747)</li>
-          <li>Exploit สำเร็จ first attempt 83%+</li>
+          <li>Scheduled scans &mdash; ตั้ง cron scan ทั้ง repo</li>
+          <li>Targeted scans &mdash; เลือก specific files/paths</li>
+          <li>Confidence ratings + exploitability explanations</li>
+          <li>Patch generation &mdash; auto-fix พร้อม diff</li>
+          <li>Multi-stage false-positive filtering</li>
+          <li>Export to Slack/Jira/CSV</li>
         </ul>
 
-        <h2>CTF Integration</h2>
+        <!-- PLUGINS -->
+        <h3>Official Plugins &mdash; Install &amp; Use</h3>
+        <p>Security plugins จาก Claude Code marketplace (<code>claude-plugins-official</code>):</p>
+        <table>
+          <thead><tr><th>Plugin</th><th>Install Command</th><th>What It Does</th></tr></thead>
+          <tbody>
+            <tr><td><strong>security-guidance</strong></td><td><code>claude plugin install security-guidance@claude-plugins-official</code></td><td>Security warning hooks for file edits &mdash; auto-flag risky patterns</td></tr>
+            <tr><td><strong>crowdstrike-falcon-foundry</strong></td><td><code>claude plugin install crowdstrike-falcon-foundry@claude-plugins-official</code></td><td>CrowdStrike Falcon integration &mdash; endpoint detection, threat intel</td></tr>
+            <tr><td><strong>semgrep</strong></td><td><code>claude plugin install semgrep@claude-plugins-official</code></td><td>Static analysis &mdash; SAST rules, custom patterns</td></tr>
+            <tr><td><strong>sonarqube</strong></td><td><code>claude plugin install sonarqube@claude-plugins-official</code></td><td>Code quality + security &mdash; bugs, vulns, code smells</td></tr>
+            <tr><td><strong>vanta-mcp-plugin</strong></td><td><code>claude plugin install vanta-mcp-plugin@claude-plugins-official</code></td><td>Compliance automation &mdash; SOC 2, ISO 27001, HIPAA</td></tr>
+            <tr><td><strong>zscaler</strong></td><td><code>claude plugin install zscaler@claude-plugins-official</code></td><td>Zero trust network security</td></tr>
+            <tr><td><strong>aikido</strong></td><td><code>claude plugin install aikido@claude-plugins-official</code></td><td>App security platform &mdash; SAST, DAST, SCA, secrets</td></tr>
+          </tbody>
+        </table>
+
+        <!-- USE CASES WITH PROMPTS -->
+        <h3>Security Use Cases &amp; Prompts</h3>
+        <table>
+          <thead><tr><th>Use Case</th><th>Tool</th><th>Sample Prompt / Workflow</th></tr></thead>
+          <tbody>
+            <tr><td>Code vulnerability scan</td><td>Claude Security, <code>/security-review</code></td><td><code>/security-review</code> on branch &mdash; หรือ GitHub Action on PRs</td></tr>
+            <tr><td>OWASP Top 10 audit</td><td>claude-code-owasp skill</td><td><em>"Audit this codebase against OWASP Top 10:2025, report each finding with CWE ID"</em></td></tr>
+            <tr><td>Threat hunting</td><td>Splunk MCP + Claude</td><td><em>"Query 24h CloudTrail logs for unusual AssumeRole patterns — correlate with failed auth"</em></td></tr>
+            <tr><td>CVE lookup</td><td>CVE MCP Server (27 tools)</td><td><em>"Look up CVE-2024-3094 — EPSS score, CISA KEV status, Shodan exposure count"</em></td></tr>
+            <tr><td>Incident response</td><td>Claude + SIEM MCP</td><td><em>"Analyze this alert: [paste]. Map to ATT&amp;CK, identify affected assets, suggest containment"</em></td></tr>
+            <tr><td>Compliance audit</td><td>Vanta plugin / Claude</td><td><em>"Audit infra against NIST CSF 2.0 — report gaps with severity and remediation"</em></td></tr>
+            <tr><td>Binary analysis</td><td>GhidraMCP</td><td>Connect Ghidra &rarr; MCP &rarr; Claude: <em>"Analyze this binary — identify C2 patterns, network indicators"</em></td></tr>
+            <tr><td>Pentesting</td><td>HexStrike AI (150+ tools)</td><td><em>"Run recon on target.com — subdomain enum, port scan, identify exploitable services"</em></td></tr>
+            <tr><td>Bug bounty</td><td>claude-bug-bounty skill</td><td><em>"Analyze target for IDOR, SSRF, path traversal — generate proof-of-concept"</em></td></tr>
+          </tbody>
+        </table>
+
+        <!-- MCP SERVERS -->
+        <h3>MCP Servers for Security</h3>
+        <table>
+          <thead><tr><th>Server</th><th>Stars</th><th>Use Case</th><th>Install</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Splunk MCP</strong></td><td>Official</td><td>SIEM log query, SOC monitoring</td><td><a href="https://splunkbase.splunk.com/app/7931">Splunkbase</a></td></tr>
+            <tr><td><strong>GhidraMCP</strong></td><td>9k</td><td>Reverse engineering, binary analysis</td><td><a href="https://github.com/LaurieWired/GhidraMCP">GitHub</a></td></tr>
+            <tr><td><strong>HexStrike AI</strong></td><td>8.9k</td><td>150+ pentesting tools via MCP</td><td><a href="https://github.com/0x4m4/hexstrike-ai">GitHub</a></td></tr>
+            <tr><td><strong>CVE MCP</strong></td><td>&mdash;</td><td>27 tools, 21 APIs (NVD, EPSS, CISA KEV, Shodan)</td><td><a href="https://github.com/mukul975/cve-mcp-server">GitHub</a></td></tr>
+            <tr><td><strong>mcp-guardian</strong></td><td>&mdash;</td><td>Proxy + access control for MCP servers</td><td><a href="https://github.com/eqtylab/mcp-guardian">GitHub</a></td></tr>
+            <tr><td><strong>Webrix MCP Gateway</strong></td><td>&mdash;</td><td>Enterprise MCP gateway: SSO, RBAC, audit trails</td><td><a href="https://github.com/webrix-ai/secure-mcp-gateway">GitHub</a></td></tr>
+          </tbody>
+        </table>
+
+        <!-- QUICK START -->
+        <h3>Quick Start: Security Review ใน 5 นาที</h3>
+        <ol>
+          <li>เปิด Claude Code ใน repo ที่ต้องการ scan</li>
+          <li>พิมพ์ <code>/security-review</code></li>
+          <li>รอ scan complete &rarr; ได้ report พร้อม severity ratings</li>
+          <li>สำหรับ PR automation: ใส่ GitHub Action (YAML ด้านบน)</li>
+          <li>สำหรับ full repo scan: ใช้ Claude Security (Enterprise)</li>
+        </ol>
+
+        <!-- ======================== PART B ======================== -->
+        <h2 style="border-bottom:2px solid var(--accent);padding-bottom:.5rem">Part B &mdash; Deep Dive</h2>
+
+        <!-- PROJECT GLASSWING -->
+        <h3>Project Glasswing &mdash; Frontier Cybersecurity</h3>
+        <p>Anthropic initiative ประกาศ เม.ย. 2026 เพื่อ secure critical infrastructure:</p>
         <ul>
-          <li><strong>HackTheBox MCP</strong> — register events, start/stop containers, submit flags</li>
-          <li><strong>BoxPwnr</strong> — benchmark LLMs on HTB, TryHackMe, picoCTF — <strong>76.5% solve rate</strong></li>
-          <li>63% ของ HTB players ใช้ AI tools (2026)</li>
+          <li><strong>Claude Mythos Preview</strong> &mdash; research model ค้นพบ zero-days อัตโนมัติ:</li>
+          <ul>
+            <li>271 zero-days ใน Firefox</li>
+            <li>17-year-old FreeBSD RCE (CVE-2026-4747)</li>
+            <li>27-year-old OpenBSD vulnerability</li>
+            <li>Exploit สำเร็จ first attempt <strong>83%+</strong></li>
+          </ul>
+          <li><strong>$100M</strong> usage credits + <strong>$4M</strong> donations to open-source security orgs</li>
+          <li>40+ organizations ได้รับ access</li>
         </ul>
 
-        <h2>Claude vs GPT vs Gemini สำหรับ Security</h2>
+        <h4>Glasswing Launch Partners</h4>
+        <table>
+          <thead><tr><th>Partner</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td>AWS</td><td>Cloud infrastructure</td></tr>
+            <tr><td>Apple</td><td>OS security</td></tr>
+            <tr><td>CrowdStrike</td><td>Endpoint detection + AI execution security</td></tr>
+            <tr><td>Google</td><td>Browser + cloud security</td></tr>
+            <tr><td>JPMorganChase</td><td>Financial sector</td></tr>
+            <tr><td>Microsoft</td><td>OS + enterprise</td></tr>
+            <tr><td>NVIDIA</td><td>GPU/AI infrastructure</td></tr>
+            <tr><td>Palo Alto Networks</td><td>Network security</td></tr>
+            <tr><td>Linux Foundation</td><td>Open-source ecosystem</td></tr>
+            <tr><td>Mozilla</td><td>Firefox security scanning</td></tr>
+          </tbody>
+        </table>
+        <p>Resources: <a href="https://www.anthropic.com/project/glasswing">anthropic.com/project/glasswing</a> | <a href="https://red.anthropic.com">red.anthropic.com</a></p>
+
+        <!-- CUSTOMER STORIES -->
+        <h3>Customer Case Studies</h3>
+        <table>
+          <thead><tr><th>Company</th><th>Use Case</th><th>Results</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Artemis</strong></td><td>AI-native cybersecurity platform, 300+ custom Claude skills</td><td><strong>96% reduction</strong> in MTTR (2h &rarr; &lt;5min). <strong>90% increase</strong> detection coverage. "Investigation backlog disappeared."</td></tr>
+            <tr><td><strong>HackerOne</strong></td><td>Vulnerability intake triage</td><td><strong>44% faster</strong> intake time + <strong>25% better</strong> accuracy</td></tr>
+            <tr><td><strong>CrowdStrike</strong></td><td>Red teaming infrastructure</td><td>"Strong promise for red teaming across multiple infrastructure layers"</td></tr>
+          </tbody>
+        </table>
+
+        <!-- API PATTERNS -->
+        <h3>API &amp; Tool Use Patterns</h3>
+
+        <h4>Custom Security Tools (tool_use)</h4>
+        <pre><code># Define custom tools for Claude to call:
+tools = [
+    {
+        "name": "lookup_cve",
+        "description": "Look up CVE details from NVD",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "cve_id": {"type": "string", "description": "CVE ID e.g. CVE-2024-3094"}
+            },
+            "required": ["cve_id"]
+        }
+    },
+    {
+        "name": "parse_log",
+        "description": "Parse and analyze security log entries",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "log_entry": {"type": "string"},
+                "log_type": {"enum": ["cloudtrail", "syslog", "auth", "firewall"]}
+            },
+            "required": ["log_entry"]
+        }
+    }
+]
+
+# Claude decides when to call these tools
+response = client.messages.create(
+    model="claude-sonnet-4-6-20250514",
+    tools=tools,
+    messages=[{"role": "user", "content": "Analyze this CloudTrail event..."}]
+)</code></pre>
+
+        <h4>Computer Use for Security Dashboards</h4>
+        <p>Claude <strong>computer_use</strong> (beta) ควบคุม GUI ได้ &mdash; interact กับ Splunk, Wireshark, SIEM dashboards โดยตรง. ZDR-eligible (sensitive data ไม่ถูกเก็บ).</p>
+
+        <h4>Batch Processing for Log Analysis</h4>
+        <p><strong>100,000 requests/batch, 50% cost reduction</strong>. เหมาะกับ bulk log analysis, IOC scanning, compliance audits.</p>
+
+        <!-- SIEM -->
+        <h3>SIEM Integration</h3>
+        <ul>
+          <li><strong>Splunk</strong> &mdash; Official MCP server + Technology Add-on (TA) for parsing MCP JSON-RPC output. SOC monitoring of AI agent interactions</li>
+          <li><strong>Elastic</strong> &mdash; Bedrock integration for log analysis</li>
+          <li><strong>Datadog</strong> &mdash; Plugin available in marketplace</li>
+          <li><strong>Blue Team MCP</strong> &mdash; SOC tools directly to Claude</li>
+          <li><strong>Wazuh MCP</strong> &mdash; Open-source SIEM integration</li>
+        </ul>
+
+        <!-- COMPETITIVE -->
+        <h3>Claude vs GPT vs Gemini for Security</h3>
         <table>
           <thead><tr><th>Dimension</th><th>Claude</th><th>GPT-5.x</th><th>Gemini 3.x</th></tr></thead>
           <tbody>
             <tr><td>Dedicated product</td><td style="color:#2d7d46"><strong>Claude Security + Mythos</strong></td><td>No equivalent</td><td>No equivalent</td></tr>
             <tr><td>Zero-day discovery</td><td>Thousands, 83% success rate</td><td>Some capability</td><td>Not positioned</td></tr>
-            <tr><td>SIEM integration</td><td>Splunk/Elastic/Datadog</td><td>Azure Sentinel</td><td>Chronicle</td></tr>
-            <tr><td>CTF benchmarks</td><td>76.5% solve rate</td><td>Comparable</td><td>Less tooling</td></tr>
+            <tr><td>Security plugins</td><td>7+ (CrowdStrike, Semgrep, etc.)</td><td>Limited</td><td>Chronicle SIEM</td></tr>
+            <tr><td>CTF benchmarks</td><td>76.5% solve rate (Cybench)</td><td>Comparable</td><td>Less tooling</td></tr>
+            <tr><td>PR scanning</td><td>Official GitHub Action</td><td>No equivalent</td><td>No equivalent</td></tr>
           </tbody>
         </table>
 
-        <h2>Limitations</h2>
+        <!-- CTF -->
+        <h3>CTF Integration</h3>
         <ul>
-          <li><strong>Static analysis only</strong> — Claude อ่าน code, ไม่ attack running applications</li>
-          <li><strong>Offensive boundaries</strong> — ToS ห้ามใช้กับ systems ที่ไม่ได้ own</li>
-          <li><strong>Mythos gated</strong> — model ที่แรงที่สุด restricted ให้ Glasswing partners</li>
-          <li><strong>Claude Code CVEs</strong> — CVE-2025-59536, CVE-2026-21852 (sandbox bypasses, patched)</li>
-          <li><strong>Bug bounty</strong> — Anthropic จ่ายสูงสุด $35,000 via HackerOne</li>
+          <li><strong>HackTheBox MCP</strong> &mdash; register events, start/stop containers, submit flags</li>
+          <li><strong>BoxPwnr</strong> &mdash; benchmark LLMs on HTB, TryHackMe, picoCTF &mdash; <strong>76.5% solve rate</strong></li>
+          <li>63% ของ HTB players ใช้ AI tools (2026)</li>
         </ul>
 
-        <h2>Key Resources</h2>
+        <!-- COMPLIANCE -->
+        <h3>Compliance &amp; Certifications</h3>
+        <table>
+          <thead><tr><th>Certification</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>SOC 2 Type II</td><td>&#10004; Active</td></tr>
+            <tr><td>ISO 27001:2022</td><td>&#10004; Active</td></tr>
+            <tr><td>ISO/IEC 42001:2023 (AI)</td><td>&#10004; Active</td></tr>
+            <tr><td>HIPAA BAA</td><td>Enterprise only</td></tr>
+            <tr><td>FedRAMP</td><td>Via AWS Bedrock</td></tr>
+            <tr><td>Zero Data Retention</td><td>API + Enterprise</td></tr>
+          </tbody>
+        </table>
+
+        <!-- LIMITATIONS -->
+        <h3>Limitations</h3>
         <ul>
-          <li><a href="https://github.com/anthropics/claude-code-security-review">GitHub Action: claude-code-security-review</a></li>
-          <li><a href="https://github.com/mukul975/cve-mcp-server">CVE MCP Server (27 tools)</a></li>
-          <li><a href="https://specterops.io/blog/2026/03/26/leveling-up-secure-code-reviews-with-claude-code/">SpecterOps: Secure Code Reviews</a></li>
-          <li><a href="https://github.com/agamm/claude-code-owasp">claude-code-owasp skill</a></li>
-          <li><a href="https://platform.claude.com/cookbook/tool-use-threat-intel-enrichment-agent">Threat Intel Enrichment cookbook</a></li>
-          <li><a href="https://www.detectionatscale.com/p/ai-threat-hunting-mcp-workflows">Threat Hunting with MCP</a></li>
+          <li><strong>Static analysis only</strong> &mdash; Claude อ่าน code, ไม่ attack running applications</li>
+          <li><strong>Offensive boundaries</strong> &mdash; ToS ห้ามใช้กับ systems ที่ไม่ได้ own/authorize</li>
+          <li><strong>Mythos gated</strong> &mdash; model ที่แรงที่สุด restricted ให้ Glasswing partners</li>
+          <li><strong>GitHub Action not injection-hardened</strong> &mdash; ใช้เฉพาะ trusted PRs</li>
+          <li><strong>Claude Code CVEs</strong> &mdash; CVE-2025-59536, CVE-2026-21852 (sandbox bypasses, patched)</li>
+        </ul>
+
+        <!-- SOURCES -->
+        <h3>Sources</h3>
+        <ul>
+          <li><a href="https://www.anthropic.com/product/security">Claude Security Product</a></li>
+          <li><a href="https://www.anthropic.com/news/claude-code-security">Claude Code Security Announcement</a></li>
+          <li><a href="https://www.anthropic.com/project/glasswing">Project Glasswing</a></li>
+          <li><a href="https://www.anthropic.com/research/building-ai-cyber-defenders">Building AI Cyber Defenders</a></li>
+          <li><a href="https://www.anthropic.com/news/automate-security-reviews-with-claude-code">Automate Security Reviews</a></li>
+          <li><a href="https://github.com/anthropics/claude-code-security-review">GitHub Action Repo</a></li>
+          <li><a href="https://www.anthropic.com/webinars/claude-security-putting-claude-to-work-for-defenders">Webinar: Claude for Defenders</a></li>
+          <li><a href="https://www.anthropic.com/news/mozilla-firefox-security">Mozilla Firefox Security</a></li>
+          <li><a href="https://www.splunk.com/en_us/blog/security/securing-ai-agents-model-context-protocol.html">Splunk MCP Security</a></li>
+          <li><a href="https://claude.com/customers/artemis">Artemis Case Study</a></li>
         </ul>
 
         <div class="nav-footer">

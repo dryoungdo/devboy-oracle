@@ -28,7 +28,7 @@
           <span class="tag">google-sheets</span>
           <span class="tag">prompt-engineering</span>
           <span class="tag">anthropic</span>
-          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge solid">&#128994; solid</span>
         </div>
 
         <p>บทความนี้แบ่งเป็น 2 ส่วน: <strong>Part A</strong> = practical (เริ่มใช้ได้เลย) และ <strong>Part B</strong> = technical deep dive สำหรับคนอยากรู้ลึก. ถ้ามีเวลาน้อย อ่าน Part A แล้วดู <a href="037-claude-finance-quick-wins.html">037 Quick Wins</a> ก็พอ.</p>
@@ -305,6 +305,49 @@ explanation. Format as a table I can paste into PowerPoint.</code></pre>
 
         <p><strong>7 Vertical Plugins</strong> (slash commands): <code>/dcf</code>, <code>/comps</code>, <code>/lbo</code>, <code>/earnings</code>, <code>/merger-model</code>, <code>/ic-memo</code>. Verticals: Financial Analysis, IB, Equity Research, PE, Wealth Mgmt, Fund Admin, Operations.</p>
 
+        <!-- SECTION 7B: KNOWLEDGE WORK PLUGINS -->
+        <h2>7B. Knowledge Work Plugins (Accounting &amp; FP&amp;A)</h2>
+        <p>นอกจาก financial-services agents แล้ว Anthropic ยังมี <strong>knowledge-work-plugins/finance</strong> &mdash; slash commands สำหรับ accounting + FP&amp;A workflows:</p>
+
+        <h3>Install</h3>
+        <pre><code># Claude Code CLI
+claude plugin install finance@knowledge-work-plugins
+
+# หรือ Cowork: Settings > Plugins > search "knowledge-work-plugins"</code></pre>
+
+        <h3>Slash Commands</h3>
+        <table>
+          <thead><tr><th>Command</th><th>Function</th><th>Output</th></tr></thead>
+          <tbody>
+            <tr><td><code>/journal-entry</code></td><td>สร้าง journal entries จาก transaction descriptions</td><td>Debit/Credit entries + account codes + memo</td></tr>
+            <tr><td><code>/reconciliation</code></td><td>เทียบ bank statement vs GL</td><td>Match report, unreconciled items, adjustment JEs</td></tr>
+            <tr><td><code>/income-statement</code></td><td>วิเคราะห์ P&amp;L จาก uploaded data</td><td>Formatted P&amp;L + variance commentary</td></tr>
+            <tr><td><code>/variance-analysis</code></td><td>Budget vs actual analysis</td><td>Variance table + root cause commentary + action items</td></tr>
+            <tr><td><code>/sox-testing</code></td><td>SOX control testing assistance</td><td>Test procedures, sample selection, exception documentation</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Usage Example</h3>
+        <pre><code># Upload bank statement + GL export, then:
+/reconciliation
+# Claude matches transactions, flags unreconciled items,
+# suggests adjustment journal entries
+
+# Upload budget + actual data:
+/variance-analysis
+# Claude generates variance table with >5% items flagged,
+# root cause hypotheses, and suggested action items</code></pre>
+
+        <h3>QuickBooks &amp; Xero Partnerships</h3>
+        <table>
+          <thead><tr><th>Integration</th><th>Launch</th><th>Capabilities</th></tr></thead>
+          <tbody>
+            <tr><td><strong>QuickBooks</strong> (Intuit)</td><td>ก.พ. 2026</td><td>Read transactions, generate reports, reconciliation. Via MCP connector. Intuit partnership announcement</td></tr>
+            <tr><td><strong>Xero</strong></td><td>มี.ค. 2026</td><td>Invoice processing, bank reconciliation, P&amp;L analysis. API integration for small business accounting</td></tr>
+          </tbody>
+        </table>
+        <p>ทั้งสองต้อง <strong>subscription กับ provider แยก</strong> + OAuth authorization. Claude ไม่เขียน transactions &mdash; read-only + analysis + draft JEs สำหรับ human review.</p>
+
         <!-- SECTION 8: MCP CONNECTORS -->
         <h2>8. MCP Data Connectors</h2>
         <p>Claude เชื่อมต่อ institutional-grade data ผ่าน MCP. <strong>ทุก official connector ต้อง subscription กับ data provider แยก</strong> &mdash; ไม่มี free via Claude.</p>
@@ -383,14 +426,22 @@ actual output. If mismatch, identify where logic broke.</code></pre>
 
         <!-- SECTION 12: CASE STUDIES -->
         <h2>12. Who Uses Claude for Finance</h2>
-        <ul>
-          <li><strong>Bridgewater</strong> &mdash; Investment Analyst Assistant ตั้งแต่ 2023. Python code gen, data viz</li>
-          <li><strong>Citadel</strong> &mdash; Claude for Excel: build/update coverage models</li>
-          <li><strong>Carlyle</strong> &mdash; Core AI tool: investing, operations, portfolio management</li>
-          <li><strong>Walleye Capital</strong> &mdash; 100% ของ 400 คน ใช้ Claude Code for due diligence + modeling</li>
-          <li><strong>JPMorgan, Goldman, Citi, AIG, Visa</strong> &mdash; Confirmed production deployments</li>
-          <li><strong>Harvey</strong> &mdash; Legal+finance AI built on Claude. $11B valuation. $190M ARR. 1,000+ customers</li>
-        </ul>
+        <table>
+          <thead><tr><th>Customer</th><th>Usage</th><th>Metric</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Bridgewater</strong></td><td>Investment Analyst Assistant (since 2023)</td><td>Python code gen, data viz</td></tr>
+            <tr><td><strong>Citadel</strong></td><td>Claude for Excel: coverage models</td><td>Production deployment</td></tr>
+            <tr><td><strong>Carlyle</strong></td><td>Core AI: investing, ops, portfolio mgmt</td><td>Firm-wide</td></tr>
+            <tr><td><strong>Walleye Capital</strong></td><td>Claude Code for due diligence + modeling</td><td>100% of 400 employees</td></tr>
+            <tr><td><strong>Block (Square)</strong></td><td>Financial analysis + reporting automation</td><td><strong>8-10 hrs/week saved</strong> per analyst</td></tr>
+            <tr><td><strong>OffDeal</strong></td><td>M&amp;A deal sourcing + CIM analysis</td><td>Cost per deal memo: <strong>$12K &rarr; $200</strong></td></tr>
+            <tr><td><strong>Newfront Insurance</strong></td><td>Policy review + renewal processing</td><td><strong>Full month of work recovered</strong> per cycle</td></tr>
+            <tr><td><strong>FIS</strong></td><td>AML (Anti-Money Laundering) review</td><td>Review time: <strong>days &rarr; minutes</strong></td></tr>
+            <tr><td><strong>Rogo</strong></td><td>Financial research assistant</td><td><strong>50K+ queries/day</strong> on Claude API</td></tr>
+            <tr><td><strong>JPMorgan, Goldman, Citi, AIG, Visa</strong></td><td>Confirmed production deployments</td><td>&mdash;</td></tr>
+            <tr><td><strong>Harvey</strong></td><td>Legal+finance AI built on Claude</td><td>$11B valuation, $190M ARR, 1,000+ customers</td></tr>
+          </tbody>
+        </table>
 
         <!-- SECTION 13: COMPLIANCE -->
         <h2>13. Compliance &amp; Regulatory</h2>
@@ -456,6 +507,71 @@ actual output. If mismatch, identify where logic broke.</code></pre>
         </table>
         <p><strong>ROI:</strong> Junior analyst costs $50-80/hr. Claude saves ~2 hrs/day = $100-160/day saved vs $1.50-7.50/day API = <strong>~20-100x ROI</strong>.</p>
 
+        <!-- SECTION 17: BATCH API -->
+        <h2>17. Batch API (50% Cost Reduction)</h2>
+        <p>สำหรับ high-volume finance tasks ที่ไม่ต้องการ real-time response &mdash; Batch API ลดราคา 50%:</p>
+        <pre><code>import anthropic
+
+client = anthropic.Anthropic()
+
+# Process 1,000 earnings reports overnight
+batch = client.batches.create(
+    requests=[
+        {
+            "custom_id": f"earnings-{ticker}",
+            "params": {
+                "model": "claude-sonnet-4-6-20250514",
+                "max_tokens": 4096,
+                "messages": [{
+                    "role": "user",
+                    "content": f"Analyze Q1 earnings: {report}"
+                }]
+            }
+        }
+        for ticker, report in earnings_data.items()
+    ]
+)
+# Up to 100K requests per batch
+# Results within 24 hours
+# 50% discount vs real-time API</code></pre>
+
+        <h3>Finance Batch Use Cases</h3>
+        <table>
+          <thead><tr><th>Use Case</th><th>Volume</th><th>Estimated Cost (Sonnet)</th></tr></thead>
+          <tbody>
+            <tr><td>Earnings call analysis (500 companies)</td><td>500 requests</td><td>~$25 (vs $50 real-time)</td></tr>
+            <tr><td>10-K risk factor extraction</td><td>1,000 filings</td><td>~$190 (vs $380)</td></tr>
+            <tr><td>Transaction categorization</td><td>10,000 records</td><td>~$5 (vs $10)</td></tr>
+            <tr><td>Contract clause extraction</td><td>200 contracts</td><td>~$10 (vs $20)</td></tr>
+          </tbody>
+        </table>
+
+        <!-- SECTION 18: COOKBOOKS -->
+        <h2>18. Claude Cookbooks &amp; Tutorials</h2>
+        <p>Anthropic publish <strong>Claude Cookbooks</strong> &mdash; runnable Jupyter notebooks สำหรับ finance use cases:</p>
+        <table>
+          <thead><tr><th>Notebook</th><th>Content</th><th>Level</th></tr></thead>
+          <tbody>
+            <tr><td><code>02_skills_financial_applications.ipynb</code></td><td>Financial analysis skills: DCF, ratio analysis, earnings review</td><td>Intermediate</td></tr>
+            <tr><td><code>prompting_strategies_financial.ipynb</code></td><td>Prompt engineering for finance: role setup, anti-hallucination, verification</td><td>Beginner</td></tr>
+            <tr><td><code>tool_use_financial_data.ipynb</code></td><td>tool_use patterns: connect to FactSet, process market data, generate reports</td><td>Advanced</td></tr>
+            <tr><td><code>batch_processing_finance.ipynb</code></td><td>Batch API for bulk analysis: earnings, contracts, compliance screening</td><td>Advanced</td></tr>
+          </tbody>
+        </table>
+        <p>GitHub: <a href="https://github.com/anthropics/anthropic-cookbook">anthropics/anthropic-cookbook</a> &mdash; clone แล้วรันใน Jupyter ได้เลย.</p>
+
+        <!-- SECTION 19: CLAUDE FOR SMALL BUSINESS -->
+        <h2>19. Claude for Small Business</h2>
+        <p>Anthropic launch <strong>Claude for Small Business</strong> (มี.ค. 2026) &mdash; 15 pre-built workflows สำหรับ SME finance:</p>
+        <ul>
+          <li><strong>Bookkeeping assistant</strong> &mdash; categorize transactions, reconcile bank statements</li>
+          <li><strong>Invoice generator</strong> &mdash; draft invoices from conversation</li>
+          <li><strong>Cash flow forecaster</strong> &mdash; project 3-6 months based on historical data</li>
+          <li><strong>Tax prep assistant</strong> &mdash; organize deductions, estimate quarterly payments</li>
+          <li><strong>Financial health check</strong> &mdash; quick ratio analysis from uploaded financials</li>
+        </ul>
+        <p>Available on Pro ($20/mo) + Teams tier. ไม่ต้อง API setup &mdash; ใช้ผ่าน claude.ai หรือ Cowork.</p>
+
         <!-- SOURCES -->
         <h2>Sources</h2>
         <ul>
@@ -471,6 +587,10 @@ actual output. If mismatch, identify where logic broke.</code></pre>
           <li><a href="https://developer.factset.com/mcp">FactSet MCP</a></li>
           <li><a href="https://docs.daloopa.com/docs/mcp">Daloopa MCP</a></li>
           <li><a href="https://mcp.alphavantage.co/">Alpha Vantage MCP</a></li>
+          <li><a href="https://github.com/anthropics/anthropic-cookbook">Anthropic Cookbook (GitHub)</a></li>
+          <li><a href="https://github.com/anthropics/knowledge-work-plugins">Knowledge Work Plugins (GitHub)</a></li>
+          <li><a href="https://www.anthropic.com/customers">Anthropic Customer Stories</a></li>
+          <li><a href="https://platform.claude.com/docs/en/build-with-claude/batch-processing">Batch Processing API Docs</a></li>
         </ul>
 
         <div class="nav-footer">

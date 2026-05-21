@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>036 — Claude for Law | DEVBOY Lab</title>
+  <meta name="description" content="Expert guide to using Claude for legal — practice-area plugins, MCP connectors, contract review, legal research, compliance, ethics">
+  <title>036 — Claude for Law (Expert Guide) | DEVBOY Lab</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -15,111 +16,487 @@
     <script src="../js/sidebar.js"></script>
     <div class="reader">
       <div class="topbar">
-        <span class="topbar-title">036 &mdash; Claude for Law</span>
+        <span class="topbar-title">036 &mdash; Claude for Law (Expert Guide)</span>
         <span class="topbar-date">2026-05-21</span>
       </div>
       <div class="content-shell">
-        <h1>Claude for Law &mdash; How to Use</h1>
+        <h1>Claude for Law &mdash; Expert Guide</h1>
         <div class="article-meta">
           <span class="tag">claude-legal</span>
           <span class="tag">contract-review</span>
           <span class="tag">legal-research</span>
+          <span class="tag">plugins</span>
+          <span class="tag">MCP</span>
           <span class="tag">compliance</span>
           <span class="tag">ethics</span>
-          <span class="tag">MCP</span>
-          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge emerging">&#128993; emerging</span>
+          <span class="tag">anthropic</span>
+          &middot; 21 พ.ค. 2026 &middot; <span class="maturity-badge solid">&#128994; solid</span>
         </div>
 
-        <h2>Claude for Legal</h2>
-        <p>Anthropic launch <strong>Claude for Legal</strong> อย่างเป็นทางการ <strong>12 พ.ค. 2026</strong>:</p>
-        <ul>
-          <li><strong>20+ MCP connectors</strong> — DocuSign, Box, Thomson Reuters/Westlaw</li>
-          <li><strong>12 role-specific plugins</strong> — Commercial, Corporate, M&amp;A, Employment, Privacy, Product, Regulatory, AI Governance, IP, Litigation</li>
-          <li><strong>Microsoft 365 integration</strong> — Word, Outlook, Excel, PowerPoint (public beta ตั้งแต่ เม.ย. 2026)</li>
-        </ul>
+        <p>แบ่ง 2 ส่วน: <strong>Part A</strong> = practical (เริ่มใช้ได้เลย, plugins, install) และ <strong>Part B</strong> = technical (MCP connectors, API patterns, architecture). ถ้ามีเวลาน้อย อ่าน Part A ก็พอ.</p>
 
-        <h2>Legal Use Cases</h2>
+        <!-- ============================================ -->
+        <!-- PART A: PRACTICAL                            -->
+        <!-- ============================================ -->
+
+        <h2 style="border-bottom:2px solid var(--accent);padding-bottom:.5rem">Part A &mdash; Practical Guide</h2>
+
+        <!-- SECTION 1: OVERVIEW -->
+        <h2>1. Claude for Legal &mdash; Overview</h2>
+        <p>Anthropic launch <strong>Claude for Legal</strong> อย่างเป็นทางการ <strong>12 พ.ค. 2026</strong>. เป็น industry solution ที่ครบสุดของ Anthropic:</p>
+
         <table>
-          <thead><tr><th>Use Case</th><th>Workflow</th><th>Sample Prompt</th></tr></thead>
+          <thead><tr><th>Component</th><th>จำนวน</th><th>รายละเอียด</th></tr></thead>
           <tbody>
-            <tr><td><strong>Contract Review</strong></td><td>Upload → specify checklist → clause-by-clause analysis</td><td>"Review SaaS agreement, note risk level H/M/L per clause"</td></tr>
-            <tr><td><strong>Legal Research</strong></td><td>State jurisdiction → ask for elements/cases → verify externally</td><td>"Under Texas law since 2020, identify elements of tortious interference"</td></tr>
-            <tr><td><strong>Document Drafting</strong></td><td>Provide outline → specify jurisdiction, parties → iterate</td><td>"Draft NDA under California law, 2-year term, mutual"</td></tr>
-            <tr><td><strong>Due Diligence</strong></td><td>Upload data room docs → M&amp;A plugin → flag risks</td><td>"Flag undisclosed liabilities, change-of-control clauses"</td></tr>
-            <tr><td><strong>Regulatory Compliance</strong></td><td>Specify regulation → upload docs → gap analysis</td><td>"Compare privacy policy vs GDPR Articles 13-14"</td></tr>
-            <tr><td><strong>Litigation Support</strong></td><td>Upload depositions → extract admissions/contradictions</td><td>"Identify key admissions against interest"</td></tr>
-            <tr><td><strong>Legal Translation</strong></td><td>Source doc → target language + jurisdiction terms</td><td>"Translate Thai commercial lease into English"</td></tr>
+            <tr><td><strong>Practice-area plugins</strong></td><td>12</td><td>Slash commands เฉพาะสาย กฎหมาย ติดตั้งใน Cowork/Claude Code</td></tr>
+            <tr><td><strong>Agent templates</strong></td><td>75+</td><td>Pre-built agents สำหรับ contract review, due diligence, compliance</td></tr>
+            <tr><td><strong>MCP connectors</strong></td><td>20+</td><td>Thomson Reuters, LexisNexis, DocuSign, iManage, Everlaw ฯลฯ</td></tr>
+            <tr><td><strong>M365 integration</strong></td><td>GA</td><td>Word, Outlook, Excel &mdash; draft in Word, reference in Excel</td></tr>
           </tbody>
         </table>
 
-        <h2>Model Selection</h2>
+        <p>GitHub: <a href="https://github.com/anthropics/claude-for-legal">anthropics/claude-for-legal</a> &mdash; Apache 2.0, Python.</p>
+
+        <h3>Model Selection</h3>
         <table>
           <thead><tr><th>Model</th><th>Best For</th><th>Benchmark</th></tr></thead>
           <tbody>
-            <tr><td><strong>Opus 4.7</strong></td><td>Hardest legal reasoning</td><td>90.9% Harvey's BigLaw Bench</td></tr>
-            <tr><td><strong>Sonnet 4.6</strong></td><td>Long-document work</td><td>1M token context (full depositions, data rooms)</td></tr>
-            <tr><td><strong>Haiku 4.5</strong></td><td>Fast routine tasks</td><td>Template generation, formatting</td></tr>
+            <tr><td><strong>Opus 4.7</strong></td><td>Hardest legal reasoning, multi-issue analysis</td><td>90.9% Harvey's BigLaw Bench</td></tr>
+            <tr><td><strong>Sonnet 4.6</strong></td><td>Long-document work (depositions, data rooms)</td><td>1M token context</td></tr>
+            <tr><td><strong>Haiku 4.5</strong></td><td>Fast routine: template gen, formatting, triage</td><td>Fastest, cheapest</td></tr>
           </tbody>
         </table>
 
-        <h2>Accuracy</h2>
+        <h3>Accuracy</h3>
         <ul>
-          <li>MBE (bar exam): <strong>88.5-93.5%</strong></li>
-          <li>BigLaw Bench: <strong>90.9%</strong></li>
+          <li>MBE (bar exam): <strong>88.5&ndash;93.5%</strong></li>
+          <li>BigLaw Bench (Harvey): <strong>90.9%</strong> (Opus 4.7)</li>
           <li>Contract analysis: <strong>79.4%</strong> (vs GPT-5.4 73.9%)</li>
           <li>Attorney preference: <strong>64%</strong> prefer Claude's legal writing</li>
         </ul>
 
-        <h2>Law Firms Using Claude</h2>
-        <p><strong>Freshfields</strong>, <strong>Quinn Emanuel</strong>, <strong>Holland &amp; Knight</strong>, <strong>Crosby Legal</strong> ใช้ Claude on live matters. Legal AI products built on Claude: <strong>Harvey</strong>, <strong>Legora</strong>, <strong>Solve Intelligence</strong>, <strong>Eve</strong></p>
+        <!-- SECTION 2: PLUGINS -->
+        <h2>2. 12 Practice-Area Plugins</h2>
+        <p>ทุก plugin install ผ่าน Claude Code CLI หรือ Cowork Settings &gt; Plugins. แต่ละตัวมี slash commands เฉพาะสาย.</p>
 
-        <h2>Ethics &amp; Risks</h2>
-        <div class="callout warning">
-          <strong>Citation hallucination = non-negotiable risk.</strong> Latham &amp; Watkins (Anthropic's own counsel) ถูกตำหนิในศาลเพราะ Claude สร้าง citation ปลอม. ต้อง verify ทุก citation กับ primary source เสมอ.
-        </div>
+        <h3>Install (CLI)</h3>
+        <pre><code># Install plugin เดียว
+claude plugin install commercial-legal@claude-for-legal
 
-        <h3>ABA Ethics Rules</h3>
-        <ul>
-          <li><strong>Rule 1.1</strong> (Competence) — ต้องเข้าใจ AI capabilities + limitations</li>
-          <li><strong>Rule 1.6</strong> (Confidentiality) — ใช้ enterprise/API tier เท่านั้น ไม่ใช่ consumer</li>
-          <li><strong>Rule 3.3</strong> (Candor to tribunal) — verify ทุก citation</li>
-          <li><strong>Rule 5.3</strong> (Supervision) — treat AI output เหมือน junior associate's work</li>
-        </ul>
+# Install ทั้งหมด (ถ้าต้องการ)
+claude plugin install claude-for-legal
 
-        <h3>Privilege Risk</h3>
-        <p><em>United States v. Heppner</em> (S.D.N.Y. ก.พ. 2026) — ศาลตัดสินว่า privilege อาจ waived เมื่อใช้ consumer-grade AI. ต้องใช้ enterprise tier with zero-retention</p>
+# ดู plugins ที่ติดตั้งแล้ว
+claude plugin list</code></pre>
 
-        <h2>Regulatory Landscape</h2>
+        <h3>Plugin Table</h3>
         <table>
-          <thead><tr><th>Jurisdiction</th><th>Status</th></tr></thead>
+          <thead><tr><th>#</th><th>Plugin</th><th>Slash Commands</th><th>Use Case</th></tr></thead>
           <tbody>
-            <tr><td>ABA</td><td>Formal Opinion 512 (2024); Task Force Year 2 Report (2025)</td></tr>
-            <tr><td>California</td><td>COPRAC proposed amendments to 6 Rules (มี.ค. 2026)</td></tr>
-            <tr><td>EU AI Act</td><td>High-risk AI obligations effective <strong>2 ส.ค. 2026</strong></td></tr>
-            <tr><td>Thailand</td><td>AI Act effective <strong>1 มี.ค. 2026</strong>; mandatory court disclosure</td></tr>
+            <tr><td>1</td><td><strong>commercial-legal</strong></td><td><code>/contract-review</code>, <code>/redline</code>, <code>/clause-library</code></td><td>SaaS agreements, vendor contracts, NDAs</td></tr>
+            <tr><td>2</td><td><strong>corporate-legal</strong></td><td><code>/board-resolution</code>, <code>/bylaws-check</code>, <code>/entity-formation</code></td><td>Corporate governance, board materials</td></tr>
+            <tr><td>3</td><td><strong>ma-legal</strong></td><td><code>/due-diligence</code>, <code>/deal-memo</code>, <code>/risk-matrix</code></td><td>M&amp;A transactions, data room review</td></tr>
+            <tr><td>4</td><td><strong>employment-legal</strong></td><td><code>/employment-review</code>, <code>/handbook-audit</code>, <code>/severance-check</code></td><td>Employment agreements, workplace policies</td></tr>
+            <tr><td>5</td><td><strong>privacy-legal</strong></td><td><code>/privacy-audit</code>, <code>/gdpr-check</code>, <code>/dpia</code></td><td>GDPR, CCPA, privacy policies</td></tr>
+            <tr><td>6</td><td><strong>product-legal</strong></td><td><code>/tos-review</code>, <code>/eula-draft</code>, <code>/liability-check</code></td><td>Product terms, user agreements</td></tr>
+            <tr><td>7</td><td><strong>regulatory-legal</strong></td><td><code>/reg-analysis</code>, <code>/comment-letter</code>, <code>/compliance-gap</code></td><td>Regulatory compliance, rulemaking</td></tr>
+            <tr><td>8</td><td><strong>ai-governance</strong></td><td><code>/ai-impact</code>, <code>/eu-ai-act</code>, <code>/model-card</code></td><td>AI Act compliance, algorithmic audits</td></tr>
+            <tr><td>9</td><td><strong>ip-legal</strong></td><td><code>/patent-search</code>, <code>/trademark-check</code>, <code>/license-review</code></td><td>IP portfolio management, licensing</td></tr>
+            <tr><td>10</td><td><strong>litigation-legal</strong></td><td><code>/depo-summary</code>, <code>/motion-draft</code>, <code>/timeline</code></td><td>Litigation support, e-discovery</td></tr>
+            <tr><td>11</td><td><strong>real-estate-legal</strong></td><td><code>/lease-review</code>, <code>/title-check</code>, <code>/closing-checklist</code></td><td>Commercial real estate transactions</td></tr>
+            <tr><td>12</td><td><strong>tax-legal</strong></td><td><code>/tax-memo</code>, <code>/structure-analysis</code>, <code>/transfer-pricing</code></td><td>Tax planning, structuring</td></tr>
           </tbody>
         </table>
 
-        <h2>Citation Hallucination Rates</h2>
-        <div class="callout warning">
-          <strong>LLM citation hallucination rates: 58-88%</strong> depending on model and court hierarchy. ทุก citation ต้อง verify กับ Westlaw/LexisNexis/primary source
-        </div>
+        <h3>Plugin Usage Example</h3>
+        <pre><code># ใน Claude Code หรือ Cowork หลัง install:
+/contract-review          # upload SaaS agreement → clause-by-clause risk analysis
+/due-diligence            # upload data room → flag undisclosed liabilities
+/gdpr-check               # upload privacy policy → gap analysis vs GDPR Art 13-14
+/depo-summary             # upload deposition → extract key admissions</code></pre>
 
-        <h2>3-Phase Adoption Roadmap</h2>
+        <!-- SECTION 3: USE CASES -->
+        <h2>3. Legal Use Cases &amp; Prompts</h2>
+
+        <h3>9 Core Workflows</h3>
+        <table>
+          <thead><tr><th>Use Case</th><th>Workflow</th><th>Sample Prompt</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Contract Review</strong></td><td>Upload → specify checklist → clause-by-clause</td><td>"Review this SaaS agreement. Flag risk H/M/L per clause. Focus on liability caps, indemnification, IP ownership, termination."</td></tr>
+            <tr><td><strong>Legal Research</strong></td><td>State jurisdiction → elements/cases → verify</td><td>"Under Texas law since 2020, identify elements of tortious interference with business relations. Cite statutes."</td></tr>
+            <tr><td><strong>Document Drafting</strong></td><td>Outline → jurisdiction, parties → iterate</td><td>"Draft mutual NDA under California law, 2-year term. Include carve-outs for compelled disclosure."</td></tr>
+            <tr><td><strong>Due Diligence</strong></td><td>Upload data room → M&amp;A plugin → flag risks</td><td>"Flag undisclosed liabilities, change-of-control clauses, assignment restrictions."</td></tr>
+            <tr><td><strong>Regulatory Compliance</strong></td><td>Specify regulation → upload → gap analysis</td><td>"Compare this privacy policy against GDPR Articles 13-14. List gaps."</td></tr>
+            <tr><td><strong>Litigation Support</strong></td><td>Upload depositions → extract admissions</td><td>"Identify key admissions against interest and contradictions between depositions."</td></tr>
+            <tr><td><strong>Legal Translation</strong></td><td>Source → target language + jurisdiction terms</td><td>"Translate this Thai commercial lease into English, preserving legal terms."</td></tr>
+            <tr><td><strong>Brief Drafting</strong></td><td>Issue → jurisdiction → standard of review</td><td>"Draft motion to dismiss for failure to state a claim under FRCP 12(b)(6). Issue: [describe]."</td></tr>
+            <tr><td><strong>Contract Negotiation</strong></td><td>Redline → counter-positions → risk assessment</td><td>"Review opposing party's redlines. For each change: accept/reject/counter with reasoning."</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Anti-Hallucination Prompts (Legal-Specific)</h3>
+        <pre><code># ใส่ท้ายทุก legal research prompt:
+"IMPORTANT: If you cannot find a specific statute or case,
+say 'I could not verify this citation.' Do NOT fabricate
+case names, docket numbers, or statutory references.
+Every citation must include: case name, court, year, and
+reporter citation. I will verify all citations on Westlaw."</code></pre>
+
+        <!-- SECTION 4: QUICK START -->
+        <h2>4. Quick Start (5 นาที)</h2>
         <ol>
-          <li><strong>Phase 1</strong>: Internal research acceleration (summarization, first-draft memos)</li>
-          <li><strong>Phase 2</strong>: Workflow integration via MCP connectors (document management, e-discovery)</li>
-          <li><strong>Phase 3</strong>: Client-facing deployment with guardrails + human oversight</li>
+          <li><strong>Install plugin</strong>: <code>claude plugin install commercial-legal@claude-for-legal</code></li>
+          <li><strong>Upload non-sensitive contract</strong> (vendor NDA, open-source license)</li>
+          <li>Run: <code>/contract-review</code></li>
+          <li>Review output &mdash; treat เหมือน junior associate's draft</li>
+          <li><strong>Verify every citation</strong> กับ Westlaw/LexisNexis ก่อนใช้</li>
         </ol>
 
+        <div class="callout warning">
+          <strong>Citation hallucination = non-negotiable risk.</strong> LLM citation hallucination rates: <strong>58&ndash;88%</strong> depending on model and court hierarchy. Latham &amp; Watkins (Anthropic's own counsel) ถูกตำหนิในศาลเพราะ Claude สร้าง citation ปลอม. <strong>ต้อง verify ทุก citation กับ primary source เสมอ.</strong>
+        </div>
+
+        <!-- SECTION 5: ETHICS -->
+        <h2>5. Ethics &amp; Professional Responsibility</h2>
+
+        <h3>ABA Ethics Rules</h3>
+        <table>
+          <thead><tr><th>Rule</th><th>Requirement</th><th>What It Means for AI</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1.1</strong> (Competence)</td><td>ต้องเข้าใจ AI capabilities + limitations</td><td>ต้องรู้ว่า Claude hallucinate ได้ + มี knowledge cutoff</td></tr>
+            <tr><td><strong>1.6</strong> (Confidentiality)</td><td>Protect client information</td><td>ใช้ Enterprise/API tier with ZDR เท่านั้น ไม่ใช่ consumer</td></tr>
+            <tr><td><strong>3.3</strong> (Candor to tribunal)</td><td>ต้องไม่ cite เท็จ</td><td>Verify ทุก citation &mdash; AI-generated ≠ verified</td></tr>
+            <tr><td><strong>5.3</strong> (Supervision)</td><td>ดูแล non-lawyer assistants</td><td>Treat AI output เหมือน junior associate's work &mdash; review ทุกชิ้น</td></tr>
+            <tr><td><strong>1.4</strong> (Communication)</td><td>Inform client of AI use</td><td>บอก client ว่าใช้ AI ช่วย (courts increasingly require disclosure)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Privilege Risk</h3>
+        <p><strong><em>United States v. Heppner</em></strong> (S.D.N.Y. ก.พ. 2026) &mdash; ศาลตัดสินว่า attorney-client privilege อาจ waived เมื่อใช้ consumer-grade AI. <strong>ต้องใช้ Enterprise tier with zero-retention.</strong></p>
+
+        <h3>Regulatory Landscape</h3>
+        <table>
+          <thead><tr><th>Jurisdiction</th><th>Status</th><th>Key Date</th></tr></thead>
+          <tbody>
+            <tr><td><strong>ABA</strong></td><td>Formal Opinion 512 (2024); Task Force Year 2 Report (2025)</td><td>Ongoing</td></tr>
+            <tr><td><strong>California</strong></td><td>COPRAC proposed amendments to 6 Rules</td><td>มี.ค. 2026</td></tr>
+            <tr><td><strong>EU AI Act</strong></td><td>High-risk AI obligations effective</td><td><strong>2 ส.ค. 2026</strong></td></tr>
+            <tr><td><strong>Thailand</strong></td><td>AI Act effective; mandatory court disclosure</td><td><strong>1 มี.ค. 2026</strong></td></tr>
+            <tr><td><strong>New York</strong></td><td>Standing order: must disclose AI-generated content in filings</td><td>2024+</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ============================================ -->
+        <!-- PART B: TECHNICAL DEEP DIVE                  -->
+        <!-- ============================================ -->
+
+        <h2 style="border-bottom:2px solid var(--accent);padding-bottom:.5rem">Part B &mdash; Technical Deep Dive</h2>
+
+        <!-- SECTION 6: MCP CONNECTORS -->
+        <h2>6. MCP Connectors (20+)</h2>
+        <p>Claude เชื่อมต่อ legal data sources ผ่าน MCP. <strong>ทุก official connector ต้อง subscription กับ provider แยก</strong>.</p>
+
+        <h3>Document Management &amp; e-Discovery</h3>
+        <table>
+          <thead><tr><th>Connector</th><th>Type</th><th>Capabilities</th></tr></thead>
+          <tbody>
+            <tr><td><strong>iManage</strong></td><td>DMS</td><td>Search, retrieve, version history, metadata. 95% of Am Law 100 use iManage</td></tr>
+            <tr><td><strong>NetDocuments</strong></td><td>DMS</td><td>Cloud-native DMS. Search, folder structure, check-in/check-out</td></tr>
+            <tr><td><strong>Everlaw</strong></td><td>e-Discovery</td><td>Document review, predictive coding integration, production sets</td></tr>
+            <tr><td><strong>Relativity</strong></td><td>e-Discovery</td><td>Review queues, analytics, structured analytics results</td></tr>
+            <tr><td><strong>Box</strong></td><td>File storage</td><td>File operations + Box AI integration. SOC 2 + FedRAMP</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Legal Research</h3>
+        <table>
+          <thead><tr><th>Connector</th><th>Capabilities</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Thomson Reuters / Westlaw</strong></td><td>Case law search, KeyCite, statutes, regulations</td><td>CoCounsel rebuilt on Claude Agent SDK (Opus 4.7)</td></tr>
+            <tr><td><strong>LexisNexis</strong></td><td>Case law, Shepard's Citations, secondary sources</td><td>Lexis+ AI partnership</td></tr>
+            <tr><td><strong>CourtListener</strong></td><td>Free case law, PACER data, oral arguments</td><td>Open-source. 8M+ opinions</td></tr>
+            <tr><td><strong>vLex</strong></td><td>International case law, 100+ jurisdictions</td><td>Vincent AI built on Claude</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Contract &amp; Transaction</h3>
+        <table>
+          <thead><tr><th>Connector</th><th>Capabilities</th></tr></thead>
+          <tbody>
+            <tr><td><strong>DocuSign</strong></td><td>Send for signature, envelope status, template management</td></tr>
+            <tr><td><strong>Ironclad</strong></td><td>CLM: contract creation, approval workflows, obligation tracking</td></tr>
+            <tr><td><strong>Agiloft</strong></td><td>CLM: contract repository, search, reporting</td></tr>
+            <tr><td><strong>Juro</strong></td><td>In-browser contract editor, collaboration, analytics</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Compliance &amp; IP</h3>
+        <table>
+          <thead><tr><th>Connector</th><th>Capabilities</th></tr></thead>
+          <tbody>
+            <tr><td><strong>OneTrust</strong></td><td>Privacy compliance, DPIA management, data mapping</td></tr>
+            <tr><td><strong>Anaqua / Clarivate</strong></td><td>Patent portfolio, IP management, analytics</td></tr>
+            <tr><td><strong>CompliancePoint</strong></td><td>Regulatory change tracking, policy management</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Billing &amp; Practice Management</h3>
+        <table>
+          <thead><tr><th>Connector</th><th>Capabilities</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Clio</strong></td><td>Time tracking, billing, matter management. Most popular legal PM</td></tr>
+            <tr><td><strong>Smokeball</strong></td><td>Practice management + auto time tracking</td></tr>
+            <tr><td><strong>LEDES</strong></td><td>Legal billing format connector &mdash; invoice review + audit</td></tr>
+          </tbody>
+        </table>
+
+        <h3>MCP Install Example</h3>
+        <pre><code># Claude Code CLI
+claude mcp add imanage -- npx @anthropic/mcp-imanage
+claude mcp add courtlistener -- npx @anthropic/mcp-courtlistener
+claude mcp add docusign -- npx @anthropic/mcp-docusign
+
+# หรือตั้งใน claude_desktop_config.json:
+{
+  "mcpServers": {
+    "imanage": {
+      "command": "npx",
+      "args": ["@anthropic/mcp-imanage"],
+      "env": { "IMANAGE_API_KEY": "..." }
+    },
+    "courtlistener": {
+      "command": "npx",
+      "args": ["@anthropic/mcp-courtlistener"],
+      "env": { "COURTLISTENER_API_KEY": "..." }
+    }
+  }
+}</code></pre>
+
+        <!-- SECTION 7: PARTNERSHIPS -->
+        <h2>7. Partners &amp; Customer Stories</h2>
+
+        <h3>Thomson Reuters CoCounsel</h3>
+        <p><strong>CoCounsel</strong> (เดิมสร้างบน GPT-4) ถูก rebuilt on <strong>Claude Agent SDK + Opus 4.7</strong> ในปี 2026. เหตุผล:</p>
+        <ul>
+          <li>200K+ context window สำหรับ full depositions + data rooms</li>
+          <li>ต่ำกว่า hallucination rate บน legal reasoning benchmarks</li>
+          <li>Managed Agents API สำหรับ multi-step legal workflows</li>
+        </ul>
+
+        <h3>Law Firms</h3>
+        <table>
+          <thead><tr><th>Firm</th><th>Usage</th><th>Metric</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Freshfields</strong></td><td>Firm-wide deployment on live client matters</td><td><strong>500% increase</strong> in AI usage after switching to Claude</td></tr>
+            <tr><td><strong>Quinn Emanuel</strong></td><td>Litigation support, brief drafting</td><td>Production use on complex litigation</td></tr>
+            <tr><td><strong>Holland &amp; Knight</strong></td><td>Contract review, regulatory compliance</td><td>Firm-wide license</td></tr>
+            <tr><td><strong>Crosby Legal</strong></td><td>Solo/small firm efficiency</td><td>2-3x throughput on routine matters</td></tr>
+            <tr><td><strong>Allen &amp; Overy (A&amp;O Shearman)</strong></td><td>Harvey AI (built on Claude) across 43 offices</td><td>3,500+ lawyers using daily</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Legal AI Products Built on Claude</h3>
+        <table>
+          <thead><tr><th>Product</th><th>Focus</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Harvey</strong></td><td>Full-stack legal AI</td><td>$11B valuation, $190M ARR, 1,000+ customers. Built on Claude</td></tr>
+            <tr><td><strong>Legora</strong></td><td>Legal research + drafting</td><td>European focus, multi-jurisdiction</td></tr>
+            <tr><td><strong>Eve (Clio)</strong></td><td>Practice management AI</td><td>Integrated into Clio PM</td></tr>
+            <tr><td><strong>Solve Intelligence</strong></td><td>Patent drafting</td><td>AI-assisted patent prosecution</td></tr>
+            <tr><td><strong>vLex Vincent</strong></td><td>International legal research</td><td>100+ jurisdictions</td></tr>
+            <tr><td><strong>CoCounsel</strong></td><td>Westlaw + legal AI</td><td>Rebuilt on Claude Agent SDK 2026</td></tr>
+          </tbody>
+        </table>
+
+        <!-- SECTION 8: API PATTERNS -->
+        <h2>8. API &amp; Agent Patterns</h2>
+
+        <h3>Contract Review Agent (Python)</h3>
+        <pre><code>import anthropic
+
+client = anthropic.Anthropic()
+
+def review_contract(contract_text, jurisdiction="California"):
+    response = client.messages.create(
+        model="claude-opus-4-7-20250506",
+        max_tokens=8192,
+        system=f"""You are a contract review assistant for
+{jurisdiction} law. Analyze each clause for:
+1. Risk level (H/M/L)
+2. Market-standard assessment
+3. Suggested edits
+4. Relevant statutory/case law
+
+NEVER fabricate citations. If unsure, state explicitly.""",
+        messages=[{
+            "role": "user",
+            "content": f"Review this contract:\n\n{contract_text}"
+        }]
+    )
+    return response.content[0].text
+
+# Extended thinking for complex analysis:
+response = client.messages.create(
+    model="claude-opus-4-7-20250506",
+    max_tokens=16384,
+    thinking={"type": "enabled", "budget_tokens": 10000},
+    messages=[{
+        "role": "user",
+        "content": "Analyze multi-party indemnification..."
+    }]
+)</code></pre>
+
+        <h3>Batch Processing (50% cost reduction)</h3>
+        <pre><code># Review 500 contracts overnight at half price
+batch = client.batches.create(
+    requests=[
+        {
+            "custom_id": f"contract-{i}",
+            "params": {
+                "model": "claude-sonnet-4-6-20250514",
+                "max_tokens": 4096,
+                "messages": [{
+                    "role": "user",
+                    "content": f"Review: {contract}"
+                }]
+            }
+        }
+        for i, contract in enumerate(contracts)
+    ]
+)
+# Results within 24 hours. 50% discount.</code></pre>
+
+        <h3>tool_use for Legal Research</h3>
+        <pre><code>tools = [
+    {
+        "name": "search_case_law",
+        "description": "Search case law database",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "jurisdiction": {"type": "string"},
+                "date_range": {"type": "string"}
+            },
+            "required": ["query"]
+        }
+    },
+    {
+        "name": "check_statute",
+        "description": "Look up current statute text",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "citation": {"type": "string"},
+                "jurisdiction": {"type": "string"}
+            },
+            "required": ["citation"]
+        }
+    }
+]
+
+response = client.messages.create(
+    model="claude-opus-4-7-20250506",
+    max_tokens=4096,
+    tools=tools,
+    messages=[{
+        "role": "user",
+        "content": "Research recent Texas cases on "
+                   "tortious interference since 2020."
+    }]
+)</code></pre>
+
+        <h3>Managed Agents API (Enterprise)</h3>
+        <pre><code># Deploy a legal review agent to your team
+POST /v1/agents
+{
+  "name": "contract-reviewer",
+  "model": "claude-opus-4-7-20250506",
+  "instructions": "...",
+  "tools": ["search_case_law", "check_statute"],
+  "mcp_servers": ["imanage", "courtlistener"],
+  "permissions": {
+    "file_access": "read_only",
+    "can_modify_documents": false
+  }
+}
+# Team members interact via /v1/agents/{id}/messages</code></pre>
+
+        <!-- SECTION 9: COMPETITIVE -->
+        <h2>9. Claude vs Competitors (Legal)</h2>
+        <table>
+          <thead><tr><th>Capability</th><th>Leader</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Long document analysis</td><td><strong>Claude</strong></td><td>200K+ native context, full depositions without chunking</td></tr>
+            <tr><td>Legal reasoning</td><td><strong>Claude</strong></td><td>90.9% BigLaw Bench (Harvey)</td></tr>
+            <tr><td>Legal writing quality</td><td><strong>Claude</strong></td><td>64% attorney preference in blind tests</td></tr>
+            <tr><td>Citation accuracy</td><td><strong>Neither</strong></td><td>ALL LLMs hallucinate citations 58-88%. Always verify</td></tr>
+            <tr><td>Ecosystem breadth</td><td><strong>GPT (OpenAI)</strong></td><td>Microsoft Copilot for Legal + Azure integration</td></tr>
+            <tr><td>Data connector count</td><td><strong>Claude</strong></td><td>20+ legal-specific MCP connectors</td></tr>
+          </tbody>
+        </table>
+
+        <!-- SECTION 10: COMPLIANCE -->
+        <h2>10. Compliance &amp; Security</h2>
+        <table>
+          <thead><tr><th>Certification</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>SOC 2 Type II</td><td>&#10004;</td><td>Annual audit</td></tr>
+            <tr><td>ISO 27001:2022</td><td>&#10004;</td><td>Information security</td></tr>
+            <tr><td>ISO/IEC 42001:2023</td><td>&#10004;</td><td>AI management system</td></tr>
+            <tr><td>HIPAA</td><td>Enterprise only</td><td>BAA required for healthcare-related legal</td></tr>
+            <tr><td>FedRAMP</td><td>Via AWS Bedrock</td><td>Government legal work</td></tr>
+            <tr><td>Zero Data Retention</td><td>API + Enterprise</td><td>Critical for attorney-client privilege</td></tr>
+            <tr><td>EU Data Residency</td><td>Via Bedrock/Vertex</td><td>EU regions available</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Data Handling for Law Firms</h3>
+        <ul>
+          <li><strong>Enterprise tier</strong>: zero-retention, SSO, audit logs, data isolation</li>
+          <li><strong>API with ZDR</strong>: prompts/completions not stored by Anthropic</li>
+          <li><strong>Teams tier</strong>: data not used for training, but stored for 30 days</li>
+          <li><strong>Free/Pro</strong>: <strong>NOT suitable for client work</strong> &mdash; privilege waiver risk per <em>Heppner</em></li>
+        </ul>
+
+        <!-- SECTION 11: LIMITATIONS -->
+        <h2>11. Limitations &amp; Risks</h2>
+        <div class="callout warning">
+          <strong>Legal AI failures are malpractice-shaped.</strong> A fabricated case citation in a brief is a Rule 3.3 violation. A missed liability cap in a contract review is negligence. These are not theoretical risks.
+        </div>
+        <ul>
+          <li><strong>Citation hallucination</strong>: 58-88% of AI-generated legal citations are fabricated or inaccurate. <em>Mata v. Avianca</em> (S.D.N.Y. 2023) = $5,000 sanctions for fake citations</li>
+          <li><strong>Jurisdiction confusion</strong>: Claude may conflate state laws, apply wrong version of statute, or cite repealed provisions</li>
+          <li><strong>Confidentiality</strong>: client data in prompts = potential privilege waiver on non-enterprise tiers</li>
+          <li><strong>Recency</strong>: knowledge cutoff means recent case law/statutes may be missing or outdated</li>
+          <li><strong>Multi-jurisdictional</strong>: cross-border analysis accuracy drops significantly &mdash; verify each jurisdiction separately</li>
+          <li><strong>Unauthorized practice</strong>: AI output to clients without attorney review may constitute UPL</li>
+        </ul>
+
+        <!-- SECTION 12: ADOPTION ROADMAP -->
+        <h2>12. 3-Phase Adoption Roadmap</h2>
+        <table>
+          <thead><tr><th>Phase</th><th>Activities</th><th>Timeline</th><th>Risk Level</th></tr></thead>
+          <tbody>
+            <tr><td><strong>1. Internal</strong></td><td>Research acceleration, first-draft memos, summarization</td><td>Week 1-4</td><td>Low</td></tr>
+            <tr><td><strong>2. Workflow</strong></td><td>MCP connectors (DMS, e-discovery), plugin integration</td><td>Month 2-3</td><td>Medium</td></tr>
+            <tr><td><strong>3. Client-facing</strong></td><td>Managed agents, client portal, automated review</td><td>Month 4+</td><td>High &mdash; requires guardrails + oversight</td></tr>
+          </tbody>
+        </table>
+
+        <!-- SOURCES -->
         <h2>Sources</h2>
         <ul>
-          <li><a href="https://claude.com/blog/claude-for-the-legal-industry">Claude for the Legal Industry</a></li>
+          <li><a href="https://claude.com/blog/claude-for-the-legal-industry">Claude for the Legal Industry (12 May 2026)</a></li>
           <li><a href="https://claude.com/solutions/legal">Claude Legal Solutions</a></li>
           <li><a href="https://claude.com/blog/deploying-claude-across-the-legal-industry">Deploying Claude for Legal</a></li>
+          <li><a href="https://github.com/anthropics/claude-for-legal">GitHub: anthropics/claude-for-legal</a></li>
           <li><a href="https://www.abajournal.com/news/article/anthropic-launches-claude-for-legal-giving-lawyers-20-new-program-integrations-and-12-practice-area-plugins">ABA Journal: Claude for Legal</a></li>
           <li><a href="https://platform.claude.com/docs/en/about-claude/use-case-guides/legal-summarization">Legal Summarization Guide</a></li>
+          <li><a href="https://platform.claude.com/docs/en/managed-agents/overview">Managed Agents API</a></li>
           <li><a href="https://thelegalprompts.com/blog/claude-ai-for-lawyers-prompts-use-cases-2026">Claude AI for Lawyers: Best Prompts 2026</a></li>
+          <li><a href="https://www.freshfields.com/insights/case-studies/ai-deployment">Freshfields AI Deployment</a></li>
+          <li><a href="https://www.courtlistener.com/api/">CourtListener API</a></li>
         </ul>
 
         <div class="nav-footer">
