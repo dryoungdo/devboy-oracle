@@ -17,7 +17,7 @@
 | Binary | `~/.bun/bin/maw` → `maw-wrapper.sh` → `maw-real` (symlink to src/cli.ts) |
 | Port | 1412 |
 | Node name | clinic-drdo |
-| Federation token | `2QHmsYh-1UamE10V8mec0t5w0bGNHEZJ` |
+| Federation token | `REDACTED` |
 | Peer key | `~/.maw/peer-key` (64 bytes, mode 0600) |
 | PM2 process | `maw` (pid 193711, online, ~100MB) |
 
