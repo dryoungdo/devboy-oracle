@@ -43,26 +43,44 @@ This is not just analogy — Claude Code's `--parent-session-id` creates real hi
 - Receive status from children
 - Coordinate work across the team
 
+### Auto-resolve: parent-session-id is IMPLICIT
+
+> P'Nat (msg_id 1507206952608862320): "ไม่ต้องระบุ parent ตอน spawn — มัน auto-resolve จาก config.sessionId ของ team"
+
+When you `spawn`, the plugin reads `config.sessionId` from the team config and passes it as `--parent-session-id` automatically. You never manually specify `--parent-session-id`.
+
+```bash
+# create locks session-id as team identity
+SESSION_ID=$(maw team-agent uuid --bare | head -1)
+maw team-agent create my-team "desc" --session-id "$SESSION_ID"
+
+# spawn auto-resolves parent from config.sessionId
+maw team-agent spawn my-team worker@/tmp/work:cyan --mission "..."
+# internally: --parent-session-id = $SESSION_ID (from config)
+```
+
+Optional: `--session-id` at create time. If omitted → auto-generated.
+
 ### Hierarchy Topology
 
 ```
 Lead (shell-lead)
-├── session-id: <lead-uuid>
+├── session-id: <lead-uuid>       ← fixed at create time
 ├── parent-session-id: null (root)
 │
 ├── reviewer
-│   ├── session-id: <child-uuid-1>
-│   ├── parent-session-id: <lead-uuid>
+│   ├── session-id: <child-uuid-1>       ← auto-generated at spawn
+│   ├── parent-session-id: <lead-uuid>   ← AUTO from config.sessionId
 │   └── system-prompt: "security reviewer"
 │
 ├── writer
 │   ├── session-id: <child-uuid-2>
-│   ├── parent-session-id: <lead-uuid>
+│   ├── parent-session-id: <lead-uuid>   ← AUTO
 │   └── system-prompt: "technical writer"
 │
 └── reader
     ├── session-id: <child-uuid-3>
-    ├── parent-session-id: <lead-uuid>
+    ├── parent-session-id: <lead-uuid>   ← AUTO
     └── system-prompt: (none)
 ```
 
