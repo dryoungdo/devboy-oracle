@@ -47,7 +47,7 @@ This is the **infrastructure layer** that enables Wind's autonomous loop:
 ## Pre-publish ledger
 
 - Sources checked: arra search "maw team-agent session-id" (0 FTS matches), arra search "claude code agent teams spawn" (0 FTS matches), ψ/learn/wind-gale-oracle/ (cross-referenced)
-- Claims made: 3 (all ❓ raw — design doc only, no application evidence on DO)
+- Claims made: 3 (🟡 emerging — v0.2.0 tested on DO, all 3 spawn patterns verified)
 - Conflicts resolved: none found — superset of existing maw team
-- Application evidence: N/A — maw team-agent not installed on DO yet
+- Application evidence: ψ/lab (inline test) — v0.2.0 installed on DO, full flow tested: create → spawn (3 patterns) → msg → shutdown → cleanup. All passed.
 - Codex reviewed: no (design doc analysis, not code)
