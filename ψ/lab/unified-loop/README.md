@@ -27,7 +27,7 @@ Composing existing tools into a unified cycle reduces human prompts-per-task fro
 
 | Test | Tier | Human Prompts | Time | Quality | Notes |
 |------|------|--------------|------|---------|-------|
-| 1 | | | | | |
+| 1 | Tier 1 | 0 (self-directed) | 2 min | OK — all 3 pages verified | WebFetch verify articles 042+043+home.html |
 | 2 | | | | | |
 | 3 | | | | | |
 
