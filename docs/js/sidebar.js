@@ -8,7 +8,7 @@
       ['003-maw-team-engine.html', '003 maw team Engine'],
       ['004-pnat-hidden-curriculum.html', '004 \u0e2b\u0e25\u0e31\u0e01\u0e2a\u0e39\u0e15\u0e23\u0e0b\u0e48\u0e2d\u0e19'],
       ['005-esp32-power.html', '005 ESP32 \u0e1e\u0e25\u0e31\u0e07\u0e07\u0e32\u0e19'],
-      ['006-discord-config.html', '006 Discord Config']
+      ['041-discord-plugin-wiring.html', '006 Discord Config → 041']
     ]],
     ['maw Ecosystem', [
       ['007-maw-js-orchestrator.html', '007 maw-js Orchestrator'],

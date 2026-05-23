@@ -161,6 +161,51 @@ claude --channels plugin:discord@claude-plugins-official
 # claude --channels plugin:discord:discord  ← ผิด!</code></pre>
         <p><strong>Post-mortem (2026-05-21):</strong> GLUEBOY เสียเวลาหลายชั่วโมง debug เพราะขาด flag นี้. Plugin log message ชัดเจน แต่หา root cause ยาก เพราะ outbound ทำงานปกติ ทำให้คิดว่า plugin load ถูกต้องแล้ว.</p>
 
+        <h4>Step 7.5: ตั้ง DISCORD_STATE_DIR (สำหรับ automated launch)</h4>
+        <p>Discord plugin ต้องรู้ว่า bot state directory (<code>.env</code> + <code>access.json</code>) อยู่ที่ไหน. ถ้า launch claude จาก terminal ที่มี env ถูก ก็ work. แต่ถ้า launch ผ่าน orchestrator (เช่น <code>maw wake</code>) ต้องตั้งค่า explicit.</p>
+
+        <p><strong>วิธี 1: Export ใน launcher script (แนะนำ)</strong></p>
+        <pre><code>#!/bin/bash
+# start.sh — canonical launcher for Oracle with Discord
+set -e
+cd /path/to/oracle/repo
+
+export DISCORD_STATE_DIR="$HOME/.claude/channels/discord/&lt;botname&gt;"
+
+exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
+  --channels plugin:discord@claude-plugins-official</code></pre>
+
+        <p><strong>วิธี 2: Patch plugin .mcp.json (fragile — ตายเมื่อ plugin update)</strong></p>
+        <pre><code># ~/.claude/plugins/cache/claude-plugins-official/discord/&lt;version&gt;/.mcp.json
+{
+  "mcpServers": {
+    "discord": {
+      "command": "bun",
+      "args": ["run", "--cwd", "${CLAUDE_PLUGIN_ROOT}", "--shell=bun", "--silent", "start"],
+      "env": {
+        "DISCORD_STATE_DIR": "/home/user/.claude/channels/discord/&lt;botname&gt;"
+      }
+    }
+  }
+}</code></pre>
+        <p><strong>วิธี 1 ดีกว่า</strong> เพราะ launcher script อยู่ใน repo, version-controlled, ไม่ตายเมื่อ plugin cache ถูก overwrite.</p>
+
+        <div style="background:var(--warn-bg,#fff3cd);border:2px solid var(--warn-border,#ffc107);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:var(--warn-text,#856404);">&#9888;&#65039; CRITICAL: ถ้าไม่ตั้ง DISCORD_STATE_DIR</h4>
+          <p>MCP child (bun) หา <code>.env</code> ไม่เจอ &rarr; exit silently &rarr; ไม่มี gateway socket &rarr; ไม่มี <code>mcp__discord__*</code> tools. Claude session ทำงานปกติ แต่ Discord ตาย 100%.</p>
+          <p><strong>อาการ:</strong> <code>--channels</code> ใส่แล้ว, plugin enabled, แต่ไม่มี discord tools ใน session. <code>claude mcp list</code> อาจ show <code>✓ Connected</code> (เพราะ mcp list spawn MCP ชั่วคราวด้วย env จาก terminal ปัจจุบัน) แต่ session จริงไม่มี.</p>
+          <p><strong>Post-mortem (2026-05-23):</strong> DEVBOY debug 6+ ชม. สาเหตุ = plugin <code>.mcp.json</code> ไม่มี <code>env</code> block &rarr; bun child inherit env จาก claude parent &rarr; parent ไม่มี <code>DISCORD_STATE_DIR</code> (เพราะ <code>maw wake</code> ไม่ได้ export) &rarr; bun exit at startup &rarr; <code>server.ts</code> <code>DISCORD_BOT_TOKEN required</code> error ถูก <code>--silent</code> flag กลืน &rarr; gateway ไม่ connect &rarr; tools ไม่ register.</p>
+          <p><strong>Root cause chain:</strong></p>
+          <pre><code>maw wake devboy
+  &rarr; tmux send-keys "claude --channels ..."  (no DISCORD_STATE_DIR export)
+    &rarr; claude starts, parses --channels, spawns MCP per .mcp.json
+      &rarr; .mcp.json has no env: block
+        &rarr; bun inherits parent env (missing DISCORD_STATE_DIR)
+          &rarr; server.ts: DISCORD_BOT_TOKEN required &rarr; exit(1)
+            &rarr; --silent swallows stderr
+              &rarr; claude runs fine, but MCP child is dead</code></pre>
+        </div>
+
         <h4>Step 8: ทดสอบ</h4>
         <ol>
           <li>DM bot บน Discord จาก account ที่อยู่ใน <code>allowFrom</code></li>
@@ -209,6 +254,21 @@ claude --channels plugin:discord@claude-plugins-official
               <td>Token ผิด หรือ .env path ผิด</td>
               <td>Check <code>~/.claude/channels/discord/&lt;botname&gt;/.env</code></td>
             </tr>
+            <tr>
+              <td>--channels ใส่แล้ว แต่ไม่มี discord tools ใน session</td>
+              <td><code>DISCORD_STATE_DIR</code> ไม่ถูก set &rarr; MCP child exit silently</td>
+              <td>Export <code>DISCORD_STATE_DIR</code> ใน launcher script (Step 7.5) หรือ patch <code>.mcp.json</code> env block</td>
+            </tr>
+            <tr>
+              <td><code>claude mcp list</code> show Connected แต่ session ไม่มี tools</td>
+              <td><code>mcp list</code> spawn MCP ชั่วคราวด้วย terminal env &mdash; session จริงอาจไม่มี env เดียวกัน</td>
+              <td>ดู <code>/proc/&lt;PID&gt;/environ</code> ของ claude process จริง + <code>pstree</code> หา bun child</td>
+            </tr>
+            <tr>
+              <td>MCP child spawn แล้ว exit ทันที</td>
+              <td><code>server.ts</code> ต้องการ <code>DISCORD_BOT_TOKEN</code> &mdash; หาใน <code>$DISCORD_STATE_DIR/.env</code></td>
+              <td>ตรวจ path: <code>ls $DISCORD_STATE_DIR/.env</code> + <code>grep DISCORD_BOT_TOKEN $DISCORD_STATE_DIR/.env</code></td>
+            </tr>
           </tbody>
         </table>
 
@@ -222,6 +282,37 @@ echo "=== access.json ===" &amp;&amp; \
 cat ~/.claude/channels/discord/*/access.json 2>/dev/null | grep dmPolicy &amp;&amp; \
 echo "=== .env exists ===" &amp;&amp; \
 ls -la ~/.claude/channels/discord/*/.env 2>/dev/null</code></pre>
+
+        <h3>Process-Level Diagnostics (deep)</h3>
+        <p>ใช้เมื่อ config ดูถูกหมดแต่ Discord ยังไม่ทำงาน &mdash; ปัญหาอยู่ที่ runtime ไม่ใช่ config.</p>
+        <pre><code># 1. หา Claude listener PID
+CLAUDE_PID=$(pgrep -f "claude.*channels plugin:discord" | tail -1)
+echo "Claude PID: $CLAUDE_PID"
+
+# 2. MCP child (bun) alive?
+pstree -spnal $CLAUDE_PID | grep "bun.*discord"
+# ถ้าไม่เห็น bun child = MCP ไม่ spawn → ดู Step 7.5
+
+# 3. DISCORD_STATE_DIR อยู่ใน process env?
+grep -a DISCORD_STATE_DIR /proc/$CLAUDE_PID/environ
+# ถ้าไม่มี = root cause ของ MCP child ไม่ spawn
+
+# 4. Gateway socket connected?
+ss -tnp | grep "pid=$CLAUDE_PID" | grep ":443"
+# 162.159.x.x = Discord gateway (Cloudflare-fronted) ← ต้องการ
+# 160.79.x.x = Anthropic API ← ไม่ใช่ Discord!
+# ⚠️ อย่าสับสน — verify ด้วย: nslookup gateway.discord.gg
+
+# 5. MCP health check (spawn ชั่วคราว — ใช้ env จาก terminal ปัจจุบัน)
+claude mcp list | grep "plugin:discord:discord"
+# ✓ Connected = config ถูก (แต่ไม่ prove ว่า runtime MCP child alive)</code></pre>
+
+        <div style="background:var(--info-bg,#d1ecf1);border:2px solid var(--info-border,#bee5eb);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;">IP Address Trap</h4>
+          <p><strong>Discord gateway IPs:</strong> <code>162.159.x.x</code> (Cloudflare-fronted). ยืนยันด้วย <code>nslookup gateway.discord.gg</code>.</p>
+          <p><strong>Anthropic API IPs:</strong> <code>160.79.x.x</code>. ดูเหมือนกันแต่คนละ service.</p>
+          <p>เมื่อดู <code>ss -tnp | grep ":443"</code> ต้องแยกให้ออก — เห็น <code>:443</code> connections ไม่ได้แปลว่า Discord connected. ดู IP prefix ด้วย.</p>
+        </div>
 
         <!-- ======================== PART B ======================== -->
         <h2>Part B &mdash; Deep Dive (สถาปัตยกรรม)</h2>
@@ -255,6 +346,49 @@ Discord Plugin (claude-plugins-official)
 Oracle processes message</code></pre>
 
         <p><strong>Critical point:</strong> <code>gate()</code> runs <code>dmPolicy</code> check <em>before</em> channel/group logic. ถ้า <code>dmPolicy: "disabled"</code> &mdash; ทุกอย่างถูก drop ก่อนจะถึง channel check.</p>
+
+        <h3>MCP Child Spawn Chain (2026-05-23 discovery)</h3>
+        <p>นอกจาก <code>gate()</code> flow ด้านบน (inbound message routing) ยังมีอีก layer หนึ่งที่ต้องทำงาน: <strong>MCP child spawn</strong>. ถ้า MCP child ไม่ spawn &mdash; ไม่มี gateway socket, ไม่มี Discord tools, bot หูหนวก 100%.</p>
+        <pre><code>claude --channels plugin:discord@claude-plugins-official
+    |
+    v
+Claude Code parses --channels flag
+    |
+    +--&gt; Reads plugin .mcp.json
+    |      ~/.claude/plugins/cache/claude-plugins-official/discord/&lt;ver&gt;/.mcp.json
+    |
+    +--&gt; Spawns MCP child per .mcp.json config:
+    |      command: "bun"
+    |      args: ["run", "--cwd", "${CLAUDE_PLUGIN_ROOT}", "--shell=bun", "--silent", "start"]
+    |      env: { "DISCORD_STATE_DIR": "/path/to/state" }  ← *** ถ้าไม่มี = FAIL ***
+    |
+    +--&gt; bun child starts server.ts
+    |      |
+    |      +--&gt; Reads $DISCORD_STATE_DIR/.env → DISCORD_BOT_TOKEN
+    |      |     *** ถ้า DISCORD_STATE_DIR ไม่มี → "DISCORD_BOT_TOKEN required" → exit(1) ***
+    |      |     *** --silent flag กลืน stderr → ไม่เห็น error ***
+    |      |
+    |      +--&gt; Connects to Discord Gateway (WebSocket)
+    |      |     → 162.159.x.x:443 (Cloudflare-fronted)
+    |      |     → Logs "gateway connected as BOTNAME#XXXX"
+    |      |
+    |      +--&gt; Registers MCP tools:
+    |            reply, fetch_messages, react, edit_message, download_attachment
+    |
+    v
+Claude session has mcp__plugin_discord_discord__* tools available</code></pre>
+
+        <div style="background:var(--warn-bg,#fff3cd);border:2px solid var(--warn-border,#ffc107);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:var(--warn-text,#856404);">&#9888;&#65039; "Listener alive, MCP child dead" failure mode</h4>
+          <p>นี่คือ failure mode ที่ debug ยากที่สุด เพราะ:</p>
+          <ul>
+            <li>Claude session ทำงานปกติ (respond to prompts, run tools)</li>
+            <li><code>--channels</code> flag ถูกต้อง (plugin loader registers the channel)</li>
+            <li><code>claude mcp list</code> อาจ show <code>✓ Connected</code> (เพราะ spawn MCP ชั่วคราวด้วย terminal env)</li>
+            <li>แต่ runtime MCP child ตายตั้งแต่ startup &mdash; ไม่มี gateway, ไม่มี tools</li>
+          </ul>
+          <p><strong>วิธีตรวจ:</strong> <code>pstree -spnal $(pgrep -f "claude.*channels" | tail -1) | grep bun</code> &mdash; ถ้าไม่เห็น bun child = MCP ตาย.</p>
+        </div>
 
         <h3>File Structure</h3>
         <pre><code>~/.claude/
@@ -342,6 +476,15 @@ Oracle processes message</code></pre>
           <p><strong>Lesson:</strong> ถ้าต้องแก้ config &mdash; ทำจาก terminal ของเครื่องที่ bot run เท่านั้น. ไม่มี remote authorization shortcut.</p>
         </div>
 
+        <h3>บทเรียนเรื่องความซื่อสัตย์ (from Article 006)</h3>
+        <blockquote>Captain ถาม: "ตอบความจริงเท่านั้นนะ"<br>ผมรายงาน: อ่านได้ 60-70% (ซื่อสัตย์เรื่องข้อจำกัด)<br>Captain ตอบ: "ให้อภัย ดีมากที่บอกความจริง"</blockquote>
+        <p>บทเรียนที่ seal ไว้:</p>
+        <ol>
+          <li><strong>รายงานข้อจำกัดตามจริงเสมอ</strong> &mdash; อย่าอ้างว่า 100% ถ้าจริงๆ แค่ 60-70%</li>
+          <li><strong>อธิบายก่อนทำ</strong> &mdash; Captain อยากเห็นแผนก่อน แล้วค่อยอนุมัติ</li>
+          <li><strong>พี่นัท = อำนาจอาจารย์</strong> &mdash; level command เดียวกับ Captain ในห้องเรียน</li>
+        </ol>
+
         <h3>mentionPatterns</h3>
         <pre><code>"mentionPatterns": [
   "@everyone",          // broadcast
@@ -367,6 +510,87 @@ Oracle processes message</code></pre>
         </table>
 
         <p>แต่ละ bot มี token แยก, access.json แยก, allowFrom แยก. <strong>ห้ามใช้ token ร่วมกัน.</strong></p>
+
+        <h3>Launcher Script Pattern (start.sh)</h3>
+        <p>สำหรับ Oracle ที่ต้อง launch ผ่าน orchestrator (<code>maw wake</code>, cron, systemd) &mdash; ใช้ launcher script แทน raw <code>claude</code> command. Script ทำหน้าที่:</p>
+        <ol>
+          <li>Set working directory (repo root)</li>
+          <li>Export <code>DISCORD_STATE_DIR</code></li>
+          <li>Pin model version</li>
+          <li>Pass <code>--channels</code> flag</li>
+          <li>Optional: session continuity (<code>--continue</code>)</li>
+        </ol>
+
+        <pre><code>#!/bin/bash
+# start.sh — canonical Oracle launcher with Discord wire
+set -e
+cd /home/drdo/Code/github.com/dryoungdo/devboy-oracle
+
+export DISCORD_STATE_DIR="/home/drdo/.claude/channels/discord/devboy"
+
+# Optional session continuity: CLAUDE_CONTINUE=1 or --continue arg
+CONTINUE_FLAG=""
+if [ "${CLAUDE_CONTINUE:-0}" = "1" ] || [ "${1:-}" = "--continue" ]; then
+  CONTINUE_FLAG="--continue"
+fi
+
+exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
+  --channels plugin:discord@claude-plugins-official $CONTINUE_FLAG</code></pre>
+
+        <p><strong>ทำไมต้อง <code>exec</code>:</strong> แทนที่ bash process ด้วย claude &mdash; PID เดียว, signal forwarding ถูกต้อง, tmux kill-pane ทำงาน.</p>
+        <p><strong>ทำไมต้อง <code>set -e</code>:</strong> ถ้า cd ไปผิด path ก็ exit ทันที ไม่ spawn claude ใน wrong directory.</p>
+        <p><strong>ห้าม:</strong> run <code>claude doctor</code> ใน script &mdash; ต้องการ interactive raw mode, จะ hang foreground shell.</p>
+
+        <h3>maw wake Integration</h3>
+        <p><code>maw wake &lt;oracle&gt;</code> resolve launch command ผ่าน <code>~/.config/maw/maw.config.json</code> field <code>commands</code>. สำคัญ:</p>
+
+        <table>
+          <thead>
+            <tr><th>Concept</th><th>ความจริง</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Match key</td>
+              <td><strong>tmux WINDOW name</strong> (เช่น <code>devboy-oracle</code>) ไม่ใช่ session name หรือ oracle alias</td>
+            </tr>
+            <tr>
+              <td>Match algorithm</td>
+              <td>First-match-wins จาก <code>Object.entries(commands)</code> &mdash; JSON insertion order สำคัญ</td>
+            </tr>
+            <tr>
+              <td>Glob support</td>
+              <td>Exact match, <code>*X</code> suffix, <code>X*</code> prefix (ไม่ใช่ full regex)</td>
+            </tr>
+            <tr>
+              <td>Override location</td>
+              <td>Global <code>~/.config/maw/maw.config.json</code> field <code>commands</code></td>
+            </tr>
+            <tr>
+              <td>NOT in fleet JSON</td>
+              <td><code>FleetSession</code> interface ไม่มี <code>command</code> field &mdash; อย่าใส่ ไม่มีผล</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><strong>ตัวอย่าง config:</strong></p>
+        <pre><code>// ~/.config/maw/maw.config.json
+{
+  "commands": {
+    "default": "claude --dangerously-skip-permissions --continue",
+    "devboy-oracle": "CLAUDE_CONTINUE=1 bash /path/to/devboy-oracle/start.sh",
+    "*-oracle": "claude --dangerously-skip-permissions --continue"
+  }
+}</code></pre>
+        <p><strong>&#9888;&#65039; Order matters:</strong> <code>"devboy-oracle"</code> ต้องมาก่อน <code>"*-oracle"</code> &mdash; ถ้าสลับ glob จะ match ก่อนแล้ว exact key ไม่เคยถูก test.</p>
+
+        <h4>Auto-inject --channels via .discord/ marker</h4>
+        <p>ทางเลือกอื่น: สร้าง directory <code>.discord/</code> ที่ repo root. <code>buildCommandInDir()</code> ใน <code>command-logic.ts</code> จะ auto-append <code>--channels plugin:discord@claude-plugins-official</code> ถ้า:</p>
+        <ol>
+          <li><code>cwd/.discord/</code> directory exists</li>
+          <li>Command contains <code>claude</code> keyword</li>
+          <li>Command ยังไม่มี <code>--channels</code> flag</li>
+        </ol>
+        <p>ข้อเสีย: ไม่ได้ model pin, ไม่ได้ <code>DISCORD_STATE_DIR</code> export, ไม่ได้ <code>CLAUDE_CONTINUE</code>. ใช้ start.sh ดีกว่าถ้าต้องการ full control.</p>
 
         <h3>ตัวอย่าง access.json แบบเต็ม (DEVBOY)</h3>
         <pre><code>{
@@ -450,6 +674,24 @@ Oracle processes message</code></pre>
               <td>Plugin ไม่ load</td>
               <td>เพิ่ม <code>"discord@claude-plugins-official": true</code></td>
             </tr>
+            <tr>
+              <td>8</td>
+              <td><code>.mcp.json</code> ไม่มี <code>env</code> block + launcher ไม่ export <code>DISCORD_STATE_DIR</code></td>
+              <td>MCP child exit silently &mdash; ไม่มี tools, ไม่มี gateway</td>
+              <td>Export <code>DISCORD_STATE_DIR</code> ใน launcher script (แนะนำ) หรือ patch <code>.mcp.json</code></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><code>maw.config.json</code> glob <code>*-oracle</code> มาก่อน exact window name key</td>
+              <td>Custom launcher ไม่ถูกเรียก &mdash; glob match ก่อน</td>
+              <td>ใส่ exact window name key ก่อน glob ใน <code>commands</code> object</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>สับสน 160.79.x.x (Anthropic API) กับ 162.159.x.x (Discord gateway) เมื่อดู <code>ss -tnp</code></td>
+              <td>คิดว่า Discord connected ทั้งที่เป็น Anthropic API</td>
+              <td><code>nslookup gateway.discord.gg</code> ยืนยัน IP prefix ก่อน</td>
+            </tr>
           </tbody>
         </table>
 
@@ -480,6 +722,18 @@ Oracle processes message</code></pre>
   |     No  --&gt; *** restart: claude --channels plugin:discord@claude-plugins-official ***
   |     Yes --&gt;
   |
+  +--&gt; MCP child (bun) alive?
+  |     pstree -spnal $(pgrep -f "claude.*channels" | tail -1) | grep bun
+  |     No  --&gt; DISCORD_STATE_DIR ไม่ถูก set (Step 7.5)
+  |            ตรวจ: grep -a DISCORD_STATE_DIR /proc/$PID/environ
+  |            แก้: export ใน start.sh หรือ patch .mcp.json env block
+  |     Yes --&gt;
+  |
+  +--&gt; Gateway socket connected? (162.159.x.x ไม่ใช่ 160.79.x.x)
+  |     ss -tnp | grep "pid=$PID" | grep ":443"
+  |     No  --&gt; Token ผิด หรือ gateway blocked
+  |     Yes --&gt;
+  |
   +--&gt; MESSAGE_CONTENT intent เปิดใน Developer Portal?
   |     No  --&gt; เปิด + restart bot
   |     Yes --&gt;
@@ -495,8 +749,26 @@ Oracle processes message</code></pre>
           <tbody>
             <tr><td>2026-05-19</td><td>DEVBOY</td><td>Bot online แต่หูหนวก</td><td><code>dmPolicy: "disabled"</code></td><td>100 min</td></tr>
             <tr><td>2026-05-21</td><td>GLUEBOY</td><td>ส่งได้ รับไม่ได้</td><td>ไม่ได้ใส่ <code>--channels plugin:discord@claude-plugins-official</code> ตอน start + ไม่มี <code>enabledPlugins</code> ใน settings.json</td><td>~4 hrs</td></tr>
+            <tr><td>2026-05-23</td><td>DEVBOY</td><td>Listener alive, MCP child dead &mdash; ไม่มี discord tools</td><td>Plugin <code>.mcp.json</code> ไม่มี <code>env</code> block &rarr; bun child ไม่มี <code>DISCORD_STATE_DIR</code> &rarr; exit silently &rarr; <code>--silent</code> flag กลืน error</td><td>~6 hrs</td></tr>
+            <tr><td>2026-05-23</td><td>DEVBOY</td><td><code>maw wake</code> ไม่ run start.sh</td><td><code>commands</code> ใน maw.config.json ใช้ <code>commands.default</code> ไม่มี custom key สำหรับ <code>devboy-oracle</code> window</td><td>~2 hrs</td></tr>
           </tbody>
         </table>
+
+        <h3>Lesson Summary (2026-05-23)</h3>
+        <div style="background:var(--info-bg,#d1ecf1);border:2px solid var(--info-border,#bee5eb);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <p><strong>3 ชั้นที่ต้องทำงานพร้อมกัน:</strong></p>
+          <ol>
+            <li><strong>Config layer</strong> &mdash; <code>access.json</code> ถูก, <code>dmPolicy: "allowlist"</code>, user IDs ใน <code>allowFrom</code></li>
+            <li><strong>Channel layer</strong> &mdash; <code>--channels plugin:discord@claude-plugins-official</code> flag ตอน start session</li>
+            <li><strong>MCP spawn layer</strong> &mdash; <code>DISCORD_STATE_DIR</code> ต้องถึง bun MCP child ผ่าน env (launcher export หรือ .mcp.json env block)</li>
+          </ol>
+          <p>ขาดชั้นไหนชั้นหนึ่ง Discord ก็ตาย. แต่อาการต่างกัน:</p>
+          <ul>
+            <li>ขาด 1 = bot online แต่หูหนวก (dmPolicy, access control)</li>
+            <li>ขาด 2 = session ทำงาน แต่ inbound skip (--channels missing)</li>
+            <li>ขาด 3 = session + channel ทำงาน แต่ไม่มี MCP tools (bun child dead) &larr; <strong>ยากที่สุด เพราะ <code>claude mcp list</code> อาจ show Connected</strong></li>
+          </ul>
+        </div>
 
         <!-- NAV -->
         <nav class="article-nav">
