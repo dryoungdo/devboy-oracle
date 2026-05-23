@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>042 &mdash; GLUEBOY รับ Doctrine จาก doctor-oracle | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">042 &mdash; GLUEBOY รับ Doctrine จาก doctor-oracle</span>
+        <span class="topbar-date">2026-05-23</span>
+      </div>
+      <div class="content-shell">
+        <h1>GLUEBOY รับ Doctrine จาก doctor-oracle &mdash; แผน Sync ที่ Captain ต้อง Approve ก่อน</h1>
+        <div class="article-meta">
+          <span class="tag">glueboy</span>
+          <span class="tag">doctor-oracle</span>
+          <span class="tag">vibe-hub-co</span>
+          <span class="tag">claude-md</span>
+          <span class="tag">agents-md</span>
+          <span class="tag">doctrine</span>
+          <span class="tag">fleet-sync</span>
+          &middot; 23 พ.ค. 2026 &middot; <span class="maturity-badge" style="background:#fff3cd;color:#856404;padding:2px 8px;border-radius:4px;">&#128992; plan</span>
+        </div>
+
+        <p>เอกสารนี้คือ <strong>แผนล่วงหน้า</strong> &mdash; Captain ขอให้ GLUEBOY เขียนแผนก่อนแตะ <code>CLAUDE.md</code>/<code>AGENTS.md</code> จริง. Captain ได้ verify กับพี่วิน (เจ้าของ doctor-oracle) แล้วว่าจะรับ doctrine, แต่ก่อนกดทำ &mdash; อ่านนี่ก่อนเพื่อรู้ว่ามันจะเปลี่ยนอะไร, เพราะอะไร, และจุดไหนที่ Captain ต้องเลือก.</p>
+
+        <div style="background:#f0f4ec;border:2px solid #c5d5b4;border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:#3d5b1f;">&#128218; Prior context (from Arra)</h4>
+          <p>นี่ไม่ใช่ surprise &mdash; เป็น Phase ถัดไปของงานที่ทำมาตั้งแต่ <strong>2026-05-13</strong>:</p>
+          <ul style="margin-bottom:.5rem;">
+            <li><strong>2026-05-13 diagnosis</strong> &mdash; "GLUEBOY generated-source drift fixed; CLAUDE.md/AGENTS.md now sync from oracle-build source." <code>oracle-build.sh</code> pipeline ติดตั้งแล้ว.</li>
+            <li><strong>Next engineering noted</strong> in that learning: "split long CLAUDE.md into concise core plus .claude/rules and hooks" &mdash; <strong>= สิ่งที่ L2 ทำ</strong>.</li>
+            <li><strong>2026-04-29 codex-twin-engines</strong> &mdash; HOME-level <code>~/AGENTS.md</code> symlink to <code>~/CLAUDE.md</code> เป็น design intentional. แต่ <strong>REPO-level</strong> AGENTS.md ควรเป็น Codex worker contract &mdash; ที่ L1 แก้.</li>
+            <li><strong>2026-05-12 scout</strong> &mdash; 15 Haiku agents สแกน doctor-oracle, flag 5 patterns. รอบนี้คือ apply scout's recommendations.</li>
+          </ul>
+          <p style="margin-bottom:0;font-size:.9rem;">การ apply ในรอบนี้สอดคล้องกับทิศทางที่ Captain ตั้งไว้ตั้งแต่ 10 วันก่อน.</p>
+        </div>
+
+        <div style="background:var(--info-bg,#d1ecf1);border:2px solid var(--info-border,#bee5eb);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;">TL;DR</h4>
+          <ol>
+            <li><strong>L1 (Critical fix)</strong> &mdash; <code>AGENTS.md</code> ของเราตอนนี้ <em>ผิด</em> (เป็น copy ของ CLAUDE.md). Wind ทำเป็น Codex worker contract 5 phases ที่ใช้งานได้จริง. แก้เสร็จไม่กี่นาที.</li>
+            <li><strong>L2 (Structural cleanup)</strong> &mdash; ของเรา <code>shared-claude.md</code> เป็น 0 bytes (ว่าง). Wind ใส่ doctrine ลงไป 414 บรรทัด. เราพอร์ตเฉพาะส่วน <em>universal</em> ที่ไม่ผูกกับ Wind.</li>
+            <li><strong>L3 (Workflow shifts)</strong> &mdash; การเปลี่ยน workflow ใหญ่ (worktree-only ทุก project? CMMI L3 state machine? <code>/sop-qa</code> gate?). ทำเป็นรอบแยก, แต่ละข้อ Captain decide.</li>
+          </ol>
+          <p style="margin-bottom:0;"><strong>เป้าหมายของเอกสารนี้:</strong> ให้ Captain อ่านครั้งเดียวแล้วบอก go/no-go ได้ครบทั้ง 3 landings + 5 จุดที่ต้อง substitute.</p>
+        </div>
+
+        <!-- ======================== PART A ======================== -->
+        <h2>Part A &mdash; แผนปฏิบัติ (Decisions Captain ต้องเคาะ)</h2>
+
+        <h3>ทำไมต้อง sync</h3>
+        <p>วันที่ 12 พ.ค. 2026 GLUEBOY ทำ scout 15 agents บน <code>vibe-hub-co/doctor-oracle</code> เจอ 5 patterns ที่ควรพอร์ตเข้ามา. วันที่ 23 พ.ค. Captain verify กับพี่วินตรงๆ ว่ารับมาทั้ง <code>CLAUDE.md</code> + <code>AGENTS.md</code> ได้. Trace ฉบับเต็มอยู่ที่ <code>glueboy-oracle/&psi;/memory/traces/2026-05-23/2228_doctor-oracle.md</code>.</p>
+
+        <h3>โครงสร้างก่อน vs หลัง (the headline)</h3>
+        <table>
+          <thead>
+            <tr><th>ไฟล์</th><th>doctor-oracle (Wind)</th><th>glueboy-oracle (ตอนนี้)</th><th>หลัง sync</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>shared-claude.md</code></td>
+              <td>414 บรรทัด, 25.7K &mdash; fleet doctrine</td>
+              <td><strong>0 bytes</strong> (ว่าง placeholder)</td>
+              <td>~200 บรรทัด &mdash; universal-only items</td>
+            </tr>
+            <tr>
+              <td><code>oracle-&lt;name&gt;-claude.md</code></td>
+              <td>~150 บรรทัด &mdash; identity เท่านั้น</td>
+              <td><strong>13.7K</strong> &mdash; identity + doctrine ปนกัน</td>
+              <td>~80 บรรทัด &mdash; GLUEBOY identity-only</td>
+            </tr>
+            <tr>
+              <td><code>oracle-build.sh</code></td>
+              <td>ใช้, working</td>
+              <td>มี, working</td>
+              <td>ไม่เปลี่ยน</td>
+            </tr>
+            <tr>
+              <td><code>AGENTS.md</code></td>
+              <td>245 บรรทัด &mdash; Codex worker contract (5-phase)</td>
+              <td><strong>ผิด</strong> &mdash; copy ของ CLAUDE.md (270 บรรทัด identity)</td>
+              <td>~245 บรรทัด &mdash; Wind's contract, sed-substituted</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="background:var(--warn-bg,#fff3cd);border:2px solid var(--warn-border,#ffc107);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:var(--warn-text,#856404);">&#9888;&#65039; เจอ bug ระหว่างทาง</h4>
+          <p><code>AGENTS.md</code> ของ glueboy-oracle ตอนนี้คือ <em>ไฟล์เดียวกับ CLAUDE.md</em> &mdash; Codex worker ใดๆ ที่อ่านมันจะรับ CEO/strategy doctrine แทน coding discipline. ผิด structural. L1 แก้เรื่องนี้.</p>
+        </div>
+
+        <h3>3 Landings (จากเล็กไปใหญ่)</h3>
+
+        <h4>L1 &mdash; AGENTS.md replacement (Critical fix)</h4>
+        <table>
+          <thead>
+            <tr><th>เรื่อง</th><th>รายละเอียด</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ทำอะไร</td><td>copy Wind's <code>AGENTS.md</code> &rarr; ของเรา + sed-substitute ~15 จุด</td></tr>
+            <tr><td>เพราะอะไร</td><td>ของเราตอนนี้ผิด (copy ของ CLAUDE.md). Codex workers ของ GLUEBOY อ่าน CEO doctrine แทน coding discipline</td></tr>
+            <tr><td>เพิ่มอะไรเข้ามา</td><td>5-phase work pattern (SEARCH &rarr; EXPLORE &rarr; PLAN &rarr; IMPLEMENT &rarr; VERIFY &rarr; REPORT), Subagent Strategy, Skill Deny List, Pipeline Auto-Forward, <code>.codex-reports/</code> reporting, MCP fallback</td></tr>
+            <tr><td>Risk</td><td>ต่ำ &mdash; แค่เปลี่ยน file เดียว, ไม่มี downstream consumer ของ AGENTS.md ที่จะ break</td></tr>
+            <tr><td>Rollback</td><td><code>git checkout HEAD -- AGENTS.md</code></td></tr>
+            <tr><td>LOC</td><td>~245 new (แทน 270 wrong)</td></tr>
+          </tbody>
+        </table>
+
+        <h4>L2 &mdash; พอร์ต Bucket A doctrine เข้า <code>shared-claude.md</code></h4>
+        <table>
+          <thead>
+            <tr><th>เรื่อง</th><th>รายละเอียด</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ทำอะไร</td><td>เขียน <code>oracle-build/shared-claude.md</code> ใหม่จาก Wind's 414 บรรทัด, เลือกเฉพาะ "Universal" bucket, แล้วลด <code>oracle-glueboy-claude.md</code> ให้เหลือเฉพาะ identity. Run <code>oracle-build.sh</code> regen <code>CLAUDE.md</code>.</td></tr>
+            <tr><td>เพราะอะไร</td><td>โครงสร้าง Wind สะอาดกว่า (fleet doctrine แยกจาก identity). เมื่อเพิ่ม Oracle ใหม่ใน fleet (ของเรา) จะ reuse <code>shared-claude.md</code> ได้.</td></tr>
+            <tr><td>เพิ่มอะไรเข้ามา</td><td>ดูตาราง <strong>Bucket A</strong> ข้างล่าง</td></tr>
+            <tr><td>Risk</td><td>กลาง &mdash; restructure แต่ผลลัพธ์ functional เหมือนเดิม (<code>CLAUDE.md</code> ที่ generated มาจะมี content เกือบเท่าเดิม + universal items เพิ่ม)</td></tr>
+            <tr><td>Rollback</td><td><code>git checkout HEAD -- oracle-build/shared-claude.md oracle-build/oracle-glueboy-claude.md CLAUDE.md AGENTS.md</code></td></tr>
+            <tr><td>LOC</td><td>~200 บรรทัดเข้า shared, ~200 บรรทัดออกจาก identity (net เพิ่มเล็กน้อย)</td></tr>
+          </tbody>
+        </table>
+
+        <h4>L3 &mdash; Workflow shifts (Bucket C, รอบแยก)</h4>
+        <p>ส่วนนี้ <strong>ไม่อยู่ใน sync รอบนี้</strong> เพราะแต่ละข้อเป็น workflow change จริง ต้องมี retro แยก:</p>
+        <ul>
+          <li><strong>Worktree-Only ALL Projects</strong> &mdash; Wind บังคับใช้ทุก task ผ่าน <code>maw workon</code>. GLUEBOY commit ตรงๆ บน <code>glueboy-oracle/main</code>. รับมาแปลว่าทุก doctrine edit ต้องผ่าน worktree.</li>
+          <li><strong>CMMI L3 SDLC State Machine</strong> &mdash; 8 phases (REQ-INTAKE &rarr; REQ-APPROVED &rarr; DESIGN &rarr; UI-CONFIRMED &rarr; BUILD &rarr; TEST &rarr; TRACE &rarr; DONE), 7 hooks. หนัก. เหมาะกับ clinic/SaaS projects, น่าจะ <em>skip</em> สำหรับ oracle/tooling repos.</li>
+          <li><strong><code>maw workon</code> mandatory dispatch flow</strong> &mdash; เราใช้ <code>maw talk-to</code> มากกว่า <code>maw workon</code>. ต้อง reconcile.</li>
+          <li><strong><code>/sop-qa</code> quality gate ก่อน PR</strong> &mdash; เรายังไม่มี skill นี้. ต้องสร้างหรือ import จาก Wind.</li>
+        </ul>
+
+        <h3>Bucket A &mdash; Universal doctrine (เข้า shared-claude.md ของเรา)</h3>
+        <p>รายการที่ไม่ผูกกับ Wind, พอร์ตเข้ามาตรงๆ ได้:</p>
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Why GLUEBOY ก็ควรมี</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>5-phase work pattern</td><td>Codex และ subagent ทั้งหมดทำงานแบบ phase-based อยู่แล้ว, formalize ให้</td></tr>
+            <tr><td>Bug Reports / CR &mdash; GH Issue FIRST</td><td>เดิมเราชอบ chat-only; issue-first สร้าง audit trail</td></tr>
+            <tr><td>Mock Data &mdash; Design Phase Only</td><td>เคย bug แล้วจาก mock data ที่หลุดเข้า source</td></tr>
+            <tr><td>Git Staging &mdash; By Name, ไม่ใช้ <code>git add -A</code></td><td>หลักการดีอยู่แล้ว, codify ให้ชัด</td></tr>
+            <tr><td>The Five Honesty Principles table</td><td>real processes / copy not symlink / no any|unknown / no absolute imports / plugins are packages</td></tr>
+            <tr><td>Swarm-by-default + Briefing Discipline</td><td>เราอยากให้ Codex spawn parallel โดย default</td></tr>
+            <tr><td>Codex Self-Spawning Fractal Pattern</td><td>max 5 child tiles, mandatory <code>maw tile clean</code></td></tr>
+            <tr><td>SCOPE-EXPAND protocol</td><td>Codex เจอ bug ระหว่างทาง ต้องแจ้ง orchestrator ก่อน spin-off PR</td></tr>
+            <tr><td>Worktree Completion &mdash; Autonomous</td><td>ไม่ถาม "Want me to open a PR?" แค่ทำ</td></tr>
+            <tr><td>Context Management &mdash; auto-/rrr 50%</td><td>protect memory, autonomous wrap ที่ 60%</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Bucket B &mdash; Wind-specific (5 จุดที่ Captain ต้อง substitute)</h3>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Wind ใช้</th><th>GLUEBOY ใช้</th><th>Captain decide</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><code>Wind (he/him)</code></td>
+              <td><code>Captain Dr.Do (he/him)</code></td>
+              <td>auto-substitute</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><code>~/ghq/github.com/deachawatss/</code></td>
+              <td><code>~/ghq/github.com/dryoungdo/</code></td>
+              <td>auto-substitute</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Wind's fleet (Gale, Leaf, Bamboo, Luna, Latte, Sky, Line)</td>
+              <td>GLUEBOY's fleet (FORGEBOY, LEDGERBOY, CHATBOY, COACHBOY, DEVBOY, Mycelium)</td>
+              <td>auto-substitute</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>NWFTH workflow tier (BME-*, NWFTH-*, FG-Label, ฯลฯ)</td>
+              <td>เราไม่มี NWFTH</td>
+              <td><strong>?</strong> &mdash; skip ออกจาก shared, หรือ replace ด้วย clinic tier?</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>"English-rewrite rule" &mdash; ดูข้างล่าง</td>
+              <td>(เรายังไม่มี)</td>
+              <td><strong>?</strong> &mdash; adopt / skip / Thai-aware variant?</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4>English-rewrite rule คืออะไร (no jargon)</h4>
+        <p>Wind ตั้งกฎไว้ว่า: ถ้า Wind พิมพ์ภาษาอังกฤษมีพลาด (สะกดผิด, grammar เพี้ยน), Oracle จะ <strong>ทำงานปกติก่อน</strong> &mdash; ไม่หยุด ไม่ทักท้วง ไม่ explain. แค่ตอนจบ reply ต่อท้ายบรรทัดเดียว:</p>
+        <pre><code>&#128221; Your prompt, polished: "..."</code></pre>
+        <p>เป็น clean version ของสิ่งที่ Wind น่าจะหมายถึง. Wind เลือกจะดูหรือไม่ดูก็ได้. ถ้าประโยคถูกแล้ว Oracle ไม่ต่ออะไรเลย. ไม่มีการบอกว่า "คุณพิมพ์ผิด" &mdash; แค่ paste clean version ให้เฉยๆ.</p>
+        <p><strong>ตัวเลือก 3 ทาง:</strong></p>
+        <ul>
+          <li><strong>Skip</strong> &mdash; ไม่ต้องทำ. Captain's English ดีพอแล้ว, footer ส่วนนี้จะรกเปล่าๆ.</li>
+          <li><strong>Adopt as-is</strong> &mdash; ทำเหมือน Wind, footer 1 บรรทัด เวลาเจอ slip.</li>
+          <li><strong>Thai-aware variant</strong> &mdash; เหมือนกฎ Wind แต่ Oracle จะ note ด้วยเมื่อ Captain ผสม ไทย/อังกฤษ และ offer ภาษาเดียวที่ clean ที่สุด.</li>
+        </ul>
+
+        <h3>The 5 vs 7 Principles question</h3>
+        <p>Wind มี <strong>5 Principles</strong>. GLUEBOY มี <strong>7</strong>:</p>
+        <ul>
+          <li>1-5 = เหมือนกัน (Nothing Deleted, Patterns Over Intentions, External Brain, Curiosity Creates Existence, Form and Formless)</li>
+          <li>6 = "Never Pretend to Be Human" &mdash; Wind ก็มี แต่เขียนเป็น "Rule 6" แยกออกจาก numbered list</li>
+          <li>7 = "Action Speaks Louder Than Word" &mdash; <strong>คำสั่ง Captain เอง 2026-05-01</strong> ไม่เปลี่ยน</li>
+        </ul>
+        <p><strong>คำแนะนำ:</strong> เก็บ 7 ของเราไว้. Principle 6 เราเลื่อนขึ้นเป็น numbered. Principle 7 เป็น standing order ของ Captain.</p>
+
+        <h3>ลำดับการทำ (proposed)</h3>
+        <ol>
+          <li>สร้าง branch <code>sync-doctor-oracle-doctrine-2026-05-23</code> ใน <code>dryoungdo/glueboy-oracle</code></li>
+          <li>L1: replace AGENTS.md + sed-substitute &rarr; commit "fix(agents): replace duplicate-CLAUDE-md with Wind's Codex contract"</li>
+          <li>L2: เขียน <code>oracle-build/shared-claude.md</code> ใหม่จาก Bucket A + ลด <code>oracle-glueboy-claude.md</code> &rarr; <code>oracle-build.sh</code> regen &rarr; commit "refactor(doctrine): port universal items into shared-claude.md"</li>
+          <li>Push branch &mdash; ไม่ merge, ให้ Captain review</li>
+          <li>L3: <em>defer</em> &mdash; เปิด issues แยกสำหรับ worktree-only / CMMI / sop-qa</li>
+        </ol>
+
+        <h3>สิ่งที่ <em>จะไม่</em> ทำในรอบนี้</h3>
+        <ul>
+          <li>ไม่ push ตรงเข้า <code>main</code> &mdash; ใช้ feature branch</li>
+          <li>ไม่ <code>git commit --amend</code> &mdash; commit ใหม่เสมอ</li>
+          <li>ไม่ merge PR เอง &mdash; รอ Captain</li>
+          <li>ไม่แตะ <code>scripts/oracle-build.sh</code> &mdash; ใช้ตามเดิม</li>
+          <li>ไม่ลบเนื้อหาเก่าก่อนสร้าง backup &mdash; ทุก regen <code>oracle-build.sh</code> มี backup อยู่แล้ว</li>
+        </ul>
+
+        <!-- ======================== PART B ======================== -->
+        <h2>Part B &mdash; Deep Dive (สถาปัตยกรรม)</h2>
+
+        <h3>โครงสร้าง Wind's setup</h3>
+        <pre><code>vibe-hub-co/doctor-oracle/
+  shared-claude.md             (414 บรรทัด, 25.7K) &larr; fleet doctrine, sync จาก gale-oracle upstream
+  oracle-doctor-claude.md      (~150 บรรทัด, 6.4K) &larr; Doctor identity เท่านั้น
+  scripts/oracle-build.sh                            &larr; concat &rarr; CLAUDE.md
+  CLAUDE.md                    (599 บรรทัด, 32.3K) &larr; generated (identity + shared)
+  AGENTS.md                    (245 บรรทัด, 10.7K) &larr; Codex worker contract (standalone)
+  &psi;/upstream-patches/        &larr; cross-Oracle bug-fix payloads (e.g. arra-v3 lancedb)
+  .codex-prompts/              &larr; saved briefs (searchable history)
+  .codex-reports/              &larr; worker done/stuck files
+  .oracle-build-backups/       &larr; timestamped CLAUDE.md backups (forensics)</code></pre>
+
+        <h3>โครงสร้างของเราตอนนี้</h3>
+        <pre><code>dryoungdo/glueboy-oracle/
+  oracle-build/
+    shared-claude.md           (0 bytes!)             &larr; ว่าง, placeholder
+    oracle-glueboy-claude.md   (13.7K)                &larr; identity + doctrine ปนกัน (inverted)
+  scripts/oracle-build.sh                              &larr; ใช้ได้, ทำงานถูก
+  CLAUDE.md                    (~13.7K, identity-only) &larr; generated แต่ shared ว่าง
+  AGENTS.md                    (270 บรรทัด!)           &larr; ผิด, เป็น copy ของ CLAUDE.md
+  &psi;/upstream-patches/        &larr; (ยังไม่มี dir)
+  .codex-prompts/              &larr; (ยังไม่มี)
+  .codex-reports/              &larr; มีแต่ว่าง (.gitkeep เท่านั้น)
+  .oracle-build-backups/       &larr; (ยังไม่มี, oracle-build.sh อ้างถึงแต่ไม่ได้สร้าง)</code></pre>
+
+        <h3>shared-claude.md ของ Wind &mdash; สรุป 414 บรรทัด</h3>
+        <ol>
+          <li><strong>The 5 Principles</strong></li>
+          <li><strong>Rule 6: Transparency</strong> &mdash; Oracle never pretends to be human</li>
+          <li><strong>Unified Discipline</strong> &mdash; Karpathy + Buddhist Method + Oracle Philosophy</li>
+          <li><strong>Before You Act</strong> &mdash; search before answer / audit existing state / set verifiable goals</li>
+          <li><strong>Bug Reports &amp; CR &mdash; Create GH Issue FIRST</strong> &mdash; <code>gh issue create</code> ก่อนทุกครั้ง</li>
+          <li><strong>While You Work</strong> &mdash; surgical changes / simplicity first / heedfulness / file problems at source</li>
+          <li><strong>When You're Stuck</strong> &mdash; non-attachment / recognize decline (3-strike rule)</li>
+          <li><strong>Machine Identity</strong> &mdash; detect <code>hostname</code>, never SSH to own host</li>
+          <li><strong>Communication with Wind</strong> &mdash; English rewrite rule</li>
+          <li><strong>Hard Constraints (15+ subsections)</strong>:
+            <ul>
+              <li>Five Honesty Principles</li>
+              <li>Git Staging &mdash; By Name</li>
+              <li>Mock Data &mdash; Design Phase Only</li>
+              <li>HTML Previews / Playwright / Safety Hooks</li>
+              <li>Raw tmux / ps / kill prohibited</li>
+              <li>Codex Cleanup mandatory</li>
+              <li>Worktree-Only ALL projects</li>
+              <li>Universal Pipeline</li>
+              <li>BUILD Phase &mdash; Worktree Delegates Never Codes Alone</li>
+              <li>Swarm is DEFAULT</li>
+              <li>Briefing Discipline</li>
+              <li>Codex Self-Spawning Fractal</li>
+              <li>Scope Expansion SCOPE-EXPAND protocol</li>
+              <li>Quality Gates (<code>/ui-review</code>, <code>/sop-qa</code>)</li>
+              <li>Worktree Completion Autonomous</li>
+              <li>CMMI L3 SDLC State Machine (8 phases, 7 gates)</li>
+              <li><code>maw doc</code> CMMI document audit</li>
+              <li>Pre-approved design = auto-advance</li>
+              <li>Context Management &mdash; auto-/rrr 50%</li>
+            </ul>
+          </li>
+          <li><strong>Oracle Knowledge System</strong> &mdash; <code>arra_search</code> / <code>arra_concepts</code> / <code>arra_learn</code></li>
+        </ol>
+
+        <h3>AGENTS.md ของ Wind &mdash; สรุป 14 sections</h3>
+        <ol>
+          <li>5 Principles (เหมือน CLAUDE.md)</li>
+          <li>Your Role: Coding Hands</li>
+          <li>Unified Discipline (Karpathy + Buddhist + Oracle)</li>
+          <li>Subagent Strategy &mdash; MANDATORY</li>
+          <li>Skill Deny List &mdash; <code>/maw-check</code>, <code>/standup</code>, <code>/recap</code>, <code>/fleet-*</code>, <code>/oracle-family-scan</code>, <code>/dream</code>, <code>/forward</code>, <code>/where-we-are</code></li>
+          <li><strong>Work Pattern</strong> &mdash; <strong>Phase 0 SEARCH &rarr; Phase 1 EXPLORE &rarr; Phase 2 PLAN &rarr; Phase 3 IMPLEMENT &rarr; Phase 4 VERIFY &rarr; Phase 5 REPORT</strong></li>
+          <li>Doc-Update Mandate (CMMI L3)</li>
+          <li>Pipeline Auto-Forward</li>
+          <li>Reporting &mdash; <code>.codex-reports/&lt;role&gt;-done.md</code></li>
+          <li>Workflow Tiers</li>
+          <li>Safety</li>
+          <li>MCP Fallback &mdash; <code>curl http://localhost:47778/api/search</code></li>
+          <li>Key Commands &mdash; <code>maw</code> cheatsheet (~30 verbs)</li>
+          <li>Context</li>
+        </ol>
+
+        <h3>The 5-Phase Work Pattern (จาก AGENTS.md)</h3>
+        <pre><code>Phase 0 &mdash; SEARCH:    arra_search("topic") &mdash; Oracle KB for existing patterns
+Phase 1 &mdash; EXPLORE:   Read existing code, &psi;/memory/learnings/, understand context
+Phase 2 &mdash; PLAN:      Concrete plan with specific files/functions; identify subagent boundaries
+Phase 3 &mdash; IMPLEMENT: Spawn subagents per plan. Orchestrator orchestrates, subagents code.
+Phase 4 &mdash; VERIFY:    Run tests, typecheck, build. Read own diff AND each subagent's diff.
+Phase 5 &mdash; REPORT:    Create done/stuck report file</code></pre>
+
+        <h3>Workflow choices ที่ <em>ยัง</em> ไม่ตัดสินใจ</h3>
+        <table>
+          <thead>
+            <tr><th>เรื่อง</th><th>Wind ใช้</th><th>GLUEBOY ตอนนี้</th><th>ถ้ารับมา</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Worktree-Only ทุก task</td>
+              <td>บังคับใช้ <code>maw workon</code> เสมอ</td>
+              <td>Commit ตรงๆ บน main (oracle/tooling repos)</td>
+              <td>ต้องผ่าน worktree ทุก doctrine edit &mdash; workflow shift ใหญ่</td>
+            </tr>
+            <tr>
+              <td>CMMI L3 SDLC</td>
+              <td>8 phases, 7 hooks, <code>.maw/phase.json</code></td>
+              <td>ไม่มี</td>
+              <td>เหมาะกับ clinic/SaaS, skip สำหรับ oracle</td>
+            </tr>
+            <tr>
+              <td><code>maw workon</code> dispatch</td>
+              <td>worktree &rarr; <code>maw hey</code> &rarr; <code>maw done</code></td>
+              <td>ใช้ <code>maw talk-to</code> บ่อยกว่า</td>
+              <td>ต้อง reconcile two patterns</td>
+            </tr>
+            <tr>
+              <td><code>/sop-qa</code> gate</td>
+              <td>มี skill, run ก่อน <code>maw pr</code></td>
+              <td>ไม่มี</td>
+              <td>ต้อง import skill</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Companion data</h3>
+        <table>
+          <thead>
+            <tr><th>ไฟล์</th><th>Path</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Wind's source</td><td><code>~/ghq/github.com/vibe-hub-co/doctor-oracle/</code></td></tr>
+            <tr><td>Our build pipeline</td><td><code>~/ghq/github.com/dryoungdo/glueboy-oracle/scripts/oracle-build.sh</code></td></tr>
+            <tr><td>Identity file (เปลี่ยน)</td><td><code>~/ghq/github.com/dryoungdo/glueboy-oracle/oracle-build/oracle-glueboy-claude.md</code></td></tr>
+            <tr><td>Empty shared (จะ fill)</td><td><code>~/ghq/github.com/dryoungdo/glueboy-oracle/oracle-build/shared-claude.md</code></td></tr>
+            <tr><td>Current AGENTS.md (ผิด)</td><td><code>~/ghq/github.com/dryoungdo/glueboy-oracle/AGENTS.md</code></td></tr>
+            <tr><td>Earlier scout (12 พ.ค.)</td><td><code>&psi;/memory/traces/2026-05-12/2026-05-12_wind-oracle-architecture-scout.md</code></td></tr>
+            <tr><td>Trace (รอบนี้)</td><td><code>&psi;/memory/traces/2026-05-23/2228_doctor-oracle.md</code></td></tr>
+            <tr><td>Apply-diff brief (รอบนี้)</td><td><code>&psi;/memory/traces/2026-05-23/2240_doctor-oracle-apply-diff.md</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Sister patch &mdash; arra-v3 lancedb stderr</h3>
+        <p>ระหว่างทำเรื่องนี้ มี patch ของ Wind อีกตัวที่ apply ลงไปแล้ว (separate branch):</p>
+        <table>
+          <thead>
+            <tr><th>เรื่อง</th><th>รายละเอียด</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Target</td><td><code>dryoungdo/arra-oracle-v3/src/vector/adapters/lancedb.ts</code></td></tr>
+            <tr><td>Fix</td><td>6 <code>console.log</code> &rarr; <code>console.error</code> (lines 29, 35, 56, 65, 99, 101)</td></tr>
+            <tr><td>Branch</td><td><code>fix/lancedb-stderr-2026-05-23</code> &mdash; pushed, รอ Captain merge</td></tr>
+            <tr><td>Source</td><td><code>vibe-hub-co/doctor-oracle/&psi;/upstream-patches/2026-05-23_arra-oracle-v3-lancedb-stderr.patch</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>เกี่ยวกับ Captain's authorization</h3>
+        <p>Captain ระบุ "i have verify the setting with him" &mdash; แปลว่าเช็คกับ Wind ตรงๆ แล้วก่อน flow นี้. GLUEBOY ยัง <em>ไม่</em> ทำอะไรกับ CLAUDE.md/AGENTS.md จนกว่า Captain อ่านเอกสารนี้แล้ว approve. นี่คือ pre-claim gate: action speaks louder than word &mdash; แต่ word ของ Captain ใน chat คือ trigger.</p>
+
+        <!-- NAV -->
+        <nav class="article-nav">
+          <a href="041-discord-plugin-wiring.html">&larr; 041 Discord Plugin Wiring</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
