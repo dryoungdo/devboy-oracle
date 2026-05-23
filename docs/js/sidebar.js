@@ -15,17 +15,20 @@
       ['008-maw-plugin-system.html', '008 Plugin System'],
       ['013-maw-ui-arra-office.html', '013 maw-ui ARRA Office'],
       ['014-maw-plugin-registry.html', '014 Plugin Registry'],
-      ['039-maw-rs.html', '039 maw-rs (Rust Port)']
+      ['039-maw-rs.html', '039 maw-rs (Rust Port)'],
+      ['042-maw-js-advanced-guide.html', '042 maw-js Advanced']
     ]],
     ['Oracle Tools', [
       ['009-arra-oracle-v3.html', '009 Arra Oracle v3'],
       ['010-thclaws-agent-harness.html', '010 thClaws'],
       ['040-arra-safety-hooks.html', '040 Safety Hooks'],
-      ['041-discord-plugin-wiring.html', '041 Discord Wiring']
+      ['041-discord-plugin-wiring.html', '041 Discord Wiring'],
+      ['043-autonomous-oracle-loop.html', '043 Autonomous Loop']
     ]],
     ['Fleet Infrastructure', [
       ['011-fleet-migration.html', '011 Fleet Migration'],
-      ['012-soul-brews-ecosystem.html', '012 Soul Brews Map']
+      ['012-soul-brews-ecosystem.html', '012 Soul Brews Map'],
+      ['044-glueboy-doctor-doctrine-sync.html', '044 Doctrine Sync']
     ]],
     ['ClubsXai Classroom', [
       ['015-clubsxai-cross-fleet.html', '015 ClubsXai Overview'],
