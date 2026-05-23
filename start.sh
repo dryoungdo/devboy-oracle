@@ -9,4 +9,15 @@ cd /home/drdo/Code/github.com/dryoungdo/devboy-oracle
 # If you see the "Auto-update failed" banner, ignore it.
 
 export DISCORD_STATE_DIR="/home/drdo/.claude/channels/discord/devboy"
-exec claude --model claude-opus-4-6 --dangerously-skip-permissions --channels plugin:discord@claude-plugins-official
+
+# Optional session continuity: set CLAUDE_CONTINUE=1 (or pass --continue) to
+# resume the most recent claude session in this repo. Default is fresh boot so
+# manual launches behave like before. `maw wake devboy` exports CLAUDE_CONTINUE=1
+# via commands.devboy in ~/.config/maw/maw.config.json.
+CONTINUE_FLAG=""
+if [ "${CLAUDE_CONTINUE:-0}" = "1" ] || [ "${1:-}" = "--continue" ]; then
+  CONTINUE_FLAG="--continue"
+fi
+
+exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
+  --channels plugin:discord@claude-plugins-official $CONTINUE_FLAG
