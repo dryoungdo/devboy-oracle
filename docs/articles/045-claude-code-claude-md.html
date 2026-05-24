@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Claude Code คืออะไร, CLAUDE.md 3 levels, settings.json, project memory — จาก P'Nat CCC Academy Lesson 1">
+  <title>045 &mdash; Claude Code &amp; CLAUDE.md | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">045 &mdash; Claude Code &amp; CLAUDE.md</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>Claude Code &amp; CLAUDE.md &mdash; รู้จักเครื่องมือและไฟล์ที่กำหนดพฤติกรรม AI</h1>
+        <div class="article-meta">
+          <span class="tag">claude-code</span>
+          <span class="tag">claude-md</span>
+          <span class="tag">settings</span>
+          <span class="tag">memory</span>
+          <span class="tag">configuration</span>
+          &middot; CCC Academy Lesson 1
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <!-- Section A: Claude Code -->
+        <section>
+          <h2>A &mdash; Claude Code คืออะไร</h2>
+          <p><strong>Claude Code</strong> คือ CLI AI assistant จาก Anthropic &mdash; รันบน terminal, อ่าน/เขียนไฟล์ได้, รัน bash ได้, เข้าถึง MCP servers ได้. ไม่ใช่ chatbot &mdash; เป็น <strong>AI agent ที่ทำงานจริงในเครื่อง</strong>.</p>
+          <p>สิ่งที่ทำให้ Claude Code ต่างจาก ChatGPT/Claude.ai:</p>
+          <ul>
+            <li>เข้าถึง filesystem จริง &mdash; อ่าน codebase ทั้ง repo ได้</li>
+            <li>รัน command ได้ (git, npm, bun, python, etc.)</li>
+            <li>ใช้ tools + MCP servers เชื่อมบริการภายนอก (Discord, Arra, database)</li>
+            <li>มี <strong>CLAUDE.md</strong> เป็นไฟล์ config ที่กำหนดพฤติกรรมของ AI</li>
+          </ul>
+        </section>
+
+        <!-- Section B: CLAUDE.md -->
+        <section>
+          <h2>B &mdash; CLAUDE.md คืออะไร</h2>
+          <p>CLAUDE.md คือ <strong>instruction file</strong> ที่ Claude Code อ่านตอนเริ่ม session &mdash; เหมือน <code>.bashrc</code> สำหรับ shell หรือ <code>.editorconfig</code> สำหรับ editor. มันบอก Claude ว่า:</p>
+          <ul>
+            <li>ตัวเองเป็นใคร (identity)</li>
+            <li>ทำอะไรได้/ไม่ได้ (boundaries)</li>
+            <li>ทำงานยังไง (process)</li>
+            <li>output ต้องเป็นแบบไหน (format)</li>
+          </ul>
+          <p><strong>CLAUDE.md ไม่ใช่ prompt</strong> &mdash; มันคือ <strong>system instruction ที่ถูก inject ทุก session</strong>. เขียนดี = AI ทำงานดีตั้งแต่ turn แรก. เขียนแย่ = ต้องสั่งซ้ำทุกครั้ง.</p>
+        </section>
+
+        <!-- Section C: 3 Levels -->
+        <section>
+          <h2>C &mdash; CLAUDE.md 3 Levels</h2>
+          <p>Claude Code อ่าน CLAUDE.md จาก 3 ระดับ &mdash; ทั้งหมดรวมกันเป็น instruction เดียว:</p>
+          <table>
+            <thead>
+              <tr><th>Level</th><th>Path</th><th>ใช้ทำอะไร</th><th>Commit?</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Home</strong></td>
+                <td><code>~/.claude/CLAUDE.md</code></td>
+                <td>Personal tools, global preferences, cross-project rules</td>
+                <td>ไม่ (private)</td>
+              </tr>
+              <tr>
+                <td><strong>Project</strong></td>
+                <td><code>&lt;repo&gt;/CLAUDE.md</code></td>
+                <td>Identity, team rules, architecture, processes &mdash; shared กับทีม</td>
+                <td>commit</td>
+              </tr>
+              <tr>
+                <td><strong>Subdirectory</strong></td>
+                <td><code>&lt;repo&gt;/packages/foo/CLAUDE.md</code></td>
+                <td>Module-specific rules (monorepo)</td>
+                <td>commit</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>C.1 &mdash; ลำดับความสำคัญ</h3>
+          <p>Home &rarr; Project &rarr; Subdirectory &mdash; ทั้งหมด merge เข้าด้วยกัน. ถ้า conflict, <strong>specific level ชนะ</strong> (subdirectory &gt; project &gt; home).</p>
+
+          <h3>C.2 &mdash; @include directive</h3>
+          <p>ดึงไฟล์อื่นเข้ามาเป็นส่วนหนึ่งของ CLAUDE.md:</p>
+          <pre><code># ใน ~/.claude/CLAUDE.md
+@RTK.md    &larr; ดึง ~/.claude/RTK.md เข้ามา</code></pre>
+          <p>ใช้แยก config ยาวๆ ออกเป็นไฟล์ย่อย &mdash; อ่านง่าย, maintain ง่าย.</p>
+        </section>
+
+        <!-- Section D: Anatomy -->
+        <section>
+          <h2>D &mdash; Anatomy ของ CLAUDE.md จริง</h2>
+          <p>DEVBOY's CLAUDE.md มี <strong>407 บรรทัด</strong>. โครงสร้างจริงๆ ประกอบด้วย sections เหล่านี้:</p>
+          <table>
+            <thead>
+              <tr><th>Section</th><th>ทำอะไร</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Identity</td><td>ชื่อ, role, slot, born date, model, theme</td></tr>
+              <tr><td>Responsibilities</td><td>5 หน้าที่หลัก (attend class, run lab, publish, cross-ref, signal bud)</td></tr>
+              <tr><td>Boundaries</td><td>สิ่งที่ห้ามทำ (ship production, process finance, talk to Captain directly)</td></tr>
+              <tr><td>7 Principles</td><td>วิธีคิด (append-only, patterns over intentions, never pretend to be human)</td></tr>
+              <tr><td>Discord Protocol</td><td>กฎสำหรับ bot behavior (channel scope, response cadence, reactions)</td></tr>
+              <tr><td>Voice Protocol B</td><td>อะไรต้อง Captain seal, อะไรทำได้เอง</td></tr>
+              <tr><td>Process Steps</td><td>Session loop 13 ขั้นตอน (bootstrap &rarr; class &rarr; ingest &rarr; research &rarr; rrr)</td></tr>
+              <tr><td>Quality Standards</td><td>cite-then-claim, maturity levels, pre-publish checklist</td></tr>
+              <tr><td>Output Format</td><td>5-dim template, frontmatter, bud-signal format</td></tr>
+              <tr><td>Failure Mode Shields</td><td>8 anti-patterns (Day 1 Hour 1, hedge-shed, synthesis limit, know-do gap)</td></tr>
+              <tr><td>Session Lifecycle</td><td>start/during/end/forward/checkpoint rules</td></tr>
+              <tr><td>Memory Architecture</td><td>directory structure (&psi;/learn, &psi;/lab, &psi;/memory, &psi;/inbox, &psi;/outbox)</td></tr>
+              <tr><td>Chain of Command</td><td>Captain &rarr; GLUEBOY &rarr; DEVBOY</td></tr>
+            </tbody>
+          </table>
+
+          <h3>D.1 &mdash; ขนาด CLAUDE.md ใน Fleet</h3>
+          <table>
+            <thead>
+              <tr><th>BOY</th><th>บรรทัด</th><th>หมายเหตุ</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>FLOODBOY</td><td>~825</td><td>ใหญ่สุด &mdash; IoT + sensor protocols + hardware spec</td></tr>
+              <tr><td>GLUEBOY</td><td>~670</td><td>CEO &mdash; fleet-wide rules + chain of command</td></tr>
+              <tr><td>DEVBOY</td><td>407</td><td>R&amp;D &mdash; learning loop + quality gates</td></tr>
+              <tr><td>CHATBOY</td><td>~350</td><td>Customer-facing &mdash; conversation rules</td></tr>
+              <tr><td>FORGEBOY</td><td>~300</td><td>Production &mdash; build/deploy/test rules</td></tr>
+            </tbody>
+          </table>
+          <p>ขนาดไม่ได้แปลว่าดี &mdash; CLAUDE.md ที่ดีคือ <strong>ชัด, ไม่ซ้ำ, enforceable</strong>. 200 บรรทัดที่ precise ดีกว่า 800 บรรทัดที่ verbose.</p>
+        </section>
+
+        <!-- Section E: Settings -->
+        <section>
+          <h2>E &mdash; settings.json</h2>
+          <p>นอกจาก CLAUDE.md แล้ว Claude Code ยังมี <strong>settings.json</strong> สำหรับ config ที่ไม่ใช่ prose:</p>
+          <table>
+            <thead>
+              <tr><th>Level</th><th>Path</th><th>ใช้ทำอะไร</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Global</td><td><code>~/.claude/settings.json</code></td><td>Model, permissions, hooks ที่ใช้ทุก project</td></tr>
+              <tr><td>Project (shared)</td><td><code>.claude/settings.json</code></td><td>Team hooks, shared permissions &mdash; commit ได้</td></tr>
+              <tr><td>Project (local)</td><td><code>.claude/settings.local.json</code></td><td>Personal overrides &mdash; ไม่ commit</td></tr>
+            </tbody>
+          </table>
+
+          <h3>E.1 &mdash; สิ่งที่ settings.json ทำได้</h3>
+          <ul>
+            <li><strong>Hooks</strong> &mdash; auto-run scripts on events (PreToolUse, PostToolUse, SessionStart, Stop, SessionEnd)</li>
+            <li><strong>Model selection</strong> &mdash; เลือก model (opus-4.6, sonnet-4.6, haiku-4.6)</li>
+            <li><strong>Permissions</strong> &mdash; allow/deny specific tools + commands</li>
+            <li><strong>Environment variables</strong> &mdash; inject vars เข้า session</li>
+          </ul>
+
+          <h3>E.2 &mdash; ตัวอย่าง Hook</h3>
+          <pre><code>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{
+          "type": "command",
+          "command": "echo 'About to run bash command'"
+        }]
+      }
+    ]
+  }
+}</code></pre>
+          <p>Hook = gate อัตโนมัติ. ดีกว่า "remember to..." เพราะมัน <strong>fire ทุกครั้ง ไม่ต้องพึ่ง memory</strong>.</p>
+        </section>
+
+        <!-- Section F: Project Memory -->
+        <section>
+          <h2>F &mdash; Project Memory</h2>
+          <p>Claude Code เก็บ memory เฉพาะ project ที่:</p>
+          <pre><code>~/.claude/projects/&lt;encoded-path&gt;/memory/MEMORY.md</code></pre>
+          <p>ไฟล์นี้ <strong>auto-generated</strong> &mdash; Claude เขียนเองจาก conversation. ไม่ commit เข้า git (อยู่นอก repo). เก็บ preferences, corrections, patterns ที่เรียนรู้จากแต่ละ session.</p>
+
+          <h3>F.1 &mdash; ความแตกต่าง CLAUDE.md vs Memory</h3>
+          <table>
+            <thead>
+              <tr><th></th><th>CLAUDE.md</th><th>MEMORY.md</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>ใครเขียน</td><td>Human (คนเขียน)</td><td>Claude (AI เขียนเอง)</td></tr>
+              <tr><td>อยู่ไหน</td><td>ใน repo</td><td>~/.claude/projects/</td></tr>
+              <tr><td>Commit?</td><td>commit (shared)</td><td>ไม่ (local only)</td></tr>
+              <tr><td>เนื้อหา</td><td>Rules, identity, process</td><td>Preferences, corrections, context</td></tr>
+              <tr><td>ควบคุมได้?</td><td>100% &mdash; เขียนเอง</td><td>Indirect &mdash; Claude จดจากที่สั่ง</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Section G: Beginner Template -->
+        <section>
+          <h2>G &mdash; เริ่มต้น: Minimal CLAUDE.md</h2>
+          <p>สำหรับมือใหม่ &mdash; เริ่มจาก template นี้แล้วเพิ่มทีหลัง:</p>
+          <pre><code># My Project
+
+## Identity
+- Project: my-web-app
+- Stack: TypeScript, Bun, Elysia
+- Language: Thai + English
+
+## Rules
+- ใช้ TypeScript strict mode เสมอ
+- Test ก่อน commit
+- Error messages เป็นภาษาไทย
+
+## Boundaries
+- ห้ามลบ database โดยไม่ถาม
+- ห้าม push to main โดยตรง
+
+## File Structure
+src/          &larr; application code
+tests/        &larr; test files
+docs/         &larr; documentation</code></pre>
+          <p>เริ่มจาก 20-30 บรรทัด &mdash; เพิ่มเมื่อ Claude ทำผิดซ้ำ. ทุกครั้งที่ต้องสั่งซ้ำ = สัญญาณว่าควรเขียนลง CLAUDE.md.</p>
+        </section>
+
+        <!-- Section H: Best Practices -->
+        <section>
+          <h2>H &mdash; Best Practices</h2>
+          <table>
+            <thead>
+              <tr><th>Practice</th><th>ทำไม</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Project CLAUDE.md = commit</td><td>ทีมใช้ร่วมกัน, version control ได้</td></tr>
+              <tr><td>Home CLAUDE.md = personal</td><td>Tools ส่วนตัว (RTK, editor prefs) ไม่ใส่ใน repo</td></tr>
+              <tr><td>Subdirectory CLAUDE.md = monorepo</td><td>แต่ละ package มี rules ต่างกัน</td></tr>
+              <tr><td>Gate &gt; Memory</td><td>Hook/setting ที่ fire อัตโนมัติ ดีกว่า "remember to..."</td></tr>
+              <tr><td>ชัด &gt; ยาว</td><td>Claude อ่านทั้งไฟล์ทุก turn &mdash; verbose = เปลืองและสับสน</td></tr>
+              <tr><td>เขียนเมื่อมี pattern</td><td>ถ้าสั่งซ้ำ 3 ครั้ง = เขียนลง CLAUDE.md</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Section I: Summary -->
+        <section>
+          <h2>I &mdash; สรุป</h2>
+          <p>CLAUDE.md คือ <strong>DNA ของ AI agent</strong>. ทุก session, Claude อ่านมันก่อนทำอะไร. เขียนดี = agent ที่ทำงานตรง scope ตั้งแต่ต้น. ไม่เขียน = agent ที่ต้องสั่งใหม่ทุกครั้ง.</p>
+          <p>3 levels (Home, Project, Subdirectory) + settings.json + project memory = ระบบ configuration ครบ &mdash; แยกระหว่าง shared rules กับ personal preferences.</p>
+          <p>เริ่มเล็ก, เพิ่มเมื่อ AI ทำผิดซ้ำ, ใช้ hooks แทน memory เมื่อทำได้.</p>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: P'Nat CCC Academy &mdash; ACC-Program 3</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

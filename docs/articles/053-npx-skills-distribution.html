@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="npx skills — ติดตั้ง Oracle Skill ข้าม AI Agent ด้วย arra-oracle-skills-cli รองรับ 18 agents, 4 profiles">
+  <title>053 &mdash; npx skills Distribution | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">053 &mdash; npx skills Distribution</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>npx skills &mdash; ติดตั้ง Skill ข้าม AI Agent</h1>
+        <div class="article-meta">
+          <span class="tag">npx</span>
+          <span class="tag">skills</span>
+          <span class="tag">cross-agent</span>
+          <span class="tag">arra-oracle-skills</span>
+          <span class="tag">distribution</span>
+          <span class="tag">18-agents</span>
+          <span class="maturity solid">&#10004; solid research</span>
+        </div>
+
+        <section>
+          <h2>A &mdash; ปัญหา</h2>
+          <p>Oracle มี skill ดีๆ เช่น <code>/rrr</code>, <code>/learn</code>, <code>/dig</code> &mdash; แต่ติดอยู่ใน Claude Code agent เดียว</p>
+          <p>ถ้าจะใช้ skill เดียวกันใน Codex, Cursor, Gemini CLI หรือ agent อื่น ต้อง copy SKILL.md ไปวางเอง &mdash; ทำไม่ scale</p>
+          <p><strong>arra-oracle-skills-cli</strong> แก้ปัญหานี้ &mdash; คำสั่งเดียว ติดตั้ง skill ข้าม 18 AI agents</p>
+        </section>
+
+        <section>
+          <h2>B &mdash; Quick Start</h2>
+          <pre><code># ติดตั้ง standard profile ให้ Claude Code (global)
+bunx --bun arra-oracle-skills install -g -y
+
+# ติดตั้งให้หลาย agents พร้อมกัน
+bunx --bun arra-oracle-skills install -g -y --agent claude-code codex opencode
+
+# ติดตั้ง full profile
+bunx --bun arra-oracle-skills install -g -y -p full
+
+# เลือกเฉพาะ skill ที่ต้องการ
+bunx --bun arra-oracle-skills install -g -y -s recap rrr trace</code></pre>
+        </section>
+
+        <section>
+          <h2>C &mdash; 18 Supported Agents</h2>
+          <p>CLI ติดตั้ง skill ให้ agent เหล่านี้ &mdash; แต่ละตัวมี directory convention ต่างกัน</p>
+          <table>
+            <tr><th>Agent</th><th>Skill Path</th></tr>
+            <tr><td>Claude Code</td><td><code>~/.claude/skills/&lt;name&gt;/SKILL.md</code></td></tr>
+            <tr><td>Codex</td><td><code>~/.codex/skills/</code> + <code>~/.codex/prompts/</code></td></tr>
+            <tr><td>OpenCode</td><td><code>~/.config/opencode/skills/</code></td></tr>
+            <tr><td>Cursor</td><td><code>.cursor/skills/</code></td></tr>
+            <tr><td>Gemini CLI</td><td><code>~/.gemini/skills/</code> + <code>.toml</code> format</td></tr>
+            <tr><td>Amp</td><td><code>~/.amp/skills/</code></td></tr>
+            <tr><td>Kilo Code</td><td><code>~/.kilo/skills/</code></td></tr>
+            <tr><td>Roo Code</td><td><code>~/.roo/skills/</code></td></tr>
+            <tr><td colspan="2"><em>+ Goose, Antigravity, GitHub Copilot, OpenClaw, Droid, Windsurf, Cline, Aider, Continue, Zed</em></td></tr>
+          </table>
+          <p>Installer อ่าน <code>agents.ts</code> แล้ว map SKILL.md ไปยัง path ที่ถูกต้องของแต่ละ agent อัตโนมัติ</p>
+        </section>
+
+        <section>
+          <h2>D &mdash; 4 Profile Tiers</h2>
+          <table>
+            <tr><th>Profile</th><th>Skills</th><th>ใช้เมื่อ</th></tr>
+            <tr><td><strong>minimal</strong></td><td>7</td><td>มือใหม่ &mdash; about-oracle, forward-lite, go, recap-lite, rrr-lite, trace</td></tr>
+            <tr><td><strong>standard</strong></td><td>13</td><td>Daily driver &mdash; awaken, dig, forward, learn, recap, rrr, trace, xray + อื่นๆ</td></tr>
+            <tr><td><strong>full</strong></td><td>60</td><td>ทุก skill ที่ stable (ไม่รวม lab)</td></tr>
+            <tr><td><strong>lab</strong></td><td>60+</td><td>ทุกอย่างรวม experimental &mdash; bleeding edge</td></tr>
+          </table>
+          <p>Profile selection มาจาก data &mdash; mine 120 sessions แล้วดูว่า skill ไหนถูกใช้ 10+ ครั้งถึงได้เข้า standard</p>
+        </section>
+
+        <section>
+          <h2>E &mdash; ภายใน CLI ทำอะไร</h2>
+
+          <h3>E.1 &mdash; Skill Discovery</h3>
+          <p>Skills อยู่ใน <code>src/skills/</code> &mdash; แต่ละตัวมี <code>SKILL.md</code> + optional <code>scripts/</code> + optional hooks</p>
+          <p>ใน compiled mode skills ถูก embed ใน VFS (Virtual Filesystem) ที่ generate ตอน build</p>
+
+          <h3>E.2 &mdash; Install Process</h3>
+          <ol>
+            <li>อ่าน profile &rarr; resolve skill list</li>
+            <li>ตรวจ local-skill-precedence shield (#230) &mdash; skip skill ที่มี local version อยู่แล้ว</li>
+            <li>Stamp SKILL.md ด้วย version + installer tag + scope (<code>G-SKLL</code> global, <code>L-SKLL</code> local)</li>
+            <li>เขียน SKILL.md ไปยัง agent-specific path</li>
+            <li>Hook-bearing skills &rarr; ติดตั้งเป็น Claude Code plugin ที่ <code>~/.claude/plugins/</code></li>
+          </ol>
+
+          <h3>E.3 &mdash; Installer Tag</h3>
+          <p>ทุก SKILL.md ที่ติดตั้งจะมี marker <code>installer: arra-oracle-skills-cli</code> &mdash; ใช้สำหรับ safe auto-cleanup ของ orphaned skills</p>
+        </section>
+
+        <section>
+          <h2>F &mdash; CLI Commands</h2>
+          <table>
+            <tr><th>Command</th><th>ทำอะไร</th></tr>
+            <tr><td><code>install</code></td><td>ติดตั้ง skills (default command)</td></tr>
+            <tr><td><code>uninstall</code></td><td>ลบ skills ที่ติดตั้ง</td></tr>
+            <tr><td><code>select</code></td><td>Interactive skill picker</td></tr>
+            <tr><td><code>list</code></td><td>แสดง skills ที่ติดตั้งอยู่</td></tr>
+            <tr><td><code>profiles</code></td><td>แสดง profile tiers</td></tr>
+            <tr><td><code>agents</code></td><td>แสดง 18 supported agents</td></tr>
+            <tr><td><code>awaken</code></td><td>Guided Oracle birth ritual</td></tr>
+            <tr><td><code>about</code></td><td>Version + status</td></tr>
+          </table>
+        </section>
+
+        <section>
+          <h2>G &mdash; Zombie Skills</h2>
+          <p>บาง skill เป็น internal dev candidates &mdash; ไม่อยู่ใน profile ไหนเลย ติดตั้งได้เฉพาะ by name:</p>
+          <pre><code>bunx --bun arra-oracle-skills install -s workon</code></pre>
+          <p>ใช้สำหรับ skill ที่ยังไม่ stable พอจะ recommend ให้ทุกคน แต่ developer ที่รู้ว่าทำอะไรสามารถเรียกใช้ได้</p>
+        </section>
+
+        <section>
+          <h2>H &mdash; Key Takeaways</h2>
+          <ul>
+            <li>คำสั่งเดียว ติดตั้ง skill ให้ 18 AI agents &mdash; ไม่ต้อง copy SKILL.md เอง</li>
+            <li>Profile system ป้องกัน information overload &mdash; มือใหม่ได้ 7 skills, power user ได้ 60+</li>
+            <li>Installer tag ทำให้ uninstall/update ปลอดภัย &mdash; ไม่แตะ skill ที่ user สร้างเอง</li>
+            <li>Local-skill-precedence &mdash; project-local skills ไม่โดน global overwrite</li>
+            <li>VFS + compiled binary &mdash; ไม่ต้อง clone repo, skills embed ใน CLI เลย</li>
+          </ul>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: P'Nat CCC Academy &mdash; ACC-Program 3, Lesson 22</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

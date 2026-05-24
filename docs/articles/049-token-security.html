@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="จัดการ Token อย่างปลอดภัย — 4 token types, chmod 600, HMAC signing evolution, TOFU trust, rotation, audit checklist">
+  <title>049 &mdash; จัดการ Token อย่างปลอดภัย | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">049 &mdash; Token Security</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>จัดการ Token อย่างปลอดภัย</h1>
+        <div class="article-meta">
+          <span class="tag">token</span>
+          <span class="tag">security</span>
+          <span class="tag">secrets</span>
+          <span class="tag">chmod</span>
+          <span class="tag">hmac</span>
+          <span class="tag">rotation</span>
+          <span class="tag">environment-variable</span>
+          &middot; 24 พ.ค. 2026 &middot; <span class="maturity-badge solid">&#128994; solid</span>
+        </div>
+
+        <p>ถ้ามีเวลาน้อย อ่าน Part A ก็พอ.</p>
+
+        <!-- ======================== PART A ======================== -->
+        <section>
+          <h2>Part A &mdash; สรุปที่ต้องรู้</h2>
+
+          <h3>Token คืออะไร</h3>
+          <p>Token = กุญแจดิจิทัลที่พิสูจน์ตัวตนของ bot/oracle/service. ถ้าหลุด &mdash; คนอื่นปลอมเป็นเราได้. Fleet มี 4 ประเภท:</p>
+
+          <table>
+            <thead>
+              <tr><th>#</th><th>Token Type</th><th>ทำหน้าที่</th><th>เก็บที่ไหน</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><strong>Discord bot token</strong></td>
+                <td>authenticate bot เข้า Discord gateway</td>
+                <td><code>~/.claude/channels/discord/&lt;bot&gt;/access.json</code> หรือ env <code>DISCORD_BOT_TOKEN</code></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><strong>Federation token</strong></td>
+                <td>HMAC signing สำหรับ <code>maw talk-to</code> ข้ามเครื่อง</td>
+                <td><code>maw.config.json</code> field <code>federationToken</code></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><strong>Peer key</strong></td>
+                <td>per-peer TOFU identity สำหรับ federation</td>
+                <td><code>maw.config.json</code> field <code>namedPeers.&lt;peer&gt;.key</code></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><strong>Auth secret</strong></td>
+                <td>session/API authentication ของ service แต่ละตัว</td>
+                <td>per-service &mdash; <code>.env</code>, env var, หรือ config file</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>กฎเหล็ก 4 ข้อ</h3>
+          <ol>
+            <li><code>chmod 600</code> ทุก token file &mdash; owner อ่าน/เขียนได้คนเดียว</li>
+            <li>ห้าม commit token เข้า git &mdash; ใช้ <code>.gitignore</code></li>
+            <li>ใช้ environment variable แทน hardcode</li>
+            <li>token 1 ตัว = 1 วัตถุประสงค์ &mdash; ห้ามใช้ร่วมข้ามบริการ</li>
+          </ol>
+        </section>
+
+        <!-- ======================== PART B ======================== -->
+        <section>
+          <h2>Part B &mdash; Security Patterns</h2>
+
+          <h3>B.1 &mdash; File Permissions</h3>
+          <p>ทุกไฟล์ที่มี token ต้อง <code>chmod 600</code> (owner-only read/write):</p>
+          <pre><code># ตั้ง permission ให้ token files
+chmod 600 ~/.claude/channels/discord/devboy/access.json
+chmod 600 ~/.config/maw/maw.config.json
+chmod 600 ~/project/.env
+
+# ตรวจสอบ
+ls -la ~/.claude/channels/discord/devboy/access.json
+# -rw------- 1 drdo drdo 482 May 24 10:00 access.json
+#  ^^^ owner-only = ถูกต้อง
+# -rw-r--r-- = ผิด! คนอื่นอ่านได้</code></pre>
+
+          <h3>B.2 &mdash; .gitignore</h3>
+          <p>Token files ต้องอยู่ใน <code>.gitignore</code> เสมอ:</p>
+          <pre><code># .gitignore
+.env
+.env.*
+access.json
+maw.config.json
+*.key
+*.pem
+credentials.json</code></pre>
+          <p><strong>ตรวจสอบ</strong>: <code>git status</code> ต้องไม่เห็น token files. ถ้าเคย commit ไปแล้ว &mdash; rotate token ทันที (ลบออกจาก git ไม่พอ เพราะ history ยังอยู่).</p>
+
+          <h3>B.3 &mdash; Environment Variables</h3>
+          <p>ดีกว่า hardcode เพราะไม่เข้า git และ เปลี่ยนได้โดยไม่ต้องแก้ code:</p>
+          <pre><code># ใน .env (ไม่ commit)
+DISCORD_BOT_TOKEN=MTIzNDU2Nzg5...
+FEDERATION_TOKEN=abc123...
+
+# ใน code
+const token = process.env.DISCORD_BOT_TOKEN;
+if (!token) throw new Error("DISCORD_BOT_TOKEN not set");</code></pre>
+
+          <h3>B.4 &mdash; DISCORD_STATE_DIR Injection Pattern</h3>
+          <p>จาก 041 fix &mdash; Discord plugin ต้องรู้ path ไปหา access.json. ใช้ env injection ใน <code>.mcp.json</code>:</p>
+          <pre><code>{
+  "mcpServers": {
+    "discord": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/claude-code-discord"],
+      "env": {
+        "DISCORD_STATE_DIR": "/home/drdo/.claude/channels/discord/devboy"
+      }
+    }
+  }
+}</code></pre>
+          <p>Token ไม่ได้อยู่ใน <code>.mcp.json</code> ตรง ๆ &mdash; มันอยู่ใน <code>access.json</code> ที่ <code>DISCORD_STATE_DIR</code> ชี้ไป. แยก config กับ secret ออกจากกัน.</p>
+        </section>
+
+        <!-- ======================== PART C ======================== -->
+        <section>
+          <h2>Part C &mdash; HMAC Signing Evolution</h2>
+
+          <p>Federation messages ใช้ HMAC-SHA256 เพื่อพิสูจน์ว่า "ข้อความนี้มาจาก peer ที่เรารู้จักจริง". วิวัฒนาการผ่าน 3 versions:</p>
+
+          <table>
+            <thead>
+              <tr><th>Version</th><th>Sign อะไร</th><th>ป้องกัน</th><th>จุดอ่อน</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>v1</td>
+                <td>HMAC-SHA256(body)</td>
+                <td>tampering</td>
+                <td>replay attack &mdash; ส่งข้อความเดิมซ้ำได้</td>
+              </tr>
+              <tr>
+                <td>v2</td>
+                <td>HMAC-SHA256(body + timestamp)</td>
+                <td>tampering + replay</td>
+                <td>duplicate within window &mdash; ข้อความซ้ำใน timestamp เดียวกัน</td>
+              </tr>
+              <tr>
+                <td>v3</td>
+                <td>HMAC-SHA256(body + timestamp + nonce)</td>
+                <td>tampering + replay + duplicate</td>
+                <td>&mdash;</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>v3 Signing Flow</h3>
+          <pre><code>// ฝั่งส่ง (maw-js A)
+const nonce = crypto.randomUUID();
+const timestamp = Date.now().toString();
+const payload = body + timestamp + nonce;
+const signature = hmacSHA256(payload, federationToken);
+
+// HTTP POST ส่ง: body, timestamp, nonce, signature
+
+// ฝั่งรับ (maw-js B)
+const expected = hmacSHA256(body + timestamp + nonce, federationToken);
+if (!timingSafeEqual(signature, expected)) {
+  reject("invalid signature");
+}
+if (Date.now() - timestamp > 30_000) {
+  reject("expired &mdash; replay?");
+}</code></pre>
+
+          <h3>Constant-Time Comparison</h3>
+          <p><strong>ห้ามใช้ <code>===</code> เปรียบเทียบ signature</strong> &mdash; attacker วัดเวลาตอบกลับ แล้วเดา signature ทีละ byte (timing attack). ใช้ <code>crypto.timingSafeEqual()</code> เสมอ:</p>
+          <pre><code>// ผิด &mdash; timing attack ได้
+if (signature === expected) { ... }
+
+// ถูก &mdash; ใช้เวลาเท่ากันไม่ว่าผิด byte ไหน
+if (crypto.timingSafeEqual(
+  Buffer.from(signature, 'hex'),
+  Buffer.from(expected, 'hex')
+)) { ... }</code></pre>
+        </section>
+
+        <!-- ======================== PART D ======================== -->
+        <section>
+          <h2>Part D &mdash; Federation Trust Model (TOFU)</h2>
+
+          <p><strong>TOFU = Trust On First Use</strong> &mdash; เชื่อมต่อครั้งแรก เก็บ identity ของ peer. ครั้งต่อไปเทียบกับ identity เดิม. เหมือน SSH fingerprint.</p>
+
+          <h3>Fleet Topology (4 nodes)</h3>
+          <pre><code>clinic-drdo ──── mac-studio
+    │                │
+    │                │
+homelab ────── (future nodes)
+
+แต่ละ node รัน maw-js + federation enabled
+แต่ละคู่มี per-peer key ใน namedPeers</code></pre>
+
+          <h3>Per-Peer Key Config</h3>
+          <pre><code>// maw.config.json (แต่ละ node)
+{
+  "federationToken": "shared-fleet-secret-...",
+  "namedPeers": {
+    "mac-studio": {
+      "url": "https://mac-studio.wg:3457",
+      "key": "peer-specific-key-..."
+    },
+    "homelab": {
+      "url": "https://homelab.wg:3457",
+      "key": "peer-specific-key-..."
+    }
+  }
+}</code></pre>
+          <p><code>federationToken</code> = shared secret ทั้ง fleet. <code>namedPeers.*.key</code> = per-peer identity key &mdash; ถ้า peer ตัวเดียวหลุด ไม่กระทบตัวอื่น.</p>
+        </section>
+
+        <!-- ======================== PART E ======================== -->
+        <section>
+          <h2>Part E &mdash; Token Rotation</h2>
+
+          <h3>เมื่อไหร่ต้อง Rotate</h3>
+          <ul>
+            <li><strong>ทันที</strong>: token หลุด (commit ไป git, log ออก stdout, เครื่องโดน compromise)</li>
+            <li><strong>ตามกำหนด</strong>: ทุก 90 วัน หรือตาม policy</li>
+            <li><strong>เมื่อคนออก</strong>: revoke access ของคนที่เคยเห็น token</li>
+          </ul>
+
+          <h3>ขั้นตอน Rotate Federation Token</h3>
+          <pre><code># 1. Generate token ใหม่
+NEW_TOKEN=$(openssl rand -hex 32)
+
+# 2. Update ทุก node (ต้องทำพร้อมกัน หรือ มี grace period)
+# node A:
+jq --arg t "$NEW_TOKEN" '.federationToken = $t' maw.config.json > tmp && mv tmp maw.config.json
+
+# node B: ทำเหมือนกัน
+
+# 3. Restart maw-js ทุก node
+maw restart
+
+# 4. Verify
+maw hey mac-studio "ping"
+# ถ้าได้ pong = token ใหม่ใช้ได้</code></pre>
+
+          <h3>Rotate Discord Bot Token</h3>
+          <pre><code># 1. ไป Discord Developer Portal &rarr; Bot &rarr; Reset Token
+# 2. Copy token ใหม่
+# 3. Update access.json
+jq --arg t "NEW_DISCORD_TOKEN" '.botToken = $t' access.json > tmp && mv tmp access.json
+# 4. chmod 600
+chmod 600 access.json
+# 5. Restart discord plugin</code></pre>
+        </section>
+
+        <!-- ======================== PART F ======================== -->
+        <section>
+          <h2>Part F &mdash; Common Mistakes</h2>
+
+          <table>
+            <thead>
+              <tr><th>#</th><th>ผิดพลาด</th><th>ผลกระทบ</th><th>แก้ไข</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Log token ออก stdout</td>
+                <td>Token โผล่ใน session log / CI output</td>
+                <td>ใช้ <code>***</code> masking หรือ log แค่ last 4 chars</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Commit <code>.env</code> เข้า git</td>
+                <td>Token อยู่ใน git history ตลอดไป</td>
+                <td><code>.gitignore</code> + rotate ทันที ถ้าเคย commit</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>ใช้ token เดียวหลายวัตถุประสงค์</td>
+                <td>หลุดที่เดียว = เสียหายทุกที่</td>
+                <td>1 token = 1 purpose</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>ไม่ตั้ง file permissions</td>
+                <td>user อื่นบนเครื่องอ่าน token ได้</td>
+                <td><code>chmod 600</code> ทุก token file</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Hardcode token ใน source code</td>
+                <td>token ติดไปกับ code ทุกที่</td>
+                <td>ใช้ env var หรือ config file แยก</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>เทียบ signature ด้วย <code>===</code></td>
+                <td>timing attack เดา signature ได้</td>
+                <td><code>crypto.timingSafeEqual()</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ======================== PART G ======================== -->
+        <section>
+          <h2>Part G &mdash; Audit Checklist</h2>
+
+          <p>รันทุกข้อเป็นประจำ &mdash; ใช้เวลา 5 นาที:</p>
+
+          <h3>G.1 &mdash; หา token files ทั้งหมด</h3>
+          <pre><code># หา config files ที่อาจมี token
+find ~/.claude -name "access.json" -o -name "*.key" 2>/dev/null
+find ~/.config/maw -name "maw.config.json" 2>/dev/null
+find ~/Code -name ".env" -not -path "*/node_modules/*" 2>/dev/null</code></pre>
+
+          <h3>G.2 &mdash; ตรวจ permissions</h3>
+          <pre><code># ทุกไฟล์ต้องเป็น 600 (owner-only)
+find ~/.claude -name "access.json" -exec stat -c "%a %n" {} \;
+# ถ้าเห็น 644 หรือ 755 = ต้องแก้ทันที
+# แก้:
+find ~/.claude -name "access.json" -exec chmod 600 {} \;</code></pre>
+
+          <h3>G.3 &mdash; ตรวจ .gitignore</h3>
+          <pre><code># เช็คว่า .env ไม่ได้ถูก track
+git ls-files --cached | grep -E '\.env|access\.json|maw\.config'
+# ถ้ามี output = token file ถูก track อยู่ &rarr; ลบออกจาก git + rotate</code></pre>
+
+          <h3>G.4 &mdash; ตรวจ federation connectivity</h3>
+          <pre><code># Verify ทุก peer ยัง alive + token ถูกต้อง
+maw hey mac-studio "ping"
+maw hey homelab "ping"
+# ถ้า timeout หรือ auth error = token อาจผิด/หมดอายุ</code></pre>
+
+          <h3>G.5 &mdash; ตรวจ log leaks</h3>
+          <pre><code># หา token ที่อาจหลุดใน log
+grep -r "DISCORD_BOT_TOKEN\|federationToken" ~/logs/ 2>/dev/null
+# ถ้าเจอ value จริง (ไม่ใช่แค่ชื่อ variable) = rotate ทันที</code></pre>
+        </section>
+
+        <!-- ======================== PART H ======================== -->
+        <section>
+          <h2>Part H &mdash; สรุป Security Layers</h2>
+
+          <pre><code>Layer 1: File permissions (chmod 600)
+  &darr;
+Layer 2: .gitignore (ไม่เข้า version control)
+  &darr;
+Layer 3: Environment variables (แยก secret จาก code)
+  &darr;
+Layer 4: HMAC signing (พิสูจน์ตัวตนข้อความ)
+  &darr;
+Layer 5: TOFU + per-peer keys (trust model)
+  &darr;
+Layer 6: Rotation policy (จำกัดเวลาเสียหาย)
+  &darr;
+Layer 7: Audit checklist (ตรวจสอบสม่ำเสมอ)</code></pre>
+
+          <p>ทุก layer เสริมกัน &mdash; ไม่มี layer ไหน layer เดียวพอ. Token หลุด + ไม่ rotate = เสียหาย. Rotate แต่ไม่ chmod = หลุดอีก.</p>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: P'Nat CCC Academy &mdash; ACC-Program 3</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -67,6 +67,17 @@
       ['035-claude-for-security.html', '035 Claude for Security'],
       ['036-claude-for-law.html', '036 Claude for Law'],
       ['037-claude-finance-quick-wins.html', '037 Finance Quick Wins']
+    ]],
+    ['CCC Academy', [
+      ['045-claude-code-claude-md.html', '045 Claude Code & CLAUDE.md'],
+      ['046-shortcode-to-skill.html', '046 Shortcode → Skill'],
+      ['047-oracle-birth-awaken.html', '047 Oracle Birth /awaken'],
+      ['048-team-agents-trio.html', '048 Team Agents & Trio'],
+      ['049-token-security.html', '049 Token Security'],
+      ['050-federation.html', '050 Federation'],
+      ['051-worktrees.html', '051 Worktrees'],
+      ['052-oracle-skills-learn-rrr-dig.html', '052 /learn, /rrr, /dig'],
+      ['053-npx-skills-distribution.html', '053 npx Skills Distribution']
     ]]
   ];
 

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Git Worktrees — checkout หลาย branch พร้อมกัน, /worktree skill, maw workon, maw oracle-workon, lifecycle management. จาก P'Nat CCC Academy Lesson 8">
+  <title>051 &mdash; Worktrees &mdash; ทำงานหลายอย่างพร้อมกัน | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">051 &mdash; Worktrees</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>Worktrees &mdash; ทำงานหลายอย่างพร้อมกัน</h1>
+        <div class="article-meta">
+          <span class="tag">worktrees</span>
+          <span class="tag">git</span>
+          <span class="tag">parallel</span>
+          <span class="tag">maw-workon</span>
+          <span class="tag">isolation</span>
+          <span class="tag">branch</span>
+          &middot; CCC Academy Lesson 8
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <!-- Section A: What are Worktrees -->
+        <section>
+          <h2>A &mdash; Git Worktrees คืออะไร</h2>
+          <p>ปกติ 1 repo = 1 branch ที่ checkout อยู่. อยากสลับ branch ต้อง <code>git stash</code> &rarr; <code>git checkout</code> &rarr; ทำงาน &rarr; <code>git checkout</code> กลับ &rarr; <code>git stash pop</code>. <strong>วุ่นวาย.</strong></p>
+          <p><strong>Git Worktree</strong> แก้ปัญหานี้ &mdash; checkout หลาย branch พร้อมกัน แต่ละ branch อยู่ใน directory ของตัวเอง. ทุก worktree <strong>share .git object store เดียวกัน</strong> &mdash; ไม่ต้อง clone ใหม่ ประหยัด disk.</p>
+          <pre><code># สร้าง worktree สำหรับ branch fix-auth
+git worktree add ../myrepo-fix-auth fix-auth
+
+# ตอนนี้มี 2 directories:
+# myrepo/            ← main branch (เดิม)
+# myrepo-fix-auth/   ← fix-auth branch (ใหม่)
+
+# ทำงาน 2 อย่างพร้อมกันได้ ไม่ต้อง stash</code></pre>
+          <p>ข้อจำกัด: <strong>1 branch = 1 worktree เท่านั้น</strong>. ถ้า branch <code>main</code> checkout อยู่ใน worktree หนึ่ง จะ checkout ใน worktree อื่นไม่ได้.</p>
+        </section>
+
+        <!-- Section B: 4 Layers of Worktree Tooling -->
+        <section>
+          <h2>B &mdash; 4 ชั้นของ Worktree Tooling ใน Fleet</h2>
+          <p>Fleet มีเครื่องมือ worktree 4 ระดับ &mdash; จากง่ายไปซับซ้อน:</p>
+
+          <h3>B.1 &mdash; <code>/worktree</code> Skill (Claude Code)</h3>
+          <p>Built-in skill ใน Claude Code. ใช้ <code>EnterWorktree</code> / <code>ExitWorktree</code> tools.</p>
+          <table>
+            <thead>
+              <tr><th>Command</th><th>ทำอะไร</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>/worktree fix-auth</code></td><td>สร้าง worktree ใน <code>.claude/worktrees/fix-auth/</code>, branch <code>worktree-fix-auth</code></td></tr>
+              <tr><td><code>/worktree list</code></td><td>แสดง worktrees ที่มีอยู่</td></tr>
+              <tr><td><code>/worktree exit</code></td><td>กลับ main worktree</td></tr>
+              <tr><td><code>/worktree clean</code></td><td>ลบ worktrees ที่ไม่ใช้แล้ว</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Safety</strong>: main branch ไม่มีทางถูกแตะ &mdash; ทำงานใน branch แยกเสมอ.</p>
+
+          <h3>B.2 &mdash; <code>maw workon</code> Plugin (maw-js)</h3>
+          <p>Higher-level กว่า <code>/worktree</code> &mdash; ครอบทั้ง repo resolution + worktree + tmux + Claude Code:</p>
+          <pre><code>maw workon glueboy ship-fix
+# 1. ghq resolve → ~/ghq/github.com/dryoungdo/glueboy
+# 2. สร้าง worktree (branch: agents/1-ship-fix)
+# 3. เปิด tmux window ใหม่
+# 4. start Claude Code ใน worktree นั้น</code></pre>
+          <p><strong>2 layouts</strong>:</p>
+          <ul>
+            <li><strong>Nested</strong> (default): <code>repo/agents/&lt;task&gt;/</code> &mdash; worktree อยู่ใน repo</li>
+            <li><strong>Legacy</strong>: <code>parent/repo.wt-&lt;task&gt;/</code> &mdash; worktree อยู่ข้าง repo</li>
+          </ul>
+
+          <h3>B.3 &mdash; <code>maw oracle-workon</code> (Team Orchestration)</h3>
+          <p>ระดับสูงสุด &mdash; compose <code>maw wake --task</code> + <code>maw swarm</code> เข้าด้วยกัน:</p>
+          <pre><code>maw oracle-workon --task big-refactor --with codex
+# 1. สร้าง worktree team
+# 2. spawn Claude Code + Codex co-engines
+# 3. ทำงาน parallel ใน worktree เดียวกัน</code></pre>
+
+          <h3>B.4 &mdash; <code>maw wake --task</code></h3>
+          <p>Flag <code>--task</code> ทำให้ <code>maw wake</code> สร้าง worktree เป็นส่วนหนึ่งของ session startup:</p>
+          <pre><code>maw wake glueboy --task fix-deploy
+# wake oracle + สร้าง worktree อัตโนมัติ
+
+maw wake --list
+# แสดง active worktrees ทั้งหมด</code></pre>
+        </section>
+
+        <!-- Section C: Lifecycle Management -->
+        <section>
+          <h2>C &mdash; Lifecycle Management</h2>
+          <p>Worktrees ที่สร้างแล้วไม่ลบ = <strong>orphan</strong> ที่กิน disk + สร้าง confusion. Fleet มี lifecycle management ครบ:</p>
+
+          <h3>C.1 &mdash; Scan &amp; Classify</h3>
+          <p>หา worktree directories (<code>.wt-*</code> และ <code>agents/*</code>) แล้วจำแนก:</p>
+          <table>
+            <thead>
+              <tr><th>Status</th><th>เงื่อนไข</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Active</strong></td><td>มี tmux window ที่ยังเปิดอยู่</td><td>ปล่อยไว้</td></tr>
+              <tr><td><strong>Stale</strong></td><td>ไม่มี tmux แต่มี uncommitted changes</td><td>แจ้งเตือน</td></tr>
+              <tr><td><strong>Orphan</strong></td><td>ไม่มี tmux, ไม่มี changes</td><td>cleanup ได้เลย</td></tr>
+            </tbody>
+          </table>
+
+          <h3>C.2 &mdash; Cleanup</h3>
+          <p>Cleanup ทำ 4 ขั้นตอน:</p>
+          <ol>
+            <li>Kill tmux window (ถ้ายังเปิดอยู่)</li>
+            <li>Remove worktree directory (<code>git worktree remove</code>)</li>
+            <li>Prune git worktree list (<code>git worktree prune</code>)</li>
+            <li>Delete branch ที่ไม่ใช้แล้ว</li>
+          </ol>
+          <pre><code># Claude Code skill
+/worktree exit --remove
+
+# maw cleanup (fleet-level)
+maw done glueboy-ship-fix
+# kills tmux + removes worktree + prunes + deletes branch</code></pre>
+
+          <h3>C.3 &mdash; API &amp; Doctor</h3>
+          <p>maw-js มี Elysia REST endpoints สำหรับ programmatic access:</p>
+          <pre><code>GET  /worktrees           # list ทั้งหมด + status
+POST /worktrees/cleanup   # trigger cleanup</code></pre>
+          <p><code>team-ops doctor</code> ตรวจหา orphaned worktrees อัตโนมัติ &mdash; แจ้งเตือนใน session ถ้าเจอ.</p>
+        </section>
+
+        <!-- Section D: Practical Examples -->
+        <section>
+          <h2>D &mdash; ตัวอย่างใช้งานจริง</h2>
+
+          <h3>D.1 &mdash; Simple Isolation (1 คน, 1 task)</h3>
+          <pre><code># กำลังทำงานบน main แล้วต้อง hotfix
+/worktree fix-auth
+
+# ทำ fix ใน worktree
+git add . && git commit -m "fix: auth token expiry"
+
+# กลับ main
+/worktree exit --remove</code></pre>
+
+          <h3>D.2 &mdash; Parallel Oracle Work (Fleet)</h3>
+          <pre><code># Oracle A ทำ feature
+maw workon glueboy ship-fix
+
+# Oracle B ทำ docs (พร้อมกัน, คนละ worktree)
+maw workon glueboy update-docs
+
+# เสร็จแล้ว cleanup
+maw done glueboy-ship-fix
+maw done glueboy-update-docs</code></pre>
+
+          <h3>D.3 &mdash; Team + Co-engine</h3>
+          <pre><code># Spawn worktree team พร้อม Codex co-engine
+maw oracle-workon --task big-refactor --with codex
+
+# Claude ทำ code, Codex ทำ review — parallel ใน worktree เดียวกัน
+# เสร็จแล้ว cleanup อัตโนมัติ</code></pre>
+        </section>
+
+        <!-- Section E: Gotchas -->
+        <section>
+          <h2>E &mdash; Gotchas</h2>
+          <ol>
+            <li><strong>1 branch = 1 worktree</strong> &mdash; พยายาม checkout branch ที่ใช้อยู่แล้ว = error</li>
+            <li><strong>Orphan worktrees กิน disk</strong> &mdash; ใช้ <code>maw done</code> หรือ <code>/worktree clean</code> ทุกครั้งที่เสร็จงาน</li>
+            <li><strong>Shared .git = shared hooks</strong> &mdash; pre-commit hooks มีผลทุก worktree. ระวัง hook ที่ assume cwd = repo root</li>
+            <li><strong>Node modules / dependencies</strong> &mdash; แต่ละ worktree ต้อง <code>npm install</code> แยก (node_modules ไม่ share)</li>
+            <li><strong>IDE confusion</strong> &mdash; บาง IDE เปิด worktree แล้วสับสนเรื่อง git state. ใช้ terminal-based workflow ปลอดภัยกว่า</li>
+          </ol>
+        </section>
+
+        <!-- Section F: Summary -->
+        <section>
+          <h2>F &mdash; สรุป</h2>
+          <table>
+            <thead>
+              <tr><th>Tool</th><th>Level</th><th>ใช้เมื่อ</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>git worktree add</code></td><td>Git native</td><td>ต้องการ manual control</td></tr>
+              <tr><td><code>/worktree</code></td><td>Claude Code skill</td><td>isolation ง่ายๆ ใน session</td></tr>
+              <tr><td><code>maw workon</code></td><td>maw plugin</td><td>parallel oracle work ข้าม repo</td></tr>
+              <tr><td><code>maw oracle-workon</code></td><td>Team orchestration</td><td>multi-agent + co-engine</td></tr>
+              <tr><td><code>maw wake --task</code></td><td>Session startup</td><td>worktree เป็นส่วนของ wake flow</td></tr>
+            </tbody>
+          </table>
+          <p><strong>หลักคิด</strong>: Worktree = <strong>isolation without cost</strong>. Share .git object store ทำให้สร้าง/ลบ worktree ได้เร็ว ไม่ต้อง clone ใหม่. ใช้คู่กับ tmux + maw = parallel work ระดับ fleet.</p>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: P'Nat CCC Academy &mdash; ACC-Program 3</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

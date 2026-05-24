@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="การสื่อสารข้ามโลก — Federation: maw talk-to, maw hey, HMAC signing, TOFU trust, fleet topology, cross-oracle messaging">
+  <title>050 &mdash; การสื่อสารข้ามโลก &mdash; Federation | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">050 &mdash; Federation</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>การสื่อสารข้ามโลก &mdash; Federation</h1>
+        <div class="article-meta">
+          <span class="tag">federation</span>
+          <span class="tag">maw</span>
+          <span class="tag">talk-to</span>
+          <span class="tag">hey</span>
+          <span class="tag">peer</span>
+          <span class="tag">cross-oracle</span>
+          <span class="tag">hmac</span>
+          <span class="tag">trust</span>
+          &middot; 24 พ.ค. 2026 &middot; <span class="maturity-badge solid">&#128994; solid</span>
+        </div>
+
+        <p>ถ้ามีเวลาน้อย อ่าน Part A ก็พอ.</p>
+
+        <!-- ======================== PART A ======================== -->
+        <section>
+          <h2>Part A &mdash; สรุปที่ต้องรู้</h2>
+
+          <h3>Federation คืออะไร</h3>
+          <p>Federation = ระบบสื่อสารข้าม Oracle ข้ามเครื่อง. GLUEBOY บน mac-studio สั่ง DEVBOY บน clinic-drdo ได้โดยตรง &mdash; ไม่ต้องผ่าน Discord หรือ manual copy.</p>
+
+          <h3>2 Commands ที่ใช้</h3>
+          <table>
+            <thead>
+              <tr><th>Command</th><th>ลักษณะ</th><th>ใช้เมื่อ</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>maw talk-to &lt;oracle&gt; "&lt;msg&gt;"</code></td>
+                <td>Formal &mdash; สร้าง inbox entry ฝั่งรับ</td>
+                <td>ส่ง task, directive, handoff</td>
+              </tr>
+              <tr>
+                <td><code>maw hey &lt;oracle&gt; "&lt;msg&gt;"</code></td>
+                <td>Informal &mdash; quick ping ตรง</td>
+                <td>เช็คสถานะ, ถามสั้น, verify connection</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Message Flow</h3>
+          <pre><code>Oracle A &rarr; maw-js A &rarr; HMAC sign &rarr; HTTP POST &rarr; maw-js B &rarr; verify &rarr; Oracle B</code></pre>
+          <p>ทุกข้อความถูก sign ด้วย HMAC-SHA256 ก่อนส่ง. ฝั่งรับ verify signature &mdash; ถ้าไม่ตรง reject ทันที.</p>
+        </section>
+
+        <!-- ======================== PART B ======================== -->
+        <section>
+          <h2>Part B &mdash; Architecture</h2>
+
+          <h3>B.1 &mdash; maw-js เป็น Federation Relay</h3>
+          <p>แต่ละเครื่อง (node) รัน <code>maw-js</code> ที่ทำหน้าที่:</p>
+          <ol>
+            <li><strong>Local orchestrator</strong> &mdash; จัดการ Oracle sessions บนเครื่องตัวเอง</li>
+            <li><strong>Federation relay</strong> &mdash; รับ/ส่งข้อความข้ามเครื่อง</li>
+            <li><strong>HMAC gateway</strong> &mdash; sign ขาออก, verify ขาเข้า</li>
+          </ol>
+
+          <h3>B.2 &mdash; Message Flow Detail</h3>
+          <pre><code>1. GLUEBOY (mac-studio) รัน: maw talk-to devboy "study agent SDK"
+   &darr;
+2. maw-js (mac-studio) รับ command
+   &darr;
+3. Lookup namedPeers.clinic-drdo &rarr; url + key
+   &darr;
+4. สร้าง payload:
+   {
+     "from": "glueboy",
+     "to": "devboy",
+     "body": "study agent SDK",
+     "timestamp": 1748102400000,
+     "nonce": "a1b2c3d4-..."
+   }
+   &darr;
+5. HMAC sign: signature = hmacSHA256(body + timestamp + nonce, federationToken)
+   &darr;
+6. HTTP POST &rarr; https://clinic-drdo.wg:3457/federation/message
+   Headers: X-Signature, X-Timestamp, X-Nonce
+   &darr;
+7. maw-js (clinic-drdo) รับ request
+   &darr;
+8. Verify: recompute HMAC &rarr; timingSafeEqual &rarr; check timestamp window
+   &darr;
+9. ถ้า valid &rarr; เขียน inbox entry ให้ DEVBOY
+   &darr;
+10. DEVBOY session ถัดไปเห็นใน &psi;/inbox/glueboy/</code></pre>
+
+          <h3>B.3 &mdash; talk-to vs hey</h3>
+          <table>
+            <thead>
+              <tr><th>Feature</th><th><code>talk-to</code></th><th><code>hey</code></th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Persistence</td><td>สร้าง inbox file &mdash; ไม่หาย</td><td>Direct inject &mdash; session ปัจจุบันเท่านั้น</td></tr>
+              <tr><td>Formality</td><td>Formal task/directive</td><td>Quick ping/query</td></tr>
+              <tr><td>Target ต้อง online?</td><td>ไม่ &mdash; inbox รอได้</td><td>ใช่ &mdash; ถ้า offline ไม่ได้รับ</td></tr>
+              <tr><td>Use case</td><td>"Study agent SDK แล้วรายงาน"</td><td>"Ping" / "status?"</td></tr>
+              <tr><td>HMAC signed</td><td>ใช่</td><td>ใช่</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ======================== PART C ======================== -->
+        <section>
+          <h2>Part C &mdash; Trust Model</h2>
+
+          <h3>C.1 &mdash; TOFU (Trust On First Use)</h3>
+          <p>เหมือน SSH fingerprint &mdash; ครั้งแรกที่ peer เชื่อมต่อ จะเก็บ identity key. ครั้งต่อไปเทียบกับ key เดิม:</p>
+          <pre><code>First connection:
+  clinic-drdo &rarr; mac-studio
+  mac-studio ยังไม่รู้จัก clinic-drdo
+  &darr;
+  เก็บ key ใน namedPeers.clinic-drdo.key
+  &darr;
+  "Trust established"
+
+Subsequent connections:
+  clinic-drdo &rarr; mac-studio
+  mac-studio เทียบ key กับที่เก็บไว้
+  &darr;
+  ตรง &rarr; accept
+  ไม่ตรง &rarr; REJECT (อาจถูก impersonate)</code></pre>
+
+          <h3>C.2 &mdash; Security Layers</h3>
+          <table>
+            <thead>
+              <tr><th>Layer</th><th>ป้องกัน</th><th>วิธี</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>HMAC signature</td>
+                <td>tampering + impersonation</td>
+                <td>HMAC-SHA256 กับ shared federation token</td>
+              </tr>
+              <tr>
+                <td>Timestamp window</td>
+                <td>replay attack</td>
+                <td>reject ข้อความเก่ากว่า 30 วินาที</td>
+              </tr>
+              <tr>
+                <td>Nonce</td>
+                <td>duplicate messages</td>
+                <td>UUID ไม่ซ้ำทุกข้อความ</td>
+              </tr>
+              <tr>
+                <td>Per-peer key</td>
+                <td>single-peer compromise</td>
+                <td>peer ตัวเดียวหลุดไม่กระทบตัวอื่น</td>
+              </tr>
+              <tr>
+                <td>Constant-time compare</td>
+                <td>timing attack</td>
+                <td><code>crypto.timingSafeEqual()</code></td>
+              </tr>
+              <tr>
+                <td>Network boundary</td>
+                <td>external access</td>
+                <td>WireGuard VPN &mdash; fleet nodes only</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ======================== PART D ======================== -->
+        <section>
+          <h2>Part D &mdash; Fleet Topology</h2>
+
+          <h3>D.1 &mdash; Node Map</h3>
+          <pre><code>┌─────────────────┐        ┌─────────────────┐
+│  clinic-drdo    │        │  mac-studio     │
+│                 │◄──────►│                 │
+│  devboy-oracle  │  WG    │  glueboy-oracle │
+│  forgeboy-oracle│  VPN   │                 │
+└────────┬────────┘        └────────┬────────┘
+         │                          │
+         │     ┌─────────────────┐  │
+         └────►│  homelab        │◄─┘
+               │                 │
+               │  experimental   │
+               └─────────────────┘</code></pre>
+          <p>ทุก node เชื่อมกันผ่าน <strong>WireGuard VPN</strong> &mdash; ไม่เปิด federation port บน public internet. Address ใช้ <code>.wg</code> domain.</p>
+
+          <h3>D.2 &mdash; Oracle Distribution</h3>
+          <table>
+            <thead>
+              <tr><th>Node</th><th>Oracle(s)</th><th>Role</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>clinic-drdo</td><td>DEVBOY, FORGEBOY</td><td>R&amp;D + Production shipping</td></tr>
+              <tr><td>mac-studio</td><td>GLUEBOY</td><td>CEO + orchestrator</td></tr>
+              <tr><td>homelab</td><td>experimental</td><td>Testing + future BOYs</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ======================== PART E ======================== -->
+        <section>
+          <h2>Part E &mdash; Configuration</h2>
+
+          <h3>E.1 &mdash; maw.config.json</h3>
+          <pre><code>// ~/.config/maw/maw.config.json
+{
+  "federationToken": "shared-secret-across-all-nodes",
+  "federation": {
+    "enabled": true,
+    "port": 3457
+  },
+  "namedPeers": {
+    "mac-studio": {
+      "url": "https://mac-studio.wg:3457",
+      "key": "per-peer-identity-key-mac-studio"
+    },
+    "homelab": {
+      "url": "https://homelab.wg:3457",
+      "key": "per-peer-identity-key-homelab"
+    }
+  }
+}</code></pre>
+          <p><strong>chmod 600</strong> ไฟล์นี้เสมอ &mdash; มี federation token + peer keys (ดู <a href="049-token-security.html">049 Token Security</a>).</p>
+
+          <h3>E.2 &mdash; เพิ่ม Peer ใหม่</h3>
+          <pre><code># 1. Node ใหม่ install maw-js + ตั้ง federation config
+# 2. เพิ่ม peer entry ในทุก node ที่มีอยู่:
+jq '.namedPeers["new-node"] = {"url":"https://new-node.wg:3457","key":"generated-key"}' \
+  maw.config.json > tmp && mv tmp maw.config.json
+
+# 3. Node ใหม่เพิ่ม existing peers ใน config ตัวเอง
+
+# 4. Verify ทุกคู่:
+maw hey new-node "ping"    # จาก existing node
+maw hey clinic-drdo "ping" # จาก new node</code></pre>
+
+          <h3>E.3 &mdash; Troubleshooting</h3>
+          <table>
+            <thead>
+              <tr><th>อาการ</th><th>สาเหตุ</th><th>แก้ไข</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>maw hey</code> timeout</td>
+                <td>peer offline / WireGuard down / port blocked</td>
+                <td>ตรวจ <code>wg show</code> + <code>curl peer-url/health</code></td>
+              </tr>
+              <tr>
+                <td>"invalid signature"</td>
+                <td>federation token ไม่ตรงกัน</td>
+                <td>ตรวจ <code>federationToken</code> ตรงทุก node</td>
+              </tr>
+              <tr>
+                <td>"expired" / replay rejected</td>
+                <td>clock skew ระหว่าง nodes</td>
+                <td>sync NTP: <code>timedatectl set-ntp true</code></td>
+              </tr>
+              <tr>
+                <td>talk-to ส่งได้ แต่ target ไม่เห็น</td>
+                <td>inbox path ผิด / oracle name mismatch</td>
+                <td>ตรวจ <code>&psi;/inbox/</code> ของ target oracle</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ======================== PART F ======================== -->
+        <section>
+          <h2>Part F &mdash; Practical Examples</h2>
+
+          <h3>F.1 &mdash; GLUEBOY สั่ง DEVBOY ทำ research</h3>
+          <pre><code># GLUEBOY session (mac-studio):
+maw talk-to devboy "study Anthropic agent SDK, write 5-dim learning to &psi;/learn/"
+
+# ฝั่ง DEVBOY (clinic-drdo):
+# session ถัดไปเห็นใน &psi;/inbox/glueboy/:
+# 2026-05-24-glueboy-task.md
+# &gt; study Anthropic agent SDK, write 5-dim learning to &psi;/learn/
+
+# DEVBOY ทำ research &rarr; เขียน learning &rarr; report กลับ:
+maw talk-to glueboy "agent SDK learning done, see &psi;/learn/anthropic/agent-sdk/"</code></pre>
+
+          <h3>F.2 &mdash; Bud Signal Flow</h3>
+          <pre><code># DEVBOY เขียน bud signal:
+# &psi;/outbox/glueboy/bud-signal-floodguard.md
+
+# DEVBOY ส่ง notification:
+maw talk-to glueboy "bud signal ready: floodguard. Review &psi;/outbox/glueboy/bud-signal-floodguard.md"
+
+# GLUEBOY review &rarr; escalate ถึง Captain &rarr; Captain approve &rarr;
+maw bud devboy --stem floodguard</code></pre>
+
+          <h3>F.3 &mdash; Quick Health Check</h3>
+          <pre><code># ตรวจว่า peer ทุกตัว alive:
+maw hey mac-studio "ping"   # &rarr; "pong" = OK
+maw hey homelab "ping"      # &rarr; timeout = down
+
+# ตรวจ fleet status ทั้งหมด:
+for peer in mac-studio homelab; do
+  echo -n "$peer: "
+  maw hey $peer "ping" 2>&1 | head -1
+done</code></pre>
+        </section>
+
+        <!-- ======================== PART G ======================== -->
+        <section>
+          <h2>Part G &mdash; Security Boundary</h2>
+
+          <h3>ไม่เปิดสู่ Public Internet</h3>
+          <p>Federation port (3457) bind เฉพาะ WireGuard interface &mdash; ไม่มี public exposure:</p>
+          <pre><code># maw-js bind เฉพาะ WireGuard IP
+listen: "10.0.0.X:3457"  # WG subnet only
+# ไม่ใช่ 0.0.0.0:3457   # ห้าม bind ทุก interface</code></pre>
+
+          <h3>Defense in Depth</h3>
+          <pre><code>Layer 1: WireGuard VPN (network isolation)
+  &darr;
+Layer 2: HMAC signature (message authentication)
+  &darr;
+Layer 3: Timestamp + nonce (anti-replay)
+  &darr;
+Layer 4: Per-peer keys (blast radius control)
+  &darr;
+Layer 5: File permissions (local token security)</code></pre>
+
+          <p>attacker ต้องทะลุ <strong>ทุก layer</strong> ถึงจะ inject ข้อความปลอมเข้า fleet ได้. WireGuard อย่างเดียวก็กันได้ระดับหนึ่ง แต่ defense in depth = ปลอดภัยกว่าอาศัย layer เดียว.</p>
+        </section>
+
+        <!-- ======================== PART H ======================== -->
+        <section>
+          <h2>Part H &mdash; สรุป</h2>
+
+          <table>
+            <thead>
+              <tr><th>Topic</th><th>Key Point</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Federation คือ</td><td>Cross-oracle messaging ผ่าน maw-js relay + HMAC</td></tr>
+              <tr><td>Commands</td><td><code>talk-to</code> (formal, inbox) / <code>hey</code> (quick, direct)</td></tr>
+              <tr><td>Trust</td><td>TOFU + per-peer keys + constant-time HMAC</td></tr>
+              <tr><td>Network</td><td>WireGuard VPN only &mdash; ไม่เปิด public</td></tr>
+              <tr><td>Config</td><td><code>maw.config.json</code> &mdash; chmod 600 เสมอ</td></tr>
+              <tr><td>Verify</td><td><code>maw hey &lt;peer&gt; "ping"</code></td></tr>
+            </tbody>
+          </table>
+
+          <p>อ่านเรื่อง token security เพิ่มเติมที่ <a href="049-token-security.html">049 &mdash; จัดการ Token อย่างปลอดภัย</a>.</p>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: P'Nat CCC Academy &mdash; ACC-Program 3</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Team Agents &amp; Trio Pattern &mdash; 3 tiers ของ multi-agent, 6 presets, Trio (lead + searcher + coder), lifecycle, heartbeat, worktree mode, 11 gotchas. CCC Academy Lesson 4.">
+  <title>048 &mdash; ทีม Agents และ Trio Pattern | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">048 &mdash; ทีม Agents &amp; Trio Pattern</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>ทีม Agents และ Trio Pattern</h1>
+        <div class="article-meta">
+          <span class="tag">team-agents</span>
+          <span class="tag">trio</span>
+          <span class="tag">multi-agent</span>
+          <span class="tag">subagent</span>
+          <span class="tag">team-tile</span>
+          <span class="tag">coordination</span>
+          &middot; P'Nat CCC Academy &middot; Lesson 4
+          <span class="maturity solid">&#10004; solid research</span>
+        </div>
+
+        <!-- Part A: 3 Tiers -->
+        <section>
+          <h2>A &mdash; 3 Tiers ของ Multi-Agent Work</h2>
+          <p>Claude Code มี 3 ระดับของการทำงานหลาย agents พร้อมกัน &mdash; เลือกให้ถูกระดับ:</p>
+          <table>
+            <thead>
+              <tr><th>Tier</th><th>จำนวน</th><th>Tools</th><th>Context</th><th>เมื่อไหร่</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Subagents</strong></td>
+                <td>&lt;3</td>
+                <td><code>Agent()</code> tool</td>
+                <td>แชร์ parent context</td>
+                <td>งาน independent 2 ชิ้นพร้อมกัน</td>
+              </tr>
+              <tr>
+                <td><strong>Team Agents</strong></td>
+                <td>3&ndash;5</td>
+                <td><code>TeamCreate</code> + <code>SendMessage</code> + <code>TaskList</code></td>
+                <td>แต่ละ agent มี context เต็มของตัวเอง</td>
+                <td>งาน coordinated ที่ต้องคุยกัน</td>
+              </tr>
+              <tr>
+                <td><strong>Cross-Oracle</strong></td>
+                <td>ไม่จำกัด</td>
+                <td><code>maw talk-to</code> / <code>maw hey</code></td>
+                <td>คนละ session เลย</td>
+                <td>ข้ามเครื่อง, ข้าม repo</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>กฎเลือก Tier</h3>
+          <p><strong>2 งาน independent</strong> = Subagents (Agent() tool). <strong>งาน coordinated ที่ต้องส่ง message หากัน</strong> = Team Agents. อย่าใช้ team agents สำหรับงานง่ายๆ &mdash; overhead สูงเกินไป.</p>
+        </section>
+
+        <!-- Part B: 6 Presets -->
+        <section>
+          <h2>B &mdash; 6 Presets ของ /team-agents</h2>
+          <table>
+            <thead>
+              <tr><th>Preset</th><th>Agents</th><th>บทบาท</th><th>เหมาะกับ</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>blank</code></td>
+                <td>1</td>
+                <td>1 TODO ว่าง</td>
+                <td>กำหนดเอง 100%</td>
+              </tr>
+              <tr>
+                <td><code>solo</code></td>
+                <td>1</td>
+                <td>helper</td>
+                <td>งานเดี่ยวที่ต้องการ isolation</td>
+              </tr>
+              <tr>
+                <td><code>pair</code></td>
+                <td>2</td>
+                <td>reviewer + writer</td>
+                <td>code review, write + check</td>
+              </tr>
+              <tr>
+                <td><strong><code>trio</code></strong></td>
+                <td><strong>3</strong></td>
+                <td><strong>reviewer + writer + lead</strong></td>
+                <td><strong>งาน research + build + coordinate</strong></td>
+              </tr>
+              <tr>
+                <td><code>review</code></td>
+                <td>2+</td>
+                <td>security + docs</td>
+                <td>audit, compliance review</td>
+              </tr>
+              <tr>
+                <td><code>stack</code></td>
+                <td>4</td>
+                <td>architect + frontend + backend + tester</td>
+                <td>full-stack feature build</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><strong>Trio คือ default ที่ใช้บ่อยสุด</strong> &mdash; balance ดีระหว่าง coverage กับ overhead.</p>
+        </section>
+
+        <!-- Part C: Trio Pattern Deep Dive -->
+        <section>
+          <h2>C &mdash; Trio Pattern (Lead + Searcher + Coder)</h2>
+
+          <h3>C.1 &mdash; บทบาท 3 ตัว</h3>
+          <table>
+            <thead>
+              <tr><th>Role</th><th>หน้าที่</th><th>Output</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Lead</strong> (&#x1F7E2;)</td>
+                <td>coordinate, assign, compile results, cross-verify</td>
+                <td>Final report &mdash; รวมผลจากทั้งทีม</td>
+              </tr>
+              <tr>
+                <td><strong>Searcher</strong> (&#x1F535;)</td>
+                <td>read code, analyze, search, ส่ง findings ให้ lead</td>
+                <td>Research findings + citations</td>
+              </tr>
+              <tr>
+                <td><strong>Coder</strong> (&#x1F7E0;)</td>
+                <td>write code, build, test, ส่ง output ให้ lead</td>
+                <td>Working code + test results</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><strong>Lead คือ bottleneck ที่ตั้งใจ</strong> &mdash; ทุก output ผ่าน lead ก่อนออก. ป้องกัน searcher กับ coder contradict กัน.</p>
+
+          <h3>C.2 &mdash; Flow</h3>
+          <pre><code>Lead: assign tasks &rarr; Searcher + Coder
+         ┌─────────────────────────────────┐
+Searcher │ search &rarr; analyze &rarr; findings   │&rarr; SendMessage &rarr; Lead
+         └─────────────────────────────────┘
+         ┌─────────────────────────────────┐
+Coder    │ write &rarr; build &rarr; test           │&rarr; SendMessage &rarr; Lead
+         └─────────────────────────────────┘
+Lead: compile &rarr; cross-verify &rarr; final report</code></pre>
+
+          <h3>C.3 &mdash; Cross-Agent Verification</h3>
+          <p>Lead ไม่แค่รวมผล &mdash; ต้อง <strong>cross-verify</strong>: Searcher พบ pattern X, Coder implement X &mdash; ผลตรงกันหรือเปล่า? ถ้าไม่ตรง &rarr; Lead สั่ง re-check ก่อน report.</p>
+        </section>
+
+        <!-- Part D: Technical Lifecycle -->
+        <section>
+          <h2>D &mdash; Lifecycle ของ Team Agents</h2>
+
+          <h3>D.1 &mdash; Prerequisites</h3>
+          <pre><code># ต้องเปิด env var นี้ก่อน
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code></pre>
+          <p>ถ้าไม่เปิด &rarr; <code>/team-agents</code> จะไม่ทำงาน. เป็น experimental feature.</p>
+
+          <h3>D.2 &mdash; Lifecycle Flow</h3>
+          <pre><code>TeamCreate (สร้างทีม + กำหนด preset)
+  │
+  ├── TaskCreate (สร้าง task, ใส่ addBlockedBy สำหรับ dependencies)
+  │     ├── Task A (Searcher) &mdash; no blockers
+  │     ├── Task B (Coder) &mdash; blocked by Task A
+  │     └── Task C (Lead compile) &mdash; blocked by A + B
+  │
+  ├── Agent() spawn &mdash; แต่ละ agent เริ่มทำ task ของตัวเอง
+  │
+  ├── SendMessage heartbeats (ทุก 5 นาที)
+  │     ├── PROGRESS &mdash; กำลังทำ
+  │     ├── STUCK &mdash; ติด, ต้องการ help
+  │     ├── DONE &mdash; เสร็จ
+  │     └── ABORT &mdash; ล้มเหลว, หยุด
+  │
+  ├── Lead: compile results + cross-verify
+  │
+  ├── Shutdown &mdash; ปิดทีม
+  │
+  └── Cleanup &mdash; ลบ temp files, prune worktrees</code></pre>
+
+          <h3>D.3 &mdash; Agent Prompt Template</h3>
+          <p>แต่ละ agent ที่ spawn ได้รับ prompt ที่มี:</p>
+          <ul>
+            <li><strong>REPO</strong> &mdash; path ของ repo ที่ทำงาน</li>
+            <li><strong>TASK</strong> &mdash; task description จาก TaskCreate</li>
+            <li><strong>COLOR</strong> &mdash; สี identifier (green/blue/orange) สำหรับ log</li>
+            <li><strong>WORKTREE</strong> &mdash; flag ว่าใช้ worktree mode หรือไม่</li>
+            <li><strong>Heartbeat protocol</strong> &mdash; PROGRESS/STUCK/DONE/ABORT ทุก 5 นาที</li>
+          </ul>
+
+          <h3>D.4 &mdash; Communication: SendMessage</h3>
+          <p>Agents คุยกันผ่าน <code>SendMessage</code> &mdash; bidirectional, filesystem transport:</p>
+          <table>
+            <thead>
+              <tr><th>#</th><th>Message Type</th><th>ใช้เมื่อ</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>TASK_ASSIGN</td><td>Lead มอบงาน</td></tr>
+              <tr><td>2</td><td>PROGRESS</td><td>heartbeat ทุก 5 นาที</td></tr>
+              <tr><td>3</td><td>STUCK</td><td>ติดปัญหา ขอ help</td></tr>
+              <tr><td>4</td><td>DONE</td><td>เสร็จงาน</td></tr>
+              <tr><td>5</td><td>ABORT</td><td>ล้มเหลว ยกเลิก</td></tr>
+              <tr><td>6</td><td>FINDINGS</td><td>Searcher ส่ง research results</td></tr>
+              <tr><td>7</td><td>CODE_READY</td><td>Coder ส่ง code ให้ review</td></tr>
+              <tr><td>8</td><td>REVIEW_RESULT</td><td>ผล review กลับ</td></tr>
+              <tr><td>9</td><td>QUESTION</td><td>ถามข้ามทีม</td></tr>
+              <tr><td>10</td><td>DIRECTIVE</td><td>Lead สั่งเปลี่ยนทิศทาง</td></tr>
+            </tbody>
+          </table>
+          <p>Transport = filesystem &mdash; durable, ไม่หายแม้ compact context.</p>
+
+          <h3>D.5 &mdash; Worktree Mode (<code>--worktree</code>)</h3>
+          <p>แต่ละ agent ได้ <strong>git branch แยก</strong> &mdash; ป้องกัน file conflict:</p>
+          <pre><code>/team-agents trio --worktree
+
+# ผลลัพธ์:
+# agent-lead    &rarr; branch: team/lead
+# agent-search  &rarr; branch: team/search
+# agent-code    &rarr; branch: team/code</code></pre>
+          <p>เมื่อเสร็จ &rarr; Lead merge branches กลับ. ถ้า conflict &rarr; Lead resolve.</p>
+        </section>
+
+        <!-- Part E: Comparison Table -->
+        <section>
+          <h2>E &mdash; Agent() vs Team-Tile เปรียบเทียบ</h2>
+          <table>
+            <thead>
+              <tr><th>มิติ</th><th>Agent() (Subagent)</th><th>Team-Tile (Team Agent)</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Context window</strong></td>
+                <td>แชร์กับ parent</td>
+                <td>แต่ละตัวมี context เต็มของตัวเอง</td>
+              </tr>
+              <tr>
+                <td><strong>Lifetime</strong></td>
+                <td>จบเมื่อ parent turn จบ</td>
+                <td>อยู่จนกว่า Shutdown หรือ task เสร็จ</td>
+              </tr>
+              <tr>
+                <td><strong>Cross-repo</strong></td>
+                <td>ไม่ได้ &mdash; อยู่ใน repo เดียว</td>
+                <td>ได้ผ่าน worktree + path config</td>
+              </tr>
+              <tr>
+                <td><strong>Communication</strong></td>
+                <td>ผ่าน return value เท่านั้น</td>
+                <td>SendMessage bidirectional, 10 types</td>
+              </tr>
+              <tr>
+                <td><strong>Identity</strong></td>
+                <td>ไม่มี &mdash; anonymous worker</td>
+                <td>มี role, color, prompt template</td>
+              </tr>
+              <tr>
+                <td><strong>Cost</strong></td>
+                <td>ต่ำ (แชร์ context)</td>
+                <td>สูง (context เต็มต่อตัว)</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><strong>Rule of thumb</strong>: ถ้าไม่ต้อง SendMessage ระหว่าง agents &rarr; ใช้ Agent(). ถ้าต้อง coordinate &rarr; ใช้ Team-Tile.</p>
+        </section>
+
+        <!-- Part F: 11 Gotchas -->
+        <section>
+          <h2>F &mdash; 11 Gotchas ที่ต้องรู้</h2>
+          <table>
+            <thead>
+              <tr><th>#</th><th>Gotcha</th><th>ผลกระทบ</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td><strong>No session resume</strong></td>
+                <td>ทีมตายเมื่อ session จบ &mdash; ไม่ resume ได้</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><strong>One team per session</strong></td>
+                <td>สร้างทีมที่ 2 ใน session เดียวไม่ได้</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><strong>No nested teams</strong></td>
+                <td>Team agent สร้าง sub-team ไม่ได้</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><strong>Same file = overwrites</strong></td>
+                <td>2 agents แก้ไฟล์เดียวกัน &rarr; คนหลังทับคนแรก (ถ้าไม่ใช้ worktree)</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><strong>Heartbeat timeout</strong></td>
+                <td>ไม่ส่ง heartbeat &gt;10 นาที &rarr; lead อาจ mark as STUCK</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><strong>Context per agent = full cost</strong></td>
+                <td>3 agents = ~3x token cost ของ 1 agent</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><strong>Env var required</strong></td>
+                <td><code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code> ไม่เปิด = ไม่มีทีม</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><strong>Worktree cleanup manual</strong></td>
+                <td>ถ้า session crash &rarr; worktrees ค้าง ต้อง <code>git worktree prune</code> เอง</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td><strong>No cross-session memory</strong></td>
+                <td>Team agents ไม่อ่าน &psi;/ โดย default &mdash; ต้องใส่ใน prompt</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td><strong>Message ordering not guaranteed</strong></td>
+                <td>SendMessage อาจไม่เรียงตาม timestamp &mdash; ใช้ sequence number</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td><strong>Lead bottleneck</strong></td>
+                <td>Lead ไม่ respond &rarr; ทั้งทีมหยุด. Lead ต้อง responsive.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Part G: Real Evidence -->
+        <section>
+          <h2>G &mdash; หลักฐานจริง: DEVBOY Live Flow Test</h2>
+          <p><strong>2026-05-22</strong> &mdash; P'Nat's workshop session. DEVBOY ทำ live flow test ของ team agents:</p>
+          <ol>
+            <li>สร้าง trio preset &mdash; Lead + Searcher + Coder</li>
+            <li>Searcher: trace autonomous-oracle-loop pattern จาก gale-oracle</li>
+            <li>Coder: เขียน article 043 (Autonomous Oracle Loop)</li>
+            <li>Lead: compile + cross-verify + publish</li>
+          </ol>
+          <p><strong>ผลลัพธ์</strong>: ทุก test pass. Article 043 เป็น output จากทีม trio จริง.</p>
+        </section>
+
+        <!-- Part H: Quick Reference -->
+        <section>
+          <h2>H &mdash; Quick Reference</h2>
+          <pre><code># เปิด feature (ใส่ใน .bashrc หรือ settings.json)
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+
+# สร้างทีม trio
+/team-agents trio
+
+# สร้างทีม trio + worktree isolation
+/team-agents trio --worktree
+
+# สร้างทีม custom (blank)
+/team-agents blank
+
+# สร้างทีม full-stack
+/team-agents stack
+
+# ดู presets ทั้งหมด
+/team-agents --help</code></pre>
+
+          <h3>Decision Tree</h3>
+          <pre><code>งานต้องทำกี่ชิ้นพร้อมกัน?
+  │
+  ├── 1 ชิ้น &rarr; ทำเอง (ไม่ต้อง agent)
+  │
+  ├── 2 ชิ้น independent &rarr; Agent() subagent
+  │
+  ├── 3-5 ชิ้น coordinated &rarr; /team-agents (trio/stack)
+  │
+  └── ข้ามเครื่อง/repo &rarr; maw talk-to / maw hey</code></pre>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: P'Nat CCC Academy &mdash; ACC-Program 3</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

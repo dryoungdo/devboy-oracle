@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="จาก Shortcode สู่ Skill — pipeline จาก /create-shortcut สู่ SKILL.md ที่ distribute ได้ | P'Nat CCC Academy Lesson 2">
+  <title>046 &mdash; จาก Shortcode สู่ Skill | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">046 &mdash; จาก Shortcode สู่ Skill</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>จาก Shortcode สู่ Skill &mdash; สร้าง Slash Command ของตัวเอง</h1>
+        <div class="article-meta">
+          <span class="tag">skills</span>
+          <span class="tag">shortcode</span>
+          <span class="tag">slash-command</span>
+          <span class="tag">create-shortcut</span>
+          <span class="tag">automation</span>
+          <span class="tag">skill-md</span>
+          &middot; CCC Academy Lesson 2
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <!-- Section A: What is a Skill -->
+        <section>
+          <h2>A &mdash; Skill คืออะไร</h2>
+          <p><strong>Skill</strong> คือ markdown file (<code>SKILL.md</code>) ที่ Claude Code อ่านเป็น slash command. พิมพ์ <code>/rrr</code> &mdash; Claude อ่าน <code>SKILL.md</code> ของ rrr แล้วทำตาม instructions ข้างใน.</p>
+          <p>Skill ไม่ใช่ code &mdash; เป็น <strong>natural language instructions</strong> ที่ Claude ตีความแล้วทำ. เขียนเป็น markdown ธรรมดา &mdash; ไม่ต้องเป็น programmer ก็สร้างได้.</p>
+          <pre><code>/bye        &rarr;  ~/.claude/skills/bye/SKILL.md        (20 บรรทัด)
+/forward    &rarr;  ~/.claude/skills/forward/SKILL.md    (271 บรรทัด)
+/rrr        &rarr;  ~/.claude/skills/rrr/SKILL.md        (267 บรรทัด + DEEP.md + TEAMMATE.md)</code></pre>
+        </section>
+
+        <!-- Section B: Skill Locations -->
+        <section>
+          <h2>B &mdash; Skill อยู่ที่ไหน</h2>
+          <table>
+            <thead>
+              <tr><th>Level</th><th>Path</th><th>Scope</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Project</strong></td>
+                <td><code>.claude/skills/&lt;name&gt;/SKILL.md</code></td>
+                <td>ใช้ได้เฉพาะใน repo นี้ &mdash; commit ได้, ทีมใช้ร่วม</td>
+              </tr>
+              <tr>
+                <td><strong>Global</strong></td>
+                <td><code>~/.claude/skills/&lt;name&gt;/SKILL.md</code></td>
+                <td>ใช้ได้ทุก project &mdash; personal, ไม่ commit</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>Project skills ชนะ global ถ้าชื่อซ้ำ &mdash; เหมือน CLAUDE.md ที่ specific level ชนะ.</p>
+        </section>
+
+        <!-- Section C: SKILL.md Anatomy -->
+        <section>
+          <h2>C &mdash; โครงสร้าง SKILL.md</h2>
+          <pre><code>---
+name: my-skill
+description: "ทำ X เมื่อ user พิมพ์ /my-skill"
+argument-hint: "[--fast | --deep]"
+---
+
+# /my-skill
+
+คำอธิบายสั้นๆ ว่า skill นี้ทำอะไร.
+
+## Usage
+
+```
+/my-skill              # default mode
+/my-skill --fast       # quick version
+/my-skill $ARGUMENTS   # pass custom args
+```
+
+## Step 1: ทำอะไรก่อน
+
+อธิบาย step 1...
+
+## Step 2: ทำอะไรต่อ
+
+อธิบาย step 2...
+
+## Notes
+
+- ข้อควรระวัง
+- edge cases</code></pre>
+
+          <h3>C.1 &mdash; Frontmatter</h3>
+          <table>
+            <thead>
+              <tr><th>Field</th><th>Required?</th><th>คำอธิบาย</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>name</code></td><td>required</td><td>ชื่อ skill (= ชื่อ folder)</td></tr>
+              <tr><td><code>description</code></td><td>required</td><td>บอก Claude ว่า trigger เมื่อไหร่ &mdash; สำคัญมาก</td></tr>
+              <tr><td><code>argument-hint</code></td><td>optional</td><td>แสดงใน autocomplete ว่ารับ args อะไร</td></tr>
+            </tbody>
+          </table>
+          <p><strong>description</strong> ทำหน้าที่เป็น trigger &mdash; Claude ใช้มันตัดสินว่าจะเรียก skill เมื่อไหร่. เขียนให้ครอบคลุม phrases ที่ user จะพิมพ์.</p>
+
+          <h3>C.2 &mdash; $ARGUMENTS</h3>
+          <p><code>$ARGUMENTS</code> คือ placeholder ที่รับ input จาก user:</p>
+          <pre><code>/my-skill hello world
+# $ARGUMENTS = "hello world"</code></pre>
+          <p>ใช้ใน SKILL.md body เพื่อบอก Claude ว่า input อยู่ตรงไหน.</p>
+        </section>
+
+        <!-- Section D: Pipeline -->
+        <section>
+          <h2>D &mdash; Pipeline: จาก Ad-hoc สู่ Mature Skill</h2>
+          <p>Skill ไม่ได้เกิดจากการนั่งออกแบบ &mdash; มันเกิดจาก <strong>การใช้งานซ้ำ</strong>:</p>
+
+          <h3>D.1 &mdash; 6 ขั้นตอนวิวัฒนาการ</h3>
+          <pre><code>Step 1: User พิมพ์ /resonance
+        &darr;
+Step 2: /create-shortcut จับได้ (unknown command)
+        &rarr; infer intent จาก conversation context
+        &rarr; execute ทันที
+        &darr;
+Step 3: ถาม "Save as /resonance for next time?"
+        &darr;
+Step 4: สร้าง SKILL.md ที่ .claude/skills/resonance/
+        &darr;
+Step 5: Refine &mdash; เพิ่ม modes, flags, edge cases
+        &darr;
+Step 6: Distribute ผ่าน npx (optional)</code></pre>
+
+          <h3>D.2 &mdash; /create-shortcut ทำอะไร</h3>
+          <p><code>/create-shortcut</code> คือ <strong>skill factory</strong> &mdash; สร้าง skill ใหม่จาก terminal:</p>
+          <pre><code>/create-shortcut                                # list ทั้งหมด
+/create-shortcut create deploy "Run tests then deploy"  # สร้างใหม่
+/create-shortcut delete deploy                  # ลบ</code></pre>
+          <p>มันยัง <strong>auto-trigger เมื่อ user พิมพ์ command ที่ไม่มี</strong> &mdash; แทนที่จะ error, มันสร้าง skill ให้เลย.</p>
+        </section>
+
+        <!-- Section E: Complexity Spectrum -->
+        <section>
+          <h2>E &mdash; Complexity Spectrum</h2>
+          <table>
+            <thead>
+              <tr><th>ระดับ</th><th>ตัวอย่าง</th><th>ขนาด</th><th>ลักษณะ</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Simple</strong></td>
+                <td><code>/bye</code></td>
+                <td>~20 บรรทัด</td>
+                <td>1 SKILL.md, ทำอย่างเดียว (tmux detach), ไม่มี modes</td>
+              </tr>
+              <tr>
+                <td><strong>Medium</strong></td>
+                <td><code>/forward</code></td>
+                <td>271 บรรทัด</td>
+                <td>1 SKILL.md, หลาย steps, mode flags (--fast), writes files</td>
+              </tr>
+              <tr>
+                <td><strong>Complex</strong></td>
+                <td><code>/rrr</code></td>
+                <td>267 + DEEP.md + TEAMMATE.md</td>
+                <td>Main SKILL.md + companion files, subagent modes, hooks</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>E.1 &mdash; /bye (Simple)</h3>
+          <p>ทำแค่ 3 อย่าง: identify BOY name &rarr; print farewell &rarr; <code>tmux detach-client</code>. ไม่มี flags, ไม่มี modes, ไม่เขียนไฟล์.</p>
+
+          <h3>E.2 &mdash; /rrr (Complex)</h3>
+          <p>มี 5 modes:</p>
+          <pre><code>/rrr                # Quick retro, main agent only
+/rrr --detail       # Full template
+/rrr --dig          # Reconstruct past timeline from .jsonl
+/rrr --deep         # 5 parallel subagents
+/rrr --deep --teammate  # 3 coordinated team agents</code></pre>
+          <p>Directory structure:</p>
+          <pre><code>~/.claude/skills/rrr/
+├── SKILL.md          &larr; main (267 lines)
+├── DEEP.md           &larr; instructions สำหรับ --deep mode
+└── TEAMMATE.md       &larr; instructions สำหรับ --teammate mode</code></pre>
+          <p>SKILL.md หลักบอก Claude ว่า "ถ้า <code>--deep</code>, อ่าน DEEP.md แล้วทำตาม" &mdash; <strong>conditional include</strong> ผ่าน natural language.</p>
+        </section>
+
+        <!-- Section F: Key Patterns -->
+        <section>
+          <h2>F &mdash; Key Patterns ที่ Skills ใช้</h2>
+
+          <h3>F.1 &mdash; Oracle Root Detection</h3>
+          <p>ทุก skill ที่เขียนไปที่ <code>&psi;/</code> ต้องหา oracle root ก่อน:</p>
+          <pre><code># ใน SKILL.md:
+## Oracle Root Detection (REQUIRED)
+Run: find the repo root that contains ψ/ directory.
+Do NOT assume pwd is the oracle repo.</code></pre>
+          <p>เพราะ Claude อาจรันจาก directory ไหนก็ได้ &mdash; ต้องหา root ที่มี <code>&psi;/</code> จริงๆ.</p>
+
+          <h3>F.2 &mdash; Timestamp-First Naming</h3>
+          <pre><code>HHMM_topic.md        &larr; sort ตาม natural time order
+2145_session-retro.md
+0830_class-notes.md</code></pre>
+
+          <h3>F.3 &mdash; Mode Flags</h3>
+          <pre><code>/skill              # default (fast, simple)
+/skill --fast       # minimal output
+/skill --deep       # spawn subagents, thorough
+/skill --detail     # full template, more verbose</code></pre>
+          <p>Convention: default = fast. <code>--deep</code> = expensive (subagents). เสมอ opt-in สำหรับ heavy mode.</p>
+
+          <h3>F.4 &mdash; Description as Trigger</h3>
+          <p>Frontmatter <code>description</code> ทำหน้าที่เป็น <strong>trigger condition</strong>:</p>
+          <pre><code>description: 'Use when user says "rrr", "retrospective",
+  "wrap up session", "session summary", or at end of work session.'</code></pre>
+          <p>Claude ใช้ description ตัดสินว่าจะเรียก skill เมื่อไหร่ &mdash; เขียนให้ครอบคลุม natural language ที่ user จะพิมพ์.</p>
+        </section>
+
+        <!-- Section G: Hooks in Skills -->
+        <section>
+          <h2>G &mdash; Hooks กับ Skills</h2>
+          <p>Skills ทำงานร่วมกับ <code>settings.json</code> hooks ได้:</p>
+          <table>
+            <thead>
+              <tr><th>Hook Event</th><th>เมื่อไหร่</th><th>ใช้ทำอะไร</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>PreToolUse</code></td><td>ก่อน Claude เรียก tool</td><td>Validate input, gate dangerous commands</td></tr>
+              <tr><td><code>PostToolUse</code></td><td>หลัง tool เสร็จ</td><td>Log output, trigger follow-up</td></tr>
+              <tr><td><code>SessionStart</code></td><td>เริ่ม session</td><td>Setup environment, load context</td></tr>
+              <tr><td><code>Stop</code></td><td>Claude หยุดตอบ</td><td>Auto-rrr, cleanup</td></tr>
+              <tr><td><code>SessionEnd</code></td><td>จบ session</td><td>Save state, final cleanup</td></tr>
+            </tbody>
+          </table>
+          <p>ตัวอย่าง: fleet มี <strong>auto-rrr hook</strong> ที่ trigger <code>/rrr</code> เมื่อ session จบ &mdash; ไม่ต้องพึ่งว่า BOY จะจำได้เอง.</p>
+          <pre><code>// settings.json
+{
+  "hooks": {
+    "Stop": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "echo 'Run /rrr before ending'"
+      }]
+    }]
+  }
+}</code></pre>
+          <p>Hook + Skill = <strong>gate-layer automation</strong>. Skill บอก "ทำอะไร", Hook บอก "ทำเมื่อไหร่" &mdash; ทั้งคู่ไม่พึ่ง memory.</p>
+        </section>
+
+        <!-- Section H: Step-by-Step -->
+        <section>
+          <h2>H &mdash; สร้าง Skill ด้วยมือ (Step-by-Step)</h2>
+
+          <h3>Step 1: สร้าง directory</h3>
+          <pre><code># Project-local
+mkdir -p .claude/skills/my-check/
+
+# หรือ Global
+mkdir -p ~/.claude/skills/my-check/</code></pre>
+
+          <h3>Step 2: เขียน SKILL.md</h3>
+          <pre><code>---
+name: my-check
+description: "Run pre-commit checks. Use when user says 'check', 'pre-commit', or 'verify before commit'."
+---
+
+# /my-check
+
+Run lint + test + type-check ก่อน commit.
+
+## Steps
+
+1. Run `bun lint`
+2. Run `bun test`
+3. Run `bun tsc --noEmit`
+4. ถ้าผ่านทั้งหมด &rarr; บอก "Ready to commit"
+5. ถ้า fail &rarr; แสดง errors + suggest fix</code></pre>
+
+          <h3>Step 3: ทดสอบ</h3>
+          <pre><code># พิมพ์ใน Claude Code:
+/my-check</code></pre>
+          <p>ถ้า skill ขึ้นใน autocomplete = สำเร็จ.</p>
+
+          <h3>Step 4: เพิ่ม scripts (optional)</h3>
+          <pre><code>.claude/skills/my-check/
+├── SKILL.md
+└── scripts/
+    └── lint-fix.sh    &larr; helper script ที่ SKILL.md อ้างถึง</code></pre>
+
+          <h3>Step 5: เพิ่ม hooks (optional)</h3>
+          <p>ใส่ใน <code>.claude/settings.json</code> ให้ auto-trigger skill:</p>
+          <pre><code>{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash(git commit)",
+      "hooks": [{
+        "type": "command",
+        "command": "echo 'Run /my-check first'"
+      }]
+    }]
+  }
+}</code></pre>
+        </section>
+
+        <!-- Section I: Distribution -->
+        <section>
+          <h2>I &mdash; Distribution</h2>
+          <p>Skills เริ่มจาก local &rarr; เติบโตได้ถึง fleet-wide:</p>
+          <table>
+            <thead>
+              <tr><th>Stage</th><th>วิธี</th><th>Scope</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Local</td><td><code>.claude/skills/</code></td><td>1 project</td></tr>
+              <tr><td>Personal</td><td><code>~/.claude/skills/</code></td><td>ทุก project ของเรา</td></tr>
+              <tr><td>Team</td><td>commit <code>.claude/skills/</code> เข้า repo</td><td>ทุกคนใน repo</td></tr>
+              <tr><td>Fleet</td><td><code>npx arra-oracle-skills-cli</code></td><td>ทุก oracle ทุกเครื่อง</td></tr>
+            </tbody>
+          </table>
+          <p>DO fleet ใช้ <code>arra-oracle-skills-cli</code> distribute 50+ skills ไปทุก BOY &mdash; install ครั้งเดียว ได้ /rrr, /trace, /forward, /dream ฯลฯ ทุกเครื่อง.</p>
+        </section>
+
+        <!-- Section J: Summary -->
+        <section>
+          <h2>J &mdash; สรุป</h2>
+          <p>Skill = <strong>reusable instruction ที่ Claude ทำตาม</strong>. เริ่มจาก ad-hoc slash command &rarr; <code>/create-shortcut</code> จับให้ &rarr; เก็บเป็น SKILL.md &rarr; refine &rarr; distribute.</p>
+          <p>Key takeaways:</p>
+          <ul>
+            <li>SKILL.md = markdown instructions, ไม่ใช่ code</li>
+            <li>Frontmatter <code>description</code> = trigger condition &mdash; เขียนให้ดี</li>
+            <li>เริ่มเล็ก (20 บรรทัด) แล้วเพิ่ม modes/flags ทีหลัง</li>
+            <li>Hooks + Skills = gate-layer automation &mdash; ไม่พึ่ง memory</li>
+            <li>ทุก pattern ที่ทำซ้ำ 3 ครั้ง = ควรเป็น skill</li>
+          </ul>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: P'Nat CCC Academy &mdash; ACC-Program 3</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

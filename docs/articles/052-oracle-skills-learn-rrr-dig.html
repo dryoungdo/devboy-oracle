@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Oracle Skills — /learn ส่ง AI อ่านโค้ด, /rrr session retrospective, /dig ขุดประวัติ session. จาก P'Nat CCC Academy Lessons 9, 10, 21">
+  <title>052 &mdash; Oracle Skills &mdash; /learn, /rrr, /dig | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">052 &mdash; /learn, /rrr, /dig</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>Oracle Skills &mdash; /learn, /rrr, /dig</h1>
+        <div class="article-meta">
+          <span class="tag">learn</span>
+          <span class="tag">rrr</span>
+          <span class="tag">dig</span>
+          <span class="tag">retrospective</span>
+          <span class="tag">session-history</span>
+          <span class="tag">codebase-exploration</span>
+          <span class="tag">oracle-tools</span>
+          &middot; CCC Academy Lessons 9, 10, 21
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <!-- Part A: /learn -->
+        <section>
+          <h2>A &mdash; <code>/learn</code> &mdash; ส่ง AI ไปอ่านโค้ดแทนเรา</h2>
+          <p>อยากเข้าใจ codebase ใหม่ ไม่ต้องอ่านเอง &mdash; สั่ง <code>/learn</code> แล้วให้ <strong>Haiku sub-agents หลายตัว</strong> อ่านพร้อมกัน แล้วสรุปเป็น docs ให้.</p>
+
+          <h3>A.1 &mdash; 3 Depth Modes</h3>
+          <table>
+            <thead>
+              <tr><th>Flag</th><th>Agents</th><th>Output Files</th><th>Time</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>--fast</code></td><td>1</td><td>OVERVIEW.md</td><td>~2 min</td></tr>
+              <tr><td>(default)</td><td>3</td><td>ARCHITECTURE + CODE-SNIPPETS + QUICK-REFERENCE</td><td>~5 min</td></tr>
+              <tr><td><code>--deep</code></td><td>5</td><td>+ TESTING + API-SURFACE</td><td>~10 min</td></tr>
+            </tbody>
+          </table>
+
+          <h3>A.2 &mdash; Agent Responsibilities</h3>
+          <table>
+            <thead>
+              <tr><th>Agent</th><th>Output</th><th>Mode</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Architecture Explorer</td><td><code>HHMM_ARCHITECTURE.md</code></td><td>default+</td></tr>
+              <tr><td>Code Snippets</td><td><code>HHMM_CODE-SNIPPETS.md</code></td><td>default+</td></tr>
+              <tr><td>Quick Reference</td><td><code>HHMM_QUICK-REFERENCE.md</code></td><td>default+</td></tr>
+              <tr><td>Testing</td><td><code>HHMM_TESTING.md</code></td><td>deep only</td></tr>
+              <tr><td>API Surface</td><td><code>HHMM_API-SURFACE.md</code></td><td>deep only</td></tr>
+            </tbody>
+          </table>
+
+          <h3>A.3 &mdash; Output Directory</h3>
+          <pre><code>&psi;/learn/owner/repo/YYYY-MM-DD/
+├── HHMM_INDEX.md            # hub: links + summary + maturity
+├── HHMM_ARCHITECTURE.md     # design, data flow, key decisions
+├── HHMM_CODE-SNIPPETS.md    # minimal working examples
+├── HHMM_QUICK-REFERENCE.md  # cheat sheet (Thai/English)
+├── HHMM_TESTING.md          # verification + edge cases (deep)
+└── HHMM_API-SURFACE.md      # types + signatures (deep)</code></pre>
+          <p>Time-prefix (<code>HHMM</code>) ทำให้ sort ตาม chronological order ได้ตามธรรมชาติ.</p>
+
+          <h3>A.4 &mdash; ghq + Symlink Pattern</h3>
+          <p>Source code clone ผ่าน <code>ghq</code> (อยู่ใน <code>~/ghq/</code>). ใน <code>&psi;/learn/</code> เก็บแค่ <strong>symlink</strong> &mdash; ไม่ duplicate source.</p>
+
+          <h3>A.5 &mdash; Usage</h3>
+          <pre><code>/learn https://github.com/anthropics/claude-code
+# clone + 3 agents อ่าน + สร้าง docs
+
+/learn --deep maw-js
+# 5 agents + full coverage
+
+/learn --fast some-small-lib
+# 1 agent, quick overview
+
+/learn --init
+# re-index existing ψ/learn/ content</code></pre>
+          <p>หลัง learn เสร็จ &rarr; log ผ่าน <code>arra_learn()</code> เข้า Oracle index อัตโนมัติ.</p>
+        </section>
+
+        <!-- Part B: /rrr -->
+        <section>
+          <h2>B &mdash; <code>/rrr</code> &mdash; สะท้อนเพื่อเติบโต</h2>
+          <p>Session retrospective &mdash; จบ session แล้วสรุปว่าทำอะไร เรียนรู้อะไร ติดตรงไหน. มี <strong>AI diary</strong> ให้ Oracle เขียนความรู้สึก + lessons learned.</p>
+
+          <h3>B.1 &mdash; 5 Modes</h3>
+          <table>
+            <thead>
+              <tr><th>Command</th><th>ทำอะไร</th><th>Speed</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>/rrr</code></td><td>Quick retrospective</td><td>~1 min</td></tr>
+              <tr><td><code>/rrr --detail</code></td><td>Full 13 sections</td><td>~3 min</td></tr>
+              <tr><td><code>/rrr --dig</code></td><td>Reconstruct จาก .jsonl logs</td><td>~2 min</td></tr>
+              <tr><td><code>/rrr --deep</code></td><td>5 parallel agents</td><td>~5 min</td></tr>
+              <tr><td><code>/rrr --deep --teammate</code></td><td>3 team agents</td><td>~4 min</td></tr>
+            </tbody>
+          </table>
+
+          <h3>B.2 &mdash; 4-Step Flow</h3>
+          <pre><code>Gather (git log, diff, session context)
+  &darr;
+Write Retrospective (&psi;/memory/retrospectives/YYYY-MM/DD/HH.MM_slug.md)
+  &darr;
+Write Lesson Learned (&psi;/memory/learnings/)
+  &darr;
+Oracle Sync (arra_learn &rarr; fleet-wide index)</code></pre>
+
+          <h3>B.3 &mdash; Anti-Rationalization Guard</h3>
+          <p>Retrospective ที่ดีต้อง <strong>ไม่โกหกตัวเอง</strong>. <code>/rrr</code> มี guard ที่ scan draft หา <strong>8 excuse patterns</strong>:</p>
+          <table>
+            <thead>
+              <tr><th>Excuse Pattern</th><th>Guard Response</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>"This was too complex"</td><td>Was it complex or did you skip the hard part?</td></tr>
+              <tr><td>"I ran out of context"</td><td>Did you spend context well?</td></tr>
+              <tr><td>"The API didn't work"</td><td>Show the error, show what you tried</td></tr>
+              <tr><td>"I'll fix it next session"</td><td>Concrete plan or polite abandonment?</td></tr>
+              <tr><td>"It's mostly done"</td><td>Define "mostly" &mdash; with numbers</td></tr>
+            </tbody>
+          </table>
+          <p>Guard ไม่ได้ห้ามเขียน excuse &mdash; แต่บังคับให้ <strong>ขยายความ</strong>. "Ran out of context" ผ่านได้ ถ้าบอกว่า context ถูกใช้ไปกับอะไร.</p>
+
+          <h3>B.4 &mdash; Verification Checklist</h3>
+          <p>ทุก retro ที่อ้างว่า "shipped" ต้องผ่าน:</p>
+          <ul>
+            <li>มี <strong>commit hash</strong> ยืนยัน</li>
+            <li>AI diary มี <strong>uncomfortable truth</strong> อย่างน้อย 1 ข้อ</li>
+            <li>ระบุ <strong>3+ friction points</strong> (จุดที่ติด/ช้า/ผิด)</li>
+          </ul>
+
+          <h3>B.5 &mdash; Oracle Root Detection</h3>
+          <p><code>/rrr</code> ตรวจ Oracle root ก่อนเขียน &mdash; ป้องกันเขียน retro ลง <code>&psi;/</code> ผิด repo.</p>
+        </section>
+
+        <!-- Part C: /dig -->
+        <section>
+          <h2>C &mdash; <code>/dig</code> &mdash; ขุดประวัติ session</h2>
+          <p>อยากรู้ว่าเมื่อวานทำอะไร สัปดาห์ที่แล้วทำอะไร &mdash; <code>/dig</code> ขุด Claude Code session history จาก <code>.jsonl</code> log files.</p>
+
+          <h3>C.1 &mdash; Usage Modes</h3>
+          <table>
+            <thead>
+              <tr><th>Command</th><th>ทำอะไร</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>/dig</code></td><td>Current repo, 10 sessions ล่าสุด</td></tr>
+              <tr><td><code>/dig 50</code></td><td>50 sessions ล่าสุด</td></tr>
+              <tr><td><code>/dig --all</code></td><td>ทุก session ที่มี</td></tr>
+              <tr><td><code>/dig --timeline</code></td><td>Group by date + day headers</td></tr>
+              <tr><td><code>/dig --deep</code></td><td>Deep analysis พร้อม patterns</td></tr>
+            </tbody>
+          </table>
+
+          <h3>C.2 &mdash; How It Works</h3>
+          <pre><code>Resolve project dirs
+  &darr;
+Scan .jsonl session logs
+  &darr;
+Parse sessions:
+  - sessionId
+  - repoName
+  - startGMT7 / endGMT7
+  - durationMin
+  - realHumanMessages
+  - gitBranch
+  - summary
+  &darr;
+Build timeline (with gap markers)
+  &darr;
+Output JSON / table</code></pre>
+
+          <h3>C.3 &mdash; Session Data Model</h3>
+          <p>แต่ละ session มีข้อมูล:</p>
+          <table>
+            <thead>
+              <tr><th>Field</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>sessionId</code></td><td>UUID ของ session</td></tr>
+              <tr><td><code>repoName</code></td><td>Repo ที่ทำงานอยู่</td></tr>
+              <tr><td><code>startGMT7</code> / <code>endGMT7</code></td><td>เวลาเริ่ม/จบ (GMT+7)</td></tr>
+              <tr><td><code>durationMin</code></td><td>ระยะเวลา (นาที)</td></tr>
+              <tr><td><code>realHumanMessages</code></td><td>จำนวน messages จากคน (ไม่นับ system)</td></tr>
+              <tr><td><code>gitBranch</code></td><td>Branch ที่ทำงานอยู่</td></tr>
+              <tr><td><code>summary</code></td><td>สรุปสั้นๆ ว่าทำอะไร</td></tr>
+            </tbody>
+          </table>
+
+          <h3>C.4 &mdash; Timeline Display</h3>
+          <p><code>--timeline</code> จัดกลุ่มตามวัน + ใส่ vibe labels:</p>
+          <pre><code>=== 2026-05-23 (Friday) === "Infrastructure Day"
+
+09:15  glueboy    45min  fix deploy pipeline
+10:30  devboy     20min  /learn maw-rs
+       . . . 45m gap . . .
+11:35  glueboy    90min  doctrine sync + doctor
+
+=== 2026-05-22 (Thursday) === "Research Day"
+
+14:00  devboy    120min  5-agent deep trace: gale-oracle</code></pre>
+          <p><strong>Gap markers</strong> (<code>. . . 45m gap</code>) แสดงช่วงที่ไม่ได้ทำงาน &mdash; บอกได้ว่าพักเมื่อไหร่ ใช้เวลาจริงเท่าไหร่.</p>
+
+          <h3>C.5 &mdash; Arra Integration</h3>
+          <p>Discoveries จาก <code>/dig</code> ถูก log เข้า Arra ผ่าน <code>arra_trace()</code> &mdash; session history กลายเป็น searchable knowledge.</p>
+        </section>
+
+        <!-- Section D: 3 Skills เชื่อมกัน -->
+        <section>
+          <h2>D &mdash; 3 Skills ทำงานร่วมกัน</h2>
+          <p>ทั้ง 3 skills ไม่ได้แยกกัน &mdash; เป็น cycle:</p>
+          <pre><code>/learn repo-ใหม่
+  &darr;  เข้าใจ codebase → ทำงาน → จบ session
+/rrr
+  &darr;  สะท้อน + log lessons → วันถัดไป
+/dig
+  &darr;  ดูว่าเมื่อวานทำอะไร → ต่อจากตรงไหน
+/learn repo-ต่อไป ...</code></pre>
+          <p>ทุก skill log เข้า <strong>Arra Oracle</strong> &mdash; knowledge สะสม searchable ข้าม session, ข้าม repo, ข้าม BOY.</p>
+        </section>
+
+        <!-- Section E: Quick Reference -->
+        <section>
+          <h2>E &mdash; Quick Reference</h2>
+          <table>
+            <thead>
+              <tr><th>Skill</th><th>ใช้เมื่อ</th><th>Output</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>/learn</code></td><td>อยากเข้าใจ codebase ใหม่</td><td><code>&psi;/learn/</code> + Arra index</td></tr>
+              <tr><td><code>/rrr</code></td><td>จบ session แล้วสรุป</td><td><code>&psi;/memory/retrospectives/</code></td></tr>
+              <tr><td><code>/dig</code></td><td>อยากรู้ว่าทำอะไรมาบ้าง</td><td>Timeline table + Arra trace</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: P'Nat CCC Academy &mdash; ACC-Program 3</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
