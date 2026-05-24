@@ -280,6 +280,34 @@ Tests: `scripts/hooks/test-sop-qa-gate.sh` (17 cases, all pass).
 
 Shipped 2026-05-25 (issue #57, parent #50 L3.5 decision).
 
+### CMMI L3 Task Metrics (minimal set — issue #56)
+
+Per Captain's #50 → #56 decision (2026-05-24): adopt minimal CMMI L3 metric set, auto-extracted per issue/PR. Answers objective questions ("are we shipping faster?", "are codex tiles paying off?") without manual logging.
+
+`scripts/extract-task-metrics.sh <repo> <issue-number>` — computes 3 metrics:
+
+1. **Cycle time** — `closedAt - createdAt` in hours (also rendered as days)
+2. **Rework count** — number of commits whose message references `#<issue>` (word-boundary, two-pass parse to handle multi-line bodies safely)
+3. **Authorship split** — counts of `Co-Authored-By:` trailers by name (e.g. `GLUEBOY: 3, FORGEBOY: 1`) — surfaces who-shipped-what across solo / per-BOY / codex-tile authorship
+
+Usage:
+```bash
+bash scripts/extract-task-metrics.sh dryoungdo/glueboy-oracle 57       # human summary
+bash scripts/extract-task-metrics.sh --json dryoungdo/glueboy-oracle 57 # JSON for piping
+```
+
+V1 ships the per-issue extractor only. Followups for the rollup + /standup integration:
+- `scripts/weekly-metrics-rollup.sh` (scans issues closed in last 7d, aggregates) — future commit
+- `/standup` skill picks up the rollup output for daily display — future commit
+- Auto-rollup via cron / daily-workflow hook — future commit
+
+V1 demonstrated on today's batch:
+- #57 SOP-QA gate: 7.41h cycle, 3 commits (GLUEBOY: 3)
+- #51 fleet-shared: 0.73h cycle, 2 commits (GLUEBOY: 2)
+- #38 codex hang root-cause: 5.42h cycle, 2 commits
+
+Shipped 2026-05-25 (issue #56, parent #50 L3.5 decision).
+
 ### Hard Don'ts
 
 - Never use `--force` flags unless Captain explicitly requests that exact operation.
