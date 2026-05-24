@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>045 &mdash; Today's Lessons from Fix-All Goal | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">045 &mdash; Today's Lessons from Fix-All Goal</span>
+        <span class="topbar-date">2026-05-24</span>
+      </div>
+      <div class="content-shell">
+        <h1>Today's Lessons from "Fix All the Issues Using New Workflow"</h1>
+        <div class="article-meta">
+          <span class="tag">glueboy</span>
+          <span class="tag">devboy</span>
+          <span class="tag">maw</span>
+          <span class="tag">codex</span>
+          <span class="tag">apāyakosalla</span>
+          <span class="tag">pm2</span>
+          <span class="tag">postmortem</span>
+          <span class="tag">workflow-validation</span>
+          &middot; 24 พ.ค. 2026 &middot; <span class="maturity-badge solid">&#128994; solid &mdash; shipped</span>
+        </div>
+
+        <p>บทนี้เป็น post-session learning จาก goal ใหญ่วันนี้: <strong>"fix all the issues using new workflow"</strong>. สิ่งที่สำคัญที่สุดไม่ใช่แค่ว่า issue ถูกปิด แต่คือ workflow ใหม่โดนทดสอบกับปัญหาจริงทันที: pm2 silently online-but-dead, Codex tile dispatch ที่หล่นเข้า inbox, Codex review hang, และนิสัย recurring ของ GLUEBOY ที่ยังประกาศเร็วเกินหลักฐาน.</p>
+
+        <div style="background:var(--info-bg,#d1ecf1);border:2px solid var(--info-border,#bee5eb);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;">TL;DR</h4>
+          <ol>
+            <li><strong>Most valuable discovery:</strong> <code>MAW_CLI=1</code> inherited into pm2 makes <code>server.ts</code> exit cleanly before binding port 3456. Fix is <code>env -u MAW_CLI pm2 start ...</code>.</li>
+            <li><strong>Codex tile dispatch:</strong> <code>maw hey</code> to a Codex pane needs <code>--force</code>, because the Codex TUI status line fools maw's idle check.</li>
+            <li><strong>Doctrine validation:</strong> Apāyakosalla 3-strikes rule worked: stop after repeated restarts, read source, find root cause.</li>
+            <li><strong>Wake-up loop worked:</strong> a 3-minute bg-task wake-up cadence caught a Codex hang in 6 minutes, versus 7 hours yesterday.</li>
+            <li><strong>Hook installed:</strong> the iTerm AskUserQuestion gate is active in new sessions, but still awaits first Discord-session validation.</li>
+            <li><strong>Recurring pattern persists:</strong> "declare breakthrough before verification" reached Instance 10, but catch latency keeps shrinking.</li>
+          </ol>
+        </div>
+
+        <div style="background:#fff3cd;border:2px solid #ffc107;border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:#856404;">&#9888;&#65039; Count note</h4>
+          <p>Session shorthand said "8 issues closed", but the concrete ledger is <strong>#36 through #44</strong> closed before this article: 9 issues. This article closes <strong>#45</strong>, so the full linked run is 10 issue records including this write-up. เก็บไว้ตรงๆ เพื่อไม่ให้ article นี้เริ่มด้วย off-by-one claim.</p>
+        </div>
+
+        <!-- ======================== PART A ======================== -->
+        <h2>Part A &mdash; 6 Lessons from Today</h2>
+
+        <h3>&#128273; 1. MAW_CLI trap &mdash; discovery ที่มีมูลค่าสูงสุด</h3>
+        <p>อาการดูเหมือน pm2 ปกติ: process ขึ้น <code>online</code>, restart ไม่ error, log ไม่ตะโกน. แต่ <code>maw health</code> ยัง offline และ port <code>3456</code> ไม่ bind. สาเหตุอยู่ท้ายไฟล์ <code>src/core/server.ts</code>:</p>
+        <pre><code>// Auto-start unless imported by CLI (CLI sets MAW_CLI=1)
+if (!process.env.MAW_CLI) {
+  startServer();
+}</code></pre>
+        <p>เมื่อ session ที่เรียก pm2 มี <code>MAW_CLI=1</code> ค้างอยู่จาก maw CLI, pm2 inherit env นั้นไปด้วย. Bun spawn <code>server.ts</code>, guard short-circuit, process exit clean. ผลลัพธ์คือ <strong>silent fail</strong>: pm2 บอก online ได้, แต่ server ไม่เคย bind.</p>
+        <p><strong>Fix shipped:</strong> <code>scripts/restore-maw.sh</code> ใน glueboy-oracle ใช้ <code>env -u MAW_CLI pm2 start ecosystem.config.cjs --only maw</code>. Commit <code>1debff5</code>, closes <a href="https://github.com/dryoungdo/glueboy-oracle/issues/42">glueboy-oracle #42</a>.</p>
+
+        <h3>&#128027; 2. <code>maw hey</code> to Codex tile needs <code>--force</code></h3>
+        <p>Codex TUI status line always looks active: context %, model, weekly hours, spinner/status text. Maw's pane-idle detector reads that as busy and chooses the safe queue path. For normal human typing that is correct; for a Codex worker brief it becomes a silent delivery failure.</p>
+        <table>
+          <thead>
+            <tr><th>Command shape</th><th>Observed result</th><th>Operational meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>maw hey &lt;session&gt;:&lt;window&gt;.&lt;pane&gt; "brief"</code></td>
+              <td><code>queued &rarr; &lt;oracle&gt; &psi;/inbox/...</code></td>
+              <td>Brief never reaches Codex pane. Looks like success if you only glance.</td>
+            </tr>
+            <tr>
+              <td><code>maw hey &lt;session&gt;:&lt;window&gt;.&lt;pane&gt; "brief" --force</code></td>
+              <td><code>delivered &rarr; &lt;session&gt;:0.N: [...]</code></td>
+              <td>Bypasses idle check and delivers to Codex.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Doctrine landed in <code>AGENTS.md</code> and <code>oracle-build/shared-claude.md</code>, regenerated into <code>CLAUDE.md</code>. Commit <code>3bd2409</code>, closes <a href="https://github.com/dryoungdo/glueboy-oracle/issues/40">#40</a>.</p>
+
+        <h3>&#129768; 3. Apāyakosalla 3-strikes rule worked</h3>
+        <p>Five distinct pm2 restart attempts all failed. Old pattern would keep varying the restart command. Today's doctrine said: <strong>stop after repeated failure</strong>, switch method, read source. That pivot found the <code>MAW_CLI</code> guard in two attempts.</p>
+        <p>นี่คือ first real test ของ rule: ไม่ใช่แค่ "try fewer times", แต่เป็น "เมื่ออาการไม่เปลี่ยน ให้เปลี่ยน level of evidence." Restarting is symptom-level. Reading <code>server.ts</code> is cause-level.</p>
+
+        <h3>&#127919; 4. bg-task wake-up caught Codex hang in 6 minutes</h3>
+        <p>Yesterday, Codex review hung silently for roughly 7 hours. Today, the task paired Codex review with <code>ScheduleWakeup</code> every 3 minutes. Poll #2 caught the freeze at 6 minutes.</p>
+        <table>
+          <thead>
+            <tr><th>Run</th><th>Monitoring</th><th>Catch latency</th><th>Lesson</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Yesterday</td><td>None</td><td>~7 hours</td><td>Background task can silently stall.</td></tr>
+            <tr><td>Today</td><td>3-minute wake-up cadence</td><td>6 minutes</td><td>Wake-up loop catches hang before trust damage compounds.</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Improvement:</strong> about 70x faster detection. Meta-validation: the lesson from yesterday was applied to its own first real recurrence today.</p>
+
+        <h3>&#128737;&#65039; 5. iTerm-ask gate loaded in first session</h3>
+        <p>Hook from commit <code>50d308a</code> is now active in every new GLUEBOY session. It blocks <code>AskUserQuestion</code> when the latest user input came from Discord, because that tool surfaces an iTerm-only prompt Captain cannot see remotely.</p>
+        <p>วันนี้ hook did not fire because Captain was at iTerm, not Discord. Status is therefore <strong>installed but awaiting first Discord-session validation</strong>. This is a clean distinction: shipped mechanism, pending live proof.</p>
+
+        <h3>&#128257; 6. Recurring pattern Instance 10: premature "BREAKTHROUGH"</h3>
+        <p>GLUEBOY declared "BREAKTHROUGH" on <a href="https://github.com/dryoungdo/glueboy-oracle/issues/38">#38</a> after one data point. The 3-minute poll #2 showed Codex was still frozen, so the claim was walked back honestly.</p>
+        <div style="background:#f0f4ec;border:2px solid #c5d5b4;border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:#3d5b1f;">&#129505; Pattern state</h4>
+          <p><strong>The pattern persists:</strong> act/declare before verification. <strong>The control loop improves:</strong> each instance gets caught faster. That matters. A doctrine that does not instantly erase a habit can still reduce blast radius if it shortens catch latency.</p>
+        </div>
+
+        <h3>Session shipped ledger</h3>
+        <table>
+          <thead>
+            <tr><th>Issue</th><th>Status</th><th>Title</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/36">#36</a></td><td>Closed</td><td>Triage 6 <code>save-glueboy.sh</code> config blockers</td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/37">#37</a></td><td>Closed</td><td>Fix 10 broken <code>.agents/skills/</code> frontmatter</td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/38">#38</a></td><td>Closed</td><td>Track upstream: Codex review hangs reproducibly on Sentry code-review <code>SKILL.md</code></td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/39">#39</a></td><td>Closed</td><td>Apply iTerm-ask-gate hook pattern to other iTerm-bound primitives</td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/40">#40</a></td><td>Closed</td><td><code>maw hey</code> routes to oracle inbox when session name matches oracle name</td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/41">#41</a></td><td>Closed</td><td>Validate Codex-as-coding-hands workflow end-to-end</td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/42">#42</a></td><td>Closed</td><td>Add env hygiene for pm2 restart: <code>MAW_CLI=1</code> inherited silently breaks maw</td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/43">#43</a></td><td>Closed</td><td><code>.agents/skills/</code> gitignored: broken frontmatter fixes don't propagate across machines</td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/44">#44</a></td><td>Closed</td><td>Update DEVBOY article 044 from pre-execution plan to post-execution outcome</td></tr>
+            <tr><td><a href="https://github.com/dryoungdo/glueboy-oracle/issues/45">#45</a></td><td>Closes with this article</td><td>Write DEVBOY article 045: today's session lessons</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ======================== PART B ======================== -->
+        <h2>Part B &mdash; Code Excerpts and Mechanisms</h2>
+
+        <h3>B1. <code>MAW_CLI</code> guard at <code>server.ts</code> bottom</h3>
+        <p>Source: <code>~/.local/share/maw-js/alpha/src/core/server.ts</code>.</p>
+        <pre><code>export async function startServer(port = +(process.env.MAW_PORT || loadConfig().port || 3456)) {
+  // ... Bun.serve(...) binds the port inside here ...
+  return server;
+}
+
+// Auto-start unless imported by CLI (CLI sets MAW_CLI=1)
+if (!process.env.MAW_CLI) {
+  startServer();
+}</code></pre>
+        <p>The guard is correct for CLI imports. The failure was <em>launch context</em>: pm2 is not the CLI, but it inherited the CLI marker. Fix the environment boundary, not the guard.</p>
+
+        <h3>B2. Restore wrapper removes <code>MAW_CLI</code> before pm2 start</h3>
+        <p>Source: <code>glueboy-oracle/scripts/restore-maw.sh</code>, commit <code>1debff5</code>.</p>
+        <pre><code>log "starting pm2 maw from $MAW_SOURCE with MAW_CLI removed from environment"
+if ! (
+  cd "$MAW_SOURCE"
+  env -u MAW_CLI pm2 start ecosystem.config.cjs --only maw
+); then
+  fail "pm2 start maw failed"
+  exit 1
+fi</code></pre>
+        <p>Important detail: <code>env -u MAW_CLI</code> wraps the pm2 command itself. That prevents pm2 from storing the poisoned environment for future restarts.</p>
+
+        <h3>B3. <code>--force</code> bypasses the local idle guard</h3>
+        <p>Source: <code>~/.local/share/maw-js/alpha/src/commands/shared/comm-send.ts</code>. The local tmux path checks agent process and prompt-line idle state only when <code>force</code> is false.</p>
+        <pre><code>if (result?.type === "local" || result?.type === "self-node") {
+  const target = await resolveOraclePane(result.target);
+  if (!force) {
+    const cmd = await getPaneCommand(target);
+    const isAgent = isAgentCommand(cmd);
+    if (!isAgent) {
+      if (logQueuedInbox(await writeReceiverInbox(target), target, `pane not running an agent (${cmd})`)) return;
+      // ...
+    }
+
+    let idleCheck = await checkPaneIdle(target);
+    if (!idleCheck.idle) {
+      await Bun.sleep(500);
+      idleCheck = await checkPaneIdle(target);
+      if (!idleCheck.idle) {
+        if (logQueuedInbox(await writeReceiverInbox(target), target, `pane not idle: ${idleCheck.lastInput.slice(0, 60)}`)) return;
+        // ...
+      }
+    }
+  }
+  await sendKeys(target, outboundMessage);
+  // ...
+}</code></pre>
+        <p>For Codex panes, that idle detector becomes overprotective because the status line is constantly active. <code>--force</code> is therefore not "reckless force" in this context; it is the documented path for a known false positive.</p>
+
+        <h3>B4. The idle detector's shape</h3>
+        <p>The detector inspects the last visible prompt line. It was designed to avoid clobbering human input, not to classify Codex TUI state.</p>
+        <pre><code>export async function checkPaneIdle(target: string): Promise&lt;{ idle: boolean; lastInput: string }&gt; {
+  const content = await capturePane(target, 5, host);
+  const lines = content.split("\n").filter(l =&gt; l.trim());
+  const lastLine = lines.at(-1) ?? "";
+  const clean = lastLine.replace(/\x1b\[[0-9;]*[mGKHFJA-Z]/g, "").replace(/\r/g, "");
+
+  if (/[#$%&gt;❯»]\s*$/.test(clean)) return { idle: true, lastInput: "" };
+  const notIdleMatch = clean.match(/[#$%&gt;❯»]\s+(\S.*)$/);
+  if (notIdleMatch) return { idle: false, lastInput: notIdleMatch[1] };
+  return { idle: true, lastInput: "" };
+}</code></pre>
+
+        <h3>B5. Symlink-aware runtime checks use <code>readlink -f</code></h3>
+        <p>Source: <code>glueboy-oracle/scripts/check-glueboy-config.sh</code>. Bun installs and links can be relative symlink chains, so comparing raw paths is misleading. Resolve both ends first.</p>
+        <pre><code># bun installs maw via a relative symlink through node_modules; compare the
+# fully-resolved paths rather than the raw (relative) link target.
+maw_resolved="$(readlink -f "$MAW_BIN" 2&gt;/dev/null || true)"
+maw_cli_resolved="$(readlink -f "$MAW_CLI" 2&gt;/dev/null || true)"
+if [[ -n "$maw_resolved" &amp;&amp; "$maw_resolved" == "$maw_cli_resolved" ]]; then
+  pass "maw CLI points at stable alpha source"
+else
+  fail "maw CLI link is unexpected: ${maw_resolved:-not resolvable}; expected $MAW_CLI"
+fi
+
+maw_server_resolved="$(readlink -f "$MAW_SERVER" 2&gt;/dev/null || echo "$MAW_SERVER")"
+pm2_maw_script="$(pm2 describe maw 2&gt;/dev/null | rg -o '/[^[:space:]│]+server\.ts' | head -1 | tr -d ' ')"
+pm2_maw_script_resolved="$(readlink -f "$pm2_maw_script" 2&gt;/dev/null || echo "$pm2_maw_script")"</code></pre>
+        <p>Lesson: in a Bun-linked toolchain, <code>which maw</code> is not enough. Use <code>readlink -f</code> to identify the actual file pm2 and the shell are executing.</p>
+
+        <h3>Operational rule after today</h3>
+        <table>
+          <thead>
+            <tr><th>Situation</th><th>Old reflex</th><th>New rule</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>pm2 says online, health offline</td>
+              <td>Restart pm2 repeatedly</td>
+              <td>Check env inheritance, port bind, and source guard.</td>
+            </tr>
+            <tr>
+              <td>Codex tile receives a brief</td>
+              <td>Plain <code>maw hey</code></td>
+              <td>Use pane-specific target plus <code>--force</code>.</td>
+            </tr>
+            <tr>
+              <td>Background review/task may hang</td>
+              <td>Trust it until much later</td>
+              <td>Pair with wake-up cadence before dispatch.</td>
+            </tr>
+            <tr>
+              <td>One positive data point appears</td>
+              <td>Declare breakthrough</td>
+              <td>Wait for at least a second independent verification.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- NAV -->
+        <nav class="article-nav">
+          <a href="044-glueboy-doctor-doctrine-sync.html">&larr; 044 GLUEBOY รับ Doctrine จาก doctor-oracle</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
