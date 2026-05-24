@@ -15,11 +15,11 @@
     <script src="../js/sidebar.js"></script>
     <div class="reader">
       <div class="topbar">
-        <span class="topbar-title">044 &mdash; GLUEBOY รับ Doctrine จาก doctor-oracle</span>
-        <span class="topbar-date">2026-05-23</span>
+        <span class="topbar-title">044 &mdash; GLUEBOY รับ Doctrine จาก doctor-oracle (Plan + Outcome)</span>
+        <span class="topbar-date">2026-05-23 / updated 2026-05-24</span>
       </div>
       <div class="content-shell">
-        <h1>GLUEBOY รับ Doctrine จาก doctor-oracle &mdash; แผน Sync ที่ Captain ต้อง Approve ก่อน</h1>
+        <h1>GLUEBOY รับ Doctrine จาก doctor-oracle &mdash; Plan ที่ shipped แล้ว</h1>
         <div class="article-meta">
           <span class="tag">glueboy</span>
           <span class="tag">doctor-oracle</span>
@@ -28,10 +28,36 @@
           <span class="tag">agents-md</span>
           <span class="tag">doctrine</span>
           <span class="tag">fleet-sync</span>
-          &middot; 23 พ.ค. 2026 &middot; <span class="maturity-badge" style="background:#fff3cd;color:#856404;padding:2px 8px;border-radius:4px;">&#128992; plan</span>
+          <span class="tag">post-execution</span>
+          &middot; 23 พ.ค. 2026 &middot; updated 24 พ.ค. 2026 &middot; <span class="maturity-badge" style="background:#d4edda;color:#155724;padding:2px 8px;border-radius:4px;">&#129001; solid &mdash; shipped</span>
         </div>
 
-        <p>เอกสารนี้คือ <strong>แผนล่วงหน้า</strong> &mdash; Captain ขอให้ GLUEBOY เขียนแผนก่อนแตะ <code>CLAUDE.md</code>/<code>AGENTS.md</code> จริง. Captain ได้ verify กับพี่วิน (เจ้าของ doctor-oracle) แล้วว่าจะรับ doctrine, แต่ก่อนกดทำ &mdash; อ่านนี่ก่อนเพื่อรู้ว่ามันจะเปลี่ยนอะไร, เพราะอะไร, และจุดไหนที่ Captain ต้องเลือก.</p>
+        <p>เอกสารนี้ <strong>เคยเป็นแผนล่วงหน้า</strong> (2026-05-23) ที่ Captain ขอ GLUEBOY เขียนไว้ก่อนแตะ <code>CLAUDE.md</code>/<code>AGENTS.md</code> จริง &mdash; เพื่อให้ Captain review บน styled site ก่อน approve. **ตอนนี้ทุกอย่าง shipped แล้ว** &mdash; section ด้านล่างเป็นแผนเดิม + outcomes ที่จริงๆ. เก็บไว้เป็น record ของ "ก่อน vs หลัง" + lesson การวางแผนก่อนทำ.</p>
+
+        <div style="background:#d4edda;border:2px solid #28a745;border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:#155724;">&#9989; Outcome (post-execution, 2026-05-24)</h4>
+          <p>Captain ตัดสินใจ + shipped ทั้ง 3 landings:</p>
+          <ul>
+            <li><strong>L1</strong> commit <code>f8496ca</code> &mdash; <code>AGENTS.md</code> ← Wind's Codex worker contract (sed-substituted, NWFTH stripped)</li>
+            <li><strong>L2</strong> commit <code>3bb52fb</code> &mdash; ported universal Bucket A doctrine into <code>oracle-build/shared-claude.md</code>; trimmed <code>oracle-glueboy-claude.md</code>; regen CLAUDE.md 270→489 lines</li>
+            <li><strong>L3</strong> commit <code>9b8699f</code> &mdash; Wind's exact identity+orchestrator pattern + GLUEBOY git identity (first commit signed <code>Co-Authored-By: GLUEBOY &lt;oracle-glueboy@youngdo.co.th&gt;</code>). Resolved 4 real semantic conflicts (Quick-mode "no issue" vs shared "issue MUST", 2-mode taxonomy, talk-to vs hey verb mix, duplicate Delegation modes)</li>
+          </ul>
+          <p><strong>Captain's decisions captured:</strong></p>
+          <ul>
+            <li>Path A &mdash; Wind's exact pattern (not radical restructure)</li>
+            <li>Git Identity α &mdash; GLUEBOY signs as GLUEBOY, runtime in PR footer (Principle 6 transparency)</li>
+            <li>Email: <code>oracle-glueboy@youngdo.co.th</code> (option 2 from the 4 proposed)</li>
+            <li>NWFTH tier: skipped (we don't have it)</li>
+            <li>English-rewrite rule: Thai-aware variant (not Wind's English-only)</li>
+            <li>L3.5 workflow shifts (worktree-only / CMMI L3 / <code>/sop-qa</code>): deferred to separate decisions</li>
+          </ul>
+          <p><strong>Discovered during execution</strong> (not in original plan):</p>
+          <ul>
+            <li>L2 trim removed literal <code>scripts/save-glueboy.sh --yes</code> reference from identity → regression in <code>check-glueboy-config.sh</code> (1 of 7 FAILs at session start) &mdash; fixed in follow-up commit <code>c05e240</code> + tracked as #36</li>
+            <li>The Wind doctrine + iTerm-ask gate landed together as a single arc &mdash; commit <code>50d308a</code> shipped the first hook-enforced fix for recurring "act without verifying" pattern</li>
+          </ul>
+          <p style="margin-bottom:0;"><strong>Follow-up chapter:</strong> Article 045 (today's session lessons) captures what we learned executing this plan + the MAW_CLI trap discovery + Apāyakosalla validation.</p>
+        </div>
 
         <div style="background:#f0f4ec;border:2px solid #c5d5b4;border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
           <h4 style="margin-top:0;color:#3d5b1f;">&#128218; Prior context (from Arra)</h4>
