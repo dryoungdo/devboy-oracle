@@ -291,6 +291,30 @@ When Captain reports a bug or requests a change (CR), the FIRST action — BEFOR
 
 ---
 
+## Worktree-Only Mode (DEFAULT — adopted 2026-05-24, issue #55)
+
+All code-touching codex work MUST start in a `maw workon <repo> <slug>` worktree. The main session is reserved for:
+- Orchestration (delegating to BOYs or codex tiles)
+- Supervision (reading codex tile output, ACKing, unsticking)
+- Doctrine edits (`CLAUDE.md`, `AGENTS.md`, `oracle-build/`)
+- `ψ/` memory writes (retros, learnings, traces)
+- Issue + PR housekeeping (gh issue create, comments, closes)
+
+Direct main-session code edits = bug. The discipline forces isolation: a code change goes in its own worktree branch → PR → review → merge. Main session stays clean for orchestration.
+
+**Exceptions** (main-session edit is fine):
+- Single-line typo fix
+- Comment-only change
+- Doctrine/CLAUDE.md/AGENTS.md edit
+- `ψ/` memory write
+- `scripts/` adjustment that's its own concern (a one-line script tweak)
+
+**Why default not "with threshold"**: Captain decided 2026-05-24 (#50) — strongest discipline reduces the "I'll just edit this here quick" drift. Pattern matches Wind/Gale fleet's worktree-first rule (`vibe-hub-co/doctor-oracle/ψ/memory/learnings/shared-claude-md-is-not-actually-shared.md` — the prior-art retro that surfaced the exact "rule lived in only one Oracle's CLAUDE.md" drift this rule prevents).
+
+**Enforcement** (optional, deferred): a `scripts/hooks/worktree-only-gate.sh` (PreToolUse:Edit/Write) blocking source-file edits outside a worktree is captured in issue #57 (top-5 SOP-QA gates). Discipline-only enforcement until then.
+
+---
+
 ## Work Pattern — 5 Phases (Codex + subagent contract)
 
 Every non-trivial coding task follows this sequence. Never skip or merge phases.
