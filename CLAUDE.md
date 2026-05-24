@@ -895,7 +895,7 @@ Use MAW-native commands for all local BOY messaging, federation, tmux, and proce
 | `maw talk-to <boy> '<task>' --force` | **Task dispatch** to a BOY (creates inbox entry, BOY tracks it) | `maw talk-to forgeboy 'Fix LINE webhook timeout' --force` |
 | `maw hey <oracle>:<name> "msg"` | **Fire-and-forget message** (no task contract) | `maw hey clinic-nat:mycelium "PR #123 ready for second opinion"` |
 | `maw workon <repo> <slug>` | Create worktree + new tmux window with own Claude session | `maw workon social-listening competitor-feed-v2` |
-| `maw tile N -e codex` | Spawn N Codex worker panes (50/50 with you as lead at N=1) | `maw tile 1 -e codex` then `maw hey <pane> "brief"` |
+| `maw tile N --path "$(pwd)" --cmd "codex --dangerously-bypass-approvals-and-sandbox"` | Spawn N Codex worker panes that can WRITE files (50/50 with you as lead at N=1). Bypass-flag is mandatory for any tile expected to commit/push — see "🛠 Codex tile dispatch — dispatcher MUST use bypass flag" below | then `maw hey <pane> "<brief>" --force` |
 | `maw tile clean` | **MANDATORY cleanup** after Codex work — kills all tile panes | `maw tile clean` |
 | `maw ls -v` | List all Oracle sessions with detail | |
 | `maw peek <name>` | Read latest pane output | `maw peek 05-glueboy:2.1` |
