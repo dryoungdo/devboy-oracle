@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Advanced Guide จาก Official Anthropic Docs — Agent SDK, Tool Use, Prompt Caching, Extended Thinking, MCP Advanced, Claude Cowork">
+  <title>055 &mdash; Anthropic Advanced Guide | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">055 &mdash; Anthropic Advanced Guide</span>
+        <span class="topbar-date">2026-05-25</span>
+      </div>
+      <div class="content-shell">
+        <h1>Advanced Guide &mdash; จาก Official Anthropic Docs</h1>
+        <div class="article-meta">
+          <span class="tag">agent-sdk</span>
+          <span class="tag">tool-use</span>
+          <span class="tag">prompt-caching</span>
+          <span class="tag">extended-thinking</span>
+          <span class="tag">mcp-advanced</span>
+          <span class="tag">cowork</span>
+          <span class="tag">official-docs</span>
+          <span class="maturity solid">&#10004; solid (official source)</span>
+        </div>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART A: CLAUDE AGENT SDK -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>A &mdash; Claude Agent SDK</h2>
+          <p>เปลี่ยน Claude Code จาก CLI เป็น <strong>library</strong> &mdash; สร้าง AI agent ที่อ่านไฟล์, รัน command, edit code ได้เอง ผ่าน Python หรือ TypeScript</p>
+
+          <h3>A.1 &mdash; Install</h3>
+          <pre><code># Python
+pip install claude-agent-sdk
+
+# TypeScript (bundles native Claude Code binary)
+npm install @anthropic-ai/claude-agent-sdk</code></pre>
+
+          <h3>A.2 &mdash; Hello World</h3>
+          <pre><code># Python
+import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions
+
+async def main():
+    async for message in query(
+        prompt="Find and fix the bug in auth.py",
+        options=ClaudeAgentOptions(allowed_tools=["Read", "Edit", "Bash"]),
+    ):
+        print(message)
+
+asyncio.run(main())</code></pre>
+
+          <pre><code>// TypeScript
+import { query } from "@anthropic-ai/claude-agent-sdk";
+
+for await (const message of query({
+  prompt: "Find and fix the bug in auth.ts",
+  options: { allowedTools: ["Read", "Edit", "Bash"] }
+})) {
+  console.log(message);
+}</code></pre>
+
+          <h3>A.3 &mdash; Built-in Tools</h3>
+          <table>
+            <tr><th>Tool</th><th>ทำอะไร</th></tr>
+            <tr><td><code>Read</code></td><td>อ่านไฟล์</td></tr>
+            <tr><td><code>Write</code></td><td>สร้างไฟล์ใหม่</td></tr>
+            <tr><td><code>Edit</code></td><td>แก้ไขไฟล์ (precise edits)</td></tr>
+            <tr><td><code>Bash</code></td><td>รัน terminal commands, scripts, git</td></tr>
+            <tr><td><code>Monitor</code></td><td>Watch background script + react to output</td></tr>
+            <tr><td><code>Glob</code></td><td>Find files by pattern (<code>**/*.ts</code>)</td></tr>
+            <tr><td><code>Grep</code></td><td>Search file contents with regex</td></tr>
+            <tr><td><code>WebSearch</code></td><td>Search the web</td></tr>
+            <tr><td><code>WebFetch</code></td><td>Fetch + parse web pages</td></tr>
+            <tr><td><code>Agent</code></td><td>Spawn subagents</td></tr>
+            <tr><td><code>AskUserQuestion</code></td><td>ถามคำถาม user แบบ multiple choice</td></tr>
+          </table>
+
+          <h3>A.4 &mdash; Subagents ใน SDK</h3>
+          <pre><code># Python — define custom subagent
+async for message in query(
+    prompt="Use the code-reviewer agent to review this codebase",
+    options=ClaudeAgentOptions(
+        allowed_tools=["Read", "Glob", "Grep", "Agent"],
+        agents={
+            "code-reviewer": AgentDefinition(
+                description="Expert code reviewer.",
+                prompt="Analyze code quality and suggest improvements.",
+                tools=["Read", "Glob", "Grep"],
+            )
+        },
+    ),
+):
+    print(message)</code></pre>
+
+          <h3>A.5 &mdash; Hooks (Programmatic)</h3>
+          <p>SDK hooks ใช้ callback functions &mdash; ไม่ต้อง shell command เหมือน CLI</p>
+          <pre><code># Python — log all file changes to audit
+async def log_file_change(input_data, tool_use_id, context):
+    file_path = input_data.get("tool_input", {}).get("file_path", "unknown")
+    with open("./audit.log", "a") as f:
+        f.write(f"{datetime.now()}: modified {file_path}\n")
+    return {}
+
+options=ClaudeAgentOptions(
+    permission_mode="acceptEdits",
+    hooks={
+        "PostToolUse": [
+            HookMatcher(matcher="Edit|Write", hooks=[log_file_change])
+        ]
+    },
+)</code></pre>
+          <p>Hook types: <code>PreToolUse</code>, <code>PostToolUse</code>, <code>Stop</code>, <code>SessionStart</code>, <code>SessionEnd</code>, <code>UserPromptSubmit</code></p>
+
+          <h3>A.6 &mdash; MCP ใน SDK</h3>
+          <pre><code># Python — Playwright browser automation
+async for message in query(
+    prompt="Open example.com and describe what you see",
+    options=ClaudeAgentOptions(
+        mcp_servers={
+            "playwright": {"command": "npx", "args": ["@playwright/mcp@latest"]}
+        }
+    ),
+):
+    print(message)</code></pre>
+
+          <h3>A.7 &mdash; Sessions (Resume + Fork)</h3>
+          <pre><code># Capture session ID from first query
+async for message in query(prompt="Read the auth module", ...):
+    if isinstance(message, SystemMessage) and message.subtype == "init":
+        session_id = message.data["session_id"]
+
+# Resume with full context
+async for message in query(
+    prompt="Now find all places that call it",
+    options=ClaudeAgentOptions(resume=session_id),
+):
+    print(message)</code></pre>
+
+          <h3>A.8 &mdash; SDK vs CLI vs Managed Agents</h3>
+          <table>
+            <tr><th>Use Case</th><th>Best Choice</th></tr>
+            <tr><td>Interactive development</td><td>CLI</td></tr>
+            <tr><td>CI/CD pipelines</td><td>SDK</td></tr>
+            <tr><td>Custom applications</td><td>SDK</td></tr>
+            <tr><td>One-off tasks</td><td>CLI</td></tr>
+            <tr><td>Production automation</td><td>SDK</td></tr>
+            <tr><td>Hosted, no infra needed</td><td>Managed Agents</td></tr>
+          </table>
+
+          <h3>A.9 &mdash; Auth Options</h3>
+          <table>
+            <tr><th>Provider</th><th>Env Var</th></tr>
+            <tr><td>Anthropic API</td><td><code>ANTHROPIC_API_KEY</code></td></tr>
+            <tr><td>Amazon Bedrock</td><td><code>CLAUDE_CODE_USE_BEDROCK=1</code></td></tr>
+            <tr><td>Google Vertex AI</td><td><code>CLAUDE_CODE_USE_VERTEX=1</code></td></tr>
+            <tr><td>Microsoft Azure</td><td><code>CLAUDE_CODE_USE_FOUNDRY=1</code></td></tr>
+          </table>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART B: TOOL USE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>B &mdash; Tool Use (API Level)</h2>
+
+          <h3>B.1 &mdash; Client Tools vs Server Tools</h3>
+          <table>
+            <tr><th>Type</th><th>ทำงานที่</th><th>ตัวอย่าง</th></tr>
+            <tr><td><strong>Client tools</strong></td><td>App ของเรา</td><td>User-defined functions, bash, text_editor</td></tr>
+            <tr><td><strong>Server tools</strong></td><td>Anthropic infrastructure</td><td>web_search, code_execution, web_fetch</td></tr>
+          </table>
+          <p>Client tools: Claude ส่ง <code>stop_reason: "tool_use"</code> &rarr; เรา execute &rarr; ส่ง <code>tool_result</code> กลับ<br>
+          Server tools: ผลลัพธ์มาตรงเลย ไม่ต้อง handle</p>
+
+          <h3>B.2 &mdash; Strict Tool Use</h3>
+          <p>เพิ่ม <code>strict: true</code> ใน tool definition &rarr; Claude's tool calls จะ match schema เป๊ะ 100%</p>
+
+          <h3>B.3 &mdash; Web Search Tool</h3>
+          <pre><code>tools=[{"type": "web_search_20260209", "name": "web_search"}]</code></pre>
+
+          <h3>B.4 &mdash; Token Cost</h3>
+          <p>Tool use system prompt: <strong>346 tokens</strong> (auto/none) หรือ <strong>313 tokens</strong> (any/tool) &mdash; ทุก model</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART C: PROMPT CACHING -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>C &mdash; Prompt Caching</h2>
+          <p>ลด cost ได้ <strong>90%</strong> สำหรับ cached content &mdash; cache read = 10% ของ base input price</p>
+
+          <h3>C.1 &mdash; Automatic Caching (ง่ายสุด)</h3>
+          <pre><code>response = client.messages.create(
+    model="claude-opus-4-7",
+    max_tokens=1024,
+    cache_control={"type": "ephemeral"},  # Top-level = auto
+    system="You are an AI assistant...",
+    messages=[{"role": "user", "content": "Analyze this..."}],
+)</code></pre>
+          <p>System auto-applies cache breakpoint ที่ block สุดท้ายที่ cache ได้ &mdash; เลื่อนตามใน multi-turn</p>
+
+          <h3>C.2 &mdash; TTL Options</h3>
+          <table>
+            <tr><th>TTL</th><th>Syntax</th><th>Write Cost</th><th>Read Cost</th></tr>
+            <tr><td>5 min (default)</td><td><code>{"type": "ephemeral"}</code></td><td>1.25x base</td><td>0.1x base</td></tr>
+            <tr><td>1 hour</td><td><code>{"type": "ephemeral", "ttl": "1h"}</code></td><td>2x base</td><td>0.1x base</td></tr>
+          </table>
+
+          <h3>C.3 &mdash; Pricing (Opus 4.7)</h3>
+          <table>
+            <tr><th></th><th>Base Input</th><th>5m Write</th><th>1h Write</th><th>Cache Hit</th><th>Output</th></tr>
+            <tr><td>Opus 4.7</td><td>$5/MTok</td><td>$6.25</td><td>$10</td><td><strong>$0.50</strong></td><td>$25</td></tr>
+            <tr><td>Sonnet 4.6</td><td>$3/MTok</td><td>$3.75</td><td>$6</td><td><strong>$0.30</strong></td><td>$15</td></tr>
+            <tr><td>Haiku 4.5</td><td>$1/MTok</td><td>$1.25</td><td>$2</td><td><strong>$0.10</strong></td><td>$5</td></tr>
+          </table>
+
+          <h3>C.4 &mdash; Pre-warming</h3>
+          <pre><code># Load cache BEFORE users arrive
+prewarm = client.messages.create(
+    model="claude-opus-4-7",
+    max_tokens=0,            # Key: zero output
+    system=[{
+        "type": "text",
+        "text": "You are an expert...",
+        "cache_control": {"type": "ephemeral"}
+    }],
+    messages=[{"role": "user", "content": "warmup"}]
+)
+# Later: real requests get cache hit</code></pre>
+
+          <h3>C.5 &mdash; Min Token Threshold</h3>
+          <table>
+            <tr><th>Model</th><th>Minimum</th></tr>
+            <tr><td>Opus 4.7/4.6/4.5, Haiku 4.5</td><td>4,096 tokens</td></tr>
+            <tr><td>Sonnet 4.6/4.5, Opus 4.1</td><td>1,024 tokens</td></tr>
+          </table>
+
+          <h3>C.6 &mdash; Common Mistake</h3>
+          <pre><code># ❌ WRONG — breakpoint on changing content
+system=[
+    {"type": "text", "text": "Long instructions"},
+    {"type": "text", "text": "Timestamp: 2024-01-15 10:30:45",
+     "cache_control": {"type": "ephemeral"}}  # Hash changes!
+]
+
+# ✅ CORRECT — breakpoint on stable content
+system=[
+    {"type": "text", "text": "Long instructions",
+     "cache_control": {"type": "ephemeral"}},  # Stable!
+    {"type": "text", "text": "Timestamp: 2024-01-15 10:30:45"}
+]</code></pre>
+
+          <h3>C.7 &mdash; Track Performance</h3>
+          <pre><code>hit_rate = response.usage.cache_read_input_tokens / (
+    response.usage.cache_read_input_tokens +
+    response.usage.cache_creation_input_tokens
+)</code></pre>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART D: EXTENDED THINKING -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>D &mdash; Extended Thinking</h2>
+          <p>Claude แสดง step-by-step reasoning ก่อนตอบ &mdash; ได้คำตอบดีขึ้นสำหรับปัญหาซับซ้อน</p>
+
+          <h3>D.1 &mdash; Basic Usage</h3>
+          <pre><code>response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=16000,
+    thinking={"type": "enabled", "budget_tokens": 10000},
+    messages=[{"role": "user", "content": "Prove there are infinite primes n mod 4 == 3"}],
+)
+
+for block in response.content:
+    if block.type == "thinking":
+        print(f"Thinking: {block.thinking}")
+    elif block.type == "text":
+        print(f"Answer: {block.text}")</code></pre>
+
+          <h3>D.2 &mdash; Display Modes</h3>
+          <table>
+            <tr><th>Mode</th><th>ได้อะไร</th><th>Default On</th></tr>
+            <tr><td><code>"summarized"</code></td><td>Summary of reasoning</td><td>Opus 4.6, Sonnet 4.6</td></tr>
+            <tr><td><code>"omitted"</code></td><td>Empty thinking + signature only</td><td>Opus 4.7</td></tr>
+          </table>
+          <p><strong>ทั้งสอง mode เสียค่า full thinking tokens เท่ากัน</strong> &mdash; omitted แค่ไม่ส่ง content กลับ (เร็วกว่า)</p>
+
+          <h3>D.3 &mdash; Adaptive Thinking (Opus 4.7)</h3>
+          <p>Opus 4.7 ใช้ <code>thinking: {"type": "adaptive"}</code> แทน manual &mdash; Claude จัดการ budget เอง</p>
+
+          <h3>D.4 &mdash; Interleaved Thinking</h3>
+          <pre><code># Without: [thinking] → [tool] → [tool] → [text]
+# With:    [thinking] → [tool] → [thinking] → [tool] → [thinking] → [text]</code></pre>
+          <p>Claude คิดระหว่าง tool calls &mdash; ได้ reasoning ที่ดีกว่าสำหรับ multi-step tool use</p>
+
+          <h3>D.5 &mdash; ข้อจำกัด</h3>
+          <ul>
+            <li><code>budget_tokens</code> ต้องน้อยกว่า <code>max_tokens</code> (ยกเว้น interleaved)</li>
+            <li>Tool choice <code>"any"</code> หรือ <code>{"type": "tool"}</code> ใช้ไม่ได้กับ thinking</li>
+            <li>ต้องส่ง thinking blocks กลับใน multi-turn tool use</li>
+            <li>ใช้กับ <code>max_tokens: 0</code> (pre-warming) ไม่ได้</li>
+          </ul>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART E: MCP ADVANCED -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>E &mdash; MCP Advanced</h2>
+
+          <h3>E.1 &mdash; Sampling</h3>
+          <p>MCP server ขอ LLM call ผ่าน connected client &mdash; shift AI cost จาก server ไป client</p>
+
+          <h3>E.2 &mdash; Notifications &amp; Logging</h3>
+          <p>Real-time feedback via context objects, logging callbacks, progress reporting สำหรับ long-running operations</p>
+
+          <h3>E.3 &mdash; Roots (File Access)</h3>
+          <p>Permission system &mdash; grant MCP server access เฉพาะ specific directories + maintain security boundaries</p>
+
+          <h3>E.4 &mdash; Transport Mechanisms</h3>
+          <table>
+            <tr><th>Transport</th><th>เมื่อไหร่</th><th>Scaling</th></tr>
+            <tr><td><strong>STDIO</strong></td><td>Local process, same machine</td><td>Single instance</td></tr>
+            <tr><td><strong>StreamableHTTP</strong></td><td>Network, remote servers</td><td>Horizontal + load balancers</td></tr>
+          </table>
+          <p>StreamableHTTP ใช้ SSE (Server-Sent Events) สำหรับ server-to-client communication + session management</p>
+
+          <h3>E.5 &mdash; Stateless vs Stateful</h3>
+          <table>
+            <tr><th></th><th>Stateless</th><th>Stateful</th></tr>
+            <tr><td>Scaling</td><td>ง่าย &mdash; load balancer ได้</td><td>ต้อง sticky sessions</td></tr>
+            <tr><td>Features</td><td>จำกัด &mdash; ไม่มี server-initiated requests</td><td>ครบ &mdash; sampling, notifications</td></tr>
+            <tr><td>Use case</td><td>Simple tools</td><td>Complex interactive tools</td></tr>
+          </table>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART F: CLAUDE COWORK -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>F &mdash; Claude Cowork (New Product)</h2>
+          <p>Cowork = Claude ทำงานกับ <strong>files, folders, apps</strong> บนเครื่องตรงๆ &mdash; ไม่ใช่ conversation</p>
+          <p>เป็น <strong>working session</strong>: บอก task &rarr; Claude plan + execute &rarr; เรา steer ระหว่างทาง</p>
+
+          <h3>F.1 &mdash; Concepts</h3>
+          <table>
+            <tr><th>Concept</th><th>คืออะไร</th></tr>
+            <tr><td><strong>Task Loop</strong></td><td>วงจร: describe task &rarr; Claude plans &rarr; executes &rarr; steer &rarr; repeat</td></tr>
+            <tr><td><strong>Skills</strong></td><td>สอน Claude วิธีทำงานแบบเรา (personal customization)</td></tr>
+            <tr><td><strong>Plugins</strong></td><td>Encode team expertise (standardized, shareable)</td></tr>
+            <tr><td><strong>Standing Context</strong></td><td>Global instructions + project context &mdash; คล้าย CLAUDE.md</td></tr>
+          </table>
+
+          <h3>F.2 &mdash; Available Everywhere</h3>
+          <ul>
+            <li><strong>Chrome extension</strong> &mdash; ทำงานกับ web content</li>
+            <li><strong>Microsoft 365</strong> &mdash; Word, Excel, PowerPoint, Outlook</li>
+            <li><strong>Desktop</strong> &mdash; files + apps บนเครื่อง</li>
+          </ul>
+
+          <h3>F.3 &mdash; Skills vs Plugins</h3>
+          <p><strong>Skills</strong> = personal ("teach Claude YOUR way") &mdash; เหมือน SKILL.md ใน Claude Code<br>
+          <strong>Plugins</strong> = team-level ("encode TEAM expertise") &mdash; validated + shared</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART G: LEARNING PATH -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>G &mdash; Learning Path สำหรับ Captain</h2>
+          <p>ลำดับแนะนำ (advanced &rarr; expert):</p>
+          <ol>
+            <li><strong>Agent SDK</strong> &mdash; เปลี่ยน Claude Code เป็น library ใช้ใน CI/CD + custom apps</li>
+            <li><strong>Extended Thinking</strong> &mdash; ใช้ budget_tokens + interleaved thinking สำหรับ complex reasoning</li>
+            <li><strong>Prompt Caching</strong> &mdash; ลด cost 90% สำหรับ repetitive tasks (cache hit = $0.50/MTok vs $5)</li>
+            <li><strong>Tool Use (API)</strong> &mdash; client vs server tools, strict schema, web search</li>
+            <li><strong>MCP Advanced</strong> &mdash; StreamableHTTP transport, production scaling, load balancers</li>
+            <li><strong>Claude Cowork</strong> &mdash; product ใหม่ ทำงานกับ files ตรงๆ + Chrome + M365</li>
+          </ol>
+
+          <h3>G.1 &mdash; Quick Wins ทำได้เลยวันนี้</h3>
+          <table>
+            <tr><th>What</th><th>Impact</th><th>Effort</th></tr>
+            <tr><td>เพิ่ม <code>cache_control</code> ใน API calls</td><td>ลด cost 90%</td><td>1 line</td></tr>
+            <tr><td>เพิ่ม <code>strict: true</code> ใน tool schemas</td><td>100% schema conformance</td><td>1 field</td></tr>
+            <tr><td>ใช้ <code>display: "omitted"</code> สำหรับ thinking</td><td>เร็วขึ้น (faster TTFT)</td><td>1 field</td></tr>
+            <tr><td>Install Agent SDK + build first agent</td><td>Programmatic Claude</td><td>10 min</td></tr>
+          </table>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: platform.claude.com/docs + code.claude.com/docs &mdash; fetched 2026-05-25</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

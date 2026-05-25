@@ -78,7 +78,8 @@
       ['051-worktrees.html', '051 Worktrees'],
       ['052-oracle-skills-learn-rrr-dig.html', '052 /learn, /rrr, /dig'],
       ['053-npx-skills-distribution.html', '053 npx Skills Distribution'],
-      ['054-anthropic-academy-skilljar.html', '054 Anthropic Academy']
+      ['054-anthropic-academy-skilljar.html', '054 Anthropic Academy'],
+      ['055-anthropic-advanced-guide.html', '055 Advanced Guide']
     ]]
   ];
 
