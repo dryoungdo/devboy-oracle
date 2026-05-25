@@ -245,11 +245,16 @@ After ANY codex work completes (tile OR swarm), you MUST clean up BEFORE moving 
 | Need | Command | Scope |
 |---|---|---|
 | Kill specific pane | `maw kill <session:window.pane>` | One pane — safe maw wrapper for tmux kill-pane |
-| Kill all non-leader panes | `maw team close` | Everything in current window except your pane |
-| Kill tile-marked panes | `maw tile clean` | Only panes with `@maw_tile=1` marker |
-| Find + kill zombie panes | `maw cleanup --zombies --yes` | Scans for orphan agent panes fleet-wide |
+| Kill tile-marked panes (common case after codex tile swarm) | `maw tile clean` | Only panes with `@maw_tile=1` marker |
+| Shutdown a named team | `maw team shutdown <team-name>` | Whole named team (requires team was created via `maw team create`) |
+| Kill non-tile codex/agent panes (no team) | `maw panes` to inspect → `maw kill <pane>` per pane | Manual one-at-a-time |
+| Scan fleet for orphan zombie panes | `maw cleanup --zombie-agents [--yes]` (when fixed — see note) | All zombie panes fleet-wide |
 
-**The rule**: codex workers done → `/rrr` (save context FIRST) → `maw team close` (kill all non-leader panes) → then continue. Never auto-clean. Never skip `/rrr`.
+**The rule**: codex workers done → `/rrr` (save context FIRST) → `maw tile clean` (covers tile-spawned panes — the 95% case) → for non-tile panes: `maw panes` to identify + `maw kill <pane>` per pane → then continue. Never auto-clean. Never skip `/rrr`.
+
+> **Maw verb status notes** (see issue #62 for tracker):
+> - `maw team close` was aspirational. The real verb is `maw team shutdown <name>` (alias: `maw team down <name>`).
+> - `maw cleanup --zombie-agents` and `maw cleanup --zombies` are CODED in the plugin (`~/.maw/plugins/cleanup/index.ts`) but the CLI dispatcher currently returns "unknown subcommand: cleanup" — separate routing bug to file at maw upstream. Until then, use the manual flow above.
 
 ### SOP-QA Gate (Top-5 Doctrine Compliance — mechanical enforcement)
 
@@ -552,7 +557,7 @@ Use MAW-native commands for all local BOY messaging, federation, tmux, and proce
 | `maw preflight` | Pre-work verification | |
 | `maw overview` | Fleet war room dashboard | |
 | `maw locate <oracle>` | Find oracle by any identifier | |
-| `maw cleanup --zombie-agents` | Find + kill orphan agent panes | |
+| `maw cleanup --zombie-agents [--yes]` (when dispatcher fixed) OR `maw kill <pane>` + `maw panes` (manual fallback) | Find + kill orphan agent panes — verb is coded but currently unrouted (see #62) | |
 
 **Rule**: `maw talk-to` = dispatching a task. `maw hey` = sending a message. Never `maw run` or `maw send-text` for AI sessions (no signing, no readiness check).
 
@@ -603,7 +608,7 @@ Local only, never in git, deletable on request.
 
 ## Context Management
 
-At ~50% context: auto-`/rrr`. At ~60%: autonomous wrap (rrr → retro-extract → commit ψ/ → stop). Never `/compact` or bare `/clear` without `/rrr` first. `/forward` = manual wrap. Before any session wrap: `maw team close` to kill stale codex/agent panes.
+At ~50% context: auto-`/rrr`. At ~60%: autonomous wrap (rrr → retro-extract → commit ψ/ → stop). Never `/compact` or bare `/clear` without `/rrr` first. `/forward` = manual wrap. Before any session wrap: `maw tile clean` (tile-marked panes) + `maw team shutdown <name>` (named teams) + per-pane `maw kill` (non-tile codex/agent panes) to kill stale workers.
 
 ---
 
