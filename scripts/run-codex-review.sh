@@ -419,7 +419,7 @@ CODEX_EXIT=$?
 END_EPOCH="$(date +%s)"
 DURATION=$((END_EPOCH - START_EPOCH))
 
-FINDINGS="$(grep -Ec '(^|[[:space:]])[-*]?[[:space:]]*\[P[0-9]\]|^P[0-9][[:space:]:-]' "$OUTPUT_FILE" 2>/dev/null || true)"
+FINDINGS="$(grep -Ec '^[[:space:]]*[-*][[:space:]]*\[P[0-9]\]|^[[:space:]]*P[0-9][[:space:]:-]' "$OUTPUT_FILE" 2>/dev/null || true)"
 FINDINGS="$(printf '%s' "$FINDINGS" | tr -dc '0-9')"
 [ -n "$FINDINGS" ] || FINDINGS=0
 
