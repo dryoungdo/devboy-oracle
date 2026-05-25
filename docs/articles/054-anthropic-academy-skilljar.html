@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Anthropic Academy (Skilljar) — 18 free courses covering Claude Code, Skills, Subagents, MCP, API, Prompt Engineering, RAG, AI Fluency">
+  <title>054 &mdash; Anthropic Academy (Skilljar) | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">054 &mdash; Anthropic Academy</span>
+        <span class="topbar-date">2026-05-25</span>
+      </div>
+      <div class="content-shell">
+        <h1>Anthropic Academy (Skilljar) &mdash; 18 Free Courses</h1>
+        <div class="article-meta">
+          <span class="tag">anthropic</span>
+          <span class="tag">skilljar</span>
+          <span class="tag">claude-code</span>
+          <span class="tag">mcp</span>
+          <span class="tag">api</span>
+          <span class="tag">skills</span>
+          <span class="tag">subagents</span>
+          <span class="tag">ai-fluency</span>
+          <span class="maturity solid">&#10004; solid research</span>
+        </div>
+
+        <section>
+          <h2>A &mdash; Overview</h2>
+          <p>Anthropic เปิด <strong>Anthropic Academy</strong> บน Skilljar &mdash; 18 courses ฟรีทั้งหมด ครอบคลุม Claude Code, API, MCP, Prompt Engineering, RAG, AI Fluency</p>
+          <p>เป็น <strong>official training</strong> จาก Anthropic เอง &mdash; content ตรงจากทีมที่สร้าง Claude</p>
+          <p>URL: <code>anthropic.skilljar.com</code> | Support: <code>academy-support@anthropic.com</code></p>
+        </section>
+
+        <section>
+          <h2>B &mdash; Developer Track (8 courses)</h2>
+
+          <h3>B.1 &mdash; Claude Code 101</h3>
+          <p>พื้นฐาน Claude Code สำหรับมือใหม่</p>
+          <table>
+            <tr><th>Module</th><th>หัวข้อ</th></tr>
+            <tr><td>1</td><td>What is Claude Code? &mdash; agentic loop, context window, tools, permissions</td></tr>
+            <tr><td>2</td><td>Installing &mdash; terminal, VS Code, JetBrains, Claude Desktop, web</td></tr>
+            <tr><td>3</td><td>Daily Workflows &mdash; Explore &rarr; Plan &rarr; Code &rarr; Commit, <code>/compact</code> <code>/clear</code> <code>/context</code></td></tr>
+            <tr><td>4</td><td>Customizing &mdash; CLAUDE.md, subagents, skills, MCP, hooks</td></tr>
+            <tr><td>5</td><td>Assessment</td></tr>
+          </table>
+
+          <h3>B.2 &mdash; Claude Code in Action</h3>
+          <p>ลึกกว่า 101 &mdash; hooks, SDK, GitHub automation</p>
+          <table>
+            <tr><th>Module</th><th>หัวข้อ</th></tr>
+            <tr><td>1</td><td>What is Claude Code? &mdash; coding assistant architecture</td></tr>
+            <tr><td>2</td><td>Hands On &mdash; setup, adding context, making changes</td></tr>
+            <tr><td>3</td><td>Controlling Context &mdash; custom commands, MCP servers, GitHub integration</td></tr>
+            <tr><td>4</td><td>Hooks and SDK &mdash; defining, implementing, gotchas, useful patterns, <strong>Claude Code SDK</strong></td></tr>
+            <tr><td>5</td><td>Quiz + Summary</td></tr>
+          </table>
+
+          <h3>B.3 &mdash; Introduction to Claude Cowork</h3>
+          <p><strong>Cowork</strong> = Claude ทำงานกับ files/folders/apps บนเครื่องตรงๆ &mdash; ไม่ใช่ conversation format</p>
+          <table>
+            <tr><th>Module</th><th>หัวข้อ</th></tr>
+            <tr><td>1</td><td>Meet Cowork &mdash; task loop, first task</td></tr>
+            <tr><td>2</td><td>Make it yours &mdash; global instructions, projects, skills, plugins</td></tr>
+            <tr><td>3</td><td>Use everywhere &mdash; Chrome extension, Microsoft 365</td></tr>
+            <tr><td>4</td><td>Sharing &amp; safety &mdash; validating skills, team sharing</td></tr>
+            <tr><td>5</td><td>Wrap up + quiz</td></tr>
+          </table>
+
+          <h3>B.4 &mdash; Introduction to Agent Skills</h3>
+          <p>สร้าง SKILL.md &mdash; reusable markdown instructions ที่ Claude apply อัตโนมัติ</p>
+          <table>
+            <tr><th>Module</th><th>หัวข้อ</th></tr>
+            <tr><td>1</td><td>What are skills? &mdash; concept + use cases</td></tr>
+            <tr><td>2</td><td>Creating first skill &mdash; SKILL.md frontmatter + body</td></tr>
+            <tr><td>3</td><td>Config + multi-file &mdash; directories, allowed-tools</td></tr>
+            <tr><td>4</td><td>Skills vs other features &mdash; vs CLAUDE.md, hooks, subagents</td></tr>
+            <tr><td>5</td><td>Sharing &mdash; team repos, enterprise deployment</td></tr>
+            <tr><td>6</td><td>Troubleshooting &mdash; trigger failures, priority conflicts, runtime errors</td></tr>
+          </table>
+
+          <h3>B.5 &mdash; Introduction to Subagents</h3>
+          <p>แยก context window &mdash; delegate tasks ให้ sub-agent ทำ</p>
+          <table>
+            <tr><th>Module</th><th>หัวข้อ</th></tr>
+            <tr><td>1</td><td>What are subagents? &mdash; separate context, input/output flow</td></tr>
+            <tr><td>2</td><td>Creating &mdash; <code>/agents</code> command</td></tr>
+            <tr><td>3</td><td>Designing effective &mdash; structured outputs, error reporting</td></tr>
+            <tr><td>4</td><td>Using effectively &mdash; when to delegate vs not</td></tr>
+          </table>
+
+          <h3>B.6 &mdash; Introduction to MCP</h3>
+          <p>สร้าง MCP server + client ด้วย Python &mdash; 3 core primitives</p>
+          <table>
+            <tr><th>Module</th><th>หัวข้อ</th></tr>
+            <tr><td>1</td><td>Intro &mdash; MCP architecture, clients</td></tr>
+            <tr><td>2</td><td>Hands-on Servers &mdash; tools, decorators, server inspector</td></tr>
+            <tr><td>3</td><td>Connecting Clients &mdash; resources (static/templated URI), prompts</td></tr>
+            <tr><td>4</td><td>Assessment</td></tr>
+          </table>
+
+          <h3>B.7 &mdash; MCP Advanced Topics</h3>
+          <p>Production-grade MCP &mdash; transport, scaling, deployment</p>
+          <table>
+            <tr><th>Module</th><th>หัวข้อ</th></tr>
+            <tr><td>1</td><td>Intro + Getting started</td></tr>
+            <tr><td>2</td><td>Core Features &mdash; sampling, notifications/logging, roots (file access)</td></tr>
+            <tr><td>3</td><td>Transports &mdash; STDIO, StreamableHTTP, SSE, state management</td></tr>
+            <tr><td>4</td><td>Assessment &mdash; scaling strategies, load balancers</td></tr>
+          </table>
+
+          <h3>B.8 &mdash; Building with the Claude API</h3>
+          <p><strong>ครอบคลุมที่สุด</strong> &mdash; 11 modules ตั้งแต่ API key จน agents</p>
+          <table>
+            <tr><th>Module</th><th>หัวข้อ</th></tr>
+            <tr><td>1</td><td>Intro &mdash; Anthropic overview, Claude models</td></tr>
+            <tr><td>2</td><td>API Access &mdash; auth, multi-turn, system prompts, temperature, streaming, structured data</td></tr>
+            <tr><td>3</td><td>Prompt Evaluation &mdash; eval workflows, test datasets, model/code-based grading</td></tr>
+            <tr><td>4</td><td>Prompt Engineering &mdash; be clear, be specific, XML tags, examples</td></tr>
+            <tr><td>5</td><td>Tool Use &mdash; schemas, message blocks, multi-turn, text edit tool, web search tool</td></tr>
+            <tr><td>6</td><td>RAG &mdash; chunking, embeddings, BM25, multi-index pipeline</td></tr>
+            <tr><td>7</td><td>Features &mdash; extended thinking, image/PDF, citations, prompt caching, code execution, Files API</td></tr>
+            <tr><td>8</td><td>MCP &mdash; full coverage (tools, resources, prompts, inspector, client)</td></tr>
+            <tr><td>9</td><td>Apps &mdash; Claude Code setup + MCP servers</td></tr>
+            <tr><td>10</td><td>Agents &amp; Workflows &mdash; parallelization, chaining, routing, agents vs workflows</td></tr>
+            <tr><td>11</td><td>Final Assessment</td></tr>
+          </table>
+        </section>
+
+        <section>
+          <h2>C &mdash; AI Fluency Track (6 courses)</h2>
+          <table>
+            <tr><th>Course</th><th>กลุ่มเป้าหมาย</th></tr>
+            <tr><td>AI Fluency: Framework &amp; Foundations</td><td>ทุกคน &mdash; collaborate with AI effectively</td></tr>
+            <tr><td>AI Fluency for Educators</td><td>อาจารย์ + ผู้บริหารสถาบัน</td></tr>
+            <tr><td>AI Fluency for Students</td><td>นักศึกษา &mdash; learning + career</td></tr>
+            <tr><td>Teaching AI Fluency</td><td>ผู้สอน + instructional designers</td></tr>
+            <tr><td>AI Fluency for Nonprofits</td><td>องค์กรไม่แสวงหากำไร</td></tr>
+            <tr><td>AI Fluency for Small Businesses</td><td>ธุรกิจขนาดเล็ก</td></tr>
+          </table>
+        </section>
+
+        <section>
+          <h2>D &mdash; Platform-Specific (2 courses)</h2>
+          <table>
+            <tr><th>Course</th><th>Platform</th></tr>
+            <tr><td>Claude with Amazon Bedrock</td><td>AWS</td></tr>
+            <tr><td>Claude with Google Cloud's Vertex AI</td><td>GCP</td></tr>
+          </table>
+        </section>
+
+        <section>
+          <h2>E &mdash; เทียบกับ P'Nat's CCC Academy</h2>
+          <p>P'Nat สอน fleet-specific patterns ที่ Anthropic ไม่มี &mdash; Anthropic สอน foundational ที่ P'Nat assume เป็น prerequisite</p>
+          <table>
+            <tr><th>P'Nat Lesson</th><th>Anthropic Course ที่ใกล้สุด</th><th>Gap</th></tr>
+            <tr><td>1. CLAUDE.md</td><td>Claude Code 101 Module 4</td><td>Anthropic สอน basics, P'Nat สอน 407-line production CLAUDE.md</td></tr>
+            <tr><td>2. Shortcode &rarr; Skill</td><td>Intro to Agent Skills</td><td>P'Nat เพิ่ม /create-shortcut pipeline + npx distribution</td></tr>
+            <tr><td>3. Oracle Birth</td><td>&mdash;</td><td>Fleet-specific: /awaken, &psi;/, 5 Principles</td></tr>
+            <tr><td>4. Team Agents</td><td>Intro to Subagents</td><td>Anthropic = subagents only. P'Nat = full team-agents + trio</td></tr>
+            <tr><td>5. Token Security</td><td>API Module 2 (API key)</td><td>P'Nat covers 4 token types + HMAC + federation</td></tr>
+            <tr><td>6. Federation</td><td>&mdash;</td><td>Fleet-specific: cross-oracle messaging</td></tr>
+            <tr><td>7. Channels</td><td>&mdash;</td><td>Fleet-specific: Discord/Telegram integration</td></tr>
+            <tr><td>8. Worktrees</td><td>&mdash;</td><td>Fleet-specific: git worktrees for parallel agents</td></tr>
+            <tr><td>MCP basics</td><td>Intro to MCP + Advanced</td><td>Anthropic ลึกกว่า (transport, scaling, production)</td></tr>
+            <tr><td>Prompt Engineering</td><td>API Module 4</td><td>Anthropic สอน XML tags, evals &mdash; P'Nat ไม่ cover</td></tr>
+            <tr><td>RAG</td><td>API Module 6</td><td>Anthropic สอน chunking, embeddings, BM25 &mdash; P'Nat ไม่ cover</td></tr>
+            <tr><td>Hooks + SDK</td><td>Claude Code in Action Module 4</td><td>Anthropic สอน SDK &mdash; ใหม่</td></tr>
+            <tr><td>Claude Cowork</td><td>Intro to Claude Cowork</td><td>Anthropic exclusive &mdash; P'Nat ไม่ cover</td></tr>
+          </table>
+        </section>
+
+        <section>
+          <h2>F &mdash; Learning Path แนะนำ</h2>
+          <p>สำหรับ Oracle builder ลำดับที่ควรเรียน:</p>
+          <ol>
+            <li><strong>Claude Code 101</strong> &mdash; พื้นฐาน (ถ้ายังไม่เคยใช้)</li>
+            <li><strong>Claude Code in Action</strong> &mdash; hooks, SDK, GitHub automation</li>
+            <li><strong>Intro to Agent Skills</strong> &mdash; สร้าง SKILL.md อย่างเป็นระบบ</li>
+            <li><strong>Intro to Subagents</strong> &mdash; delegate work ให้ sub-agent</li>
+            <li><strong>Intro to MCP</strong> &rarr; <strong>MCP Advanced</strong> &mdash; เชื่อมต่อ external tools</li>
+            <li><strong>Building with Claude API</strong> &mdash; comprehensive (ถ้ามีเวลา ทำทั้ง 11 modules)</li>
+            <li><strong>Intro to Claude Cowork</strong> &mdash; ใหม่ ยังไม่ค่อยมีใครรู้</li>
+          </ol>
+        </section>
+
+        <section>
+          <h2>G &mdash; Key Takeaways</h2>
+          <ul>
+            <li>18 courses ฟรี จาก Anthropic โดยตรง &mdash; official source of truth</li>
+            <li><strong>Claude Code SDK</strong> สอนใน "Claude Code in Action" Module 4 &mdash; เป็น topic ใหม่ที่ fleet ยังไม่ได้ learn</li>
+            <li><strong>Claude Cowork</strong> เป็น product ใหม่ &mdash; ทำงานกับ files ตรงๆ ไม่ใช่ chat</li>
+            <li>Anthropic สอน <strong>Prompt Evaluation</strong> (eval workflows + grading) &mdash; fleet ยังไม่มี</li>
+            <li>P'Nat's course เติมช่องว่างที่ Anthropic ไม่ cover &mdash; Oracle identity, Federation, Channels, Worktrees</li>
+            <li>ทั้งสอง course ใช้ <strong>คู่กัน</strong> &mdash; Anthropic = foundation, P'Nat = fleet-specific execution</li>
+          </ul>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: anthropic.skilljar.com &mdash; fetched 2026-05-25</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

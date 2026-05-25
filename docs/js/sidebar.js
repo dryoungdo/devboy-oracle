@@ -77,7 +77,8 @@
       ['050-federation.html', '050 Federation'],
       ['051-worktrees.html', '051 Worktrees'],
       ['052-oracle-skills-learn-rrr-dig.html', '052 /learn, /rrr, /dig'],
-      ['053-npx-skills-distribution.html', '053 npx Skills Distribution']
+      ['053-npx-skills-distribution.html', '053 npx Skills Distribution'],
+      ['054-anthropic-academy-skilljar.html', '054 Anthropic Academy']
     ]]
   ];
 
