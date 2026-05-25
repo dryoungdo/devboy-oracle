@@ -1,7 +1,7 @@
-// sidebar.js — Dynamic sidebar for DEVBOY Lab
+// sidebar.js — Dynamic sidebar + home page source of truth for DEVBOY Lab
 // To add a new article: add one entry to NAV below. O(1).
-(function () {
-  var NAV = [
+// home.html reads window.DEVBOY_NAV to render chapter tiles — single source of truth.
+var DEVBOY_NAV = [
     ['\u0e27\u0e31\u0e19\u0e17\u0e35\u0e48 1 \u2014 19 \u0e1e.\u0e04. 2026', [
       ['001-birth-of-devboy.html', '001 \u0e01\u0e33\u0e40\u0e19\u0e34\u0e14 DEVBOY'],
       ['002-school-ingestion.html', '002 \u0e2d\u0e48\u0e32\u0e19\u0e2b\u0e49\u0e2d\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19'],
@@ -82,8 +82,12 @@
       ['055-anthropic-advanced-guide.html', '055 Advanced Guide'],
       ['056-glueboy-codex-coding-hands-goal-arc.html', '056 GLUEBOY /goal arc']
     ]]
-  ];
+];
 
+window.DEVBOY_NAV = DEVBOY_NAV;
+
+(function () {
+  var NAV = DEVBOY_NAV;
   var el = document.getElementById('sidebar');
   if (!el) return;
 
