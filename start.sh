@@ -93,6 +93,56 @@ verify_discord_mcp_after_launch() {
 
 export DISCORD_STATE_DIR="/home/drdo/.claude/channels/discord/devboy"
 
+patch_discord_plugin_env() {
+  local candidate
+  local found=0
+  local tmp=""
+
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "[gate_hook] WARNING: jq not found; skipping Discord plugin .mcp.json env patch" >&2
+    return 0
+  fi
+
+  for candidate in "$HOME"/.claude/plugins/cache/claude-plugins-official/discord/*/.mcp.json; do
+    [ -f "$candidate" ] || continue
+    found=1
+
+    if jq -e --arg dir "$DISCORD_STATE_DIR" \
+      '.mcpServers.discord.env.DISCORD_STATE_DIR == $dir' \
+      "$candidate" >/dev/null 2>&1; then
+      echo "[gate_hook] Discord plugin .mcp.json env.DISCORD_STATE_DIR present in $candidate" >&2
+      continue
+    fi
+
+    if jq -e '.mcpServers.discord.env.DISCORD_STATE_DIR' "$candidate" >/dev/null 2>&1; then
+      echo "[gate_hook] Discord plugin .mcp.json env.DISCORD_STATE_DIR differs in $candidate; patching..." >&2
+    else
+      echo "[gate_hook] Discord plugin .mcp.json missing env.DISCORD_STATE_DIR in $candidate; patching..." >&2
+    fi
+
+    if ! tmp="$(mktemp)"; then
+      echo "[gate_hook] WARNING: failed to create temp file; skipping Discord plugin env patch for $candidate" >&2
+      continue
+    fi
+
+    if jq --arg dir "$DISCORD_STATE_DIR" \
+      '.mcpServers.discord.env = (.mcpServers.discord.env // {}) * {DISCORD_STATE_DIR: $dir}' \
+      "$candidate" > "$tmp" && mv "$tmp" "$candidate"; then
+      echo "[gate_hook] Patched $candidate" >&2
+    else
+      echo "[gate_hook] WARNING: failed to patch $candidate; continuing startup" >&2
+      rm -f "$tmp"
+    fi
+    tmp=""
+  done
+
+  if [ "$found" -eq 0 ]; then
+    echo "[gate_hook] WARNING: Discord plugin .mcp.json not found; skipping env patch" >&2
+  fi
+}
+
+patch_discord_plugin_env
+
 # Optional session continuity: set CLAUDE_CONTINUE=1 (or pass --continue) to
 # resume the most recent claude session in this repo. Default is fresh boot so
 # manual launches behave like before. `maw wake devboy` exports CLAUDE_CONTINUE=1
