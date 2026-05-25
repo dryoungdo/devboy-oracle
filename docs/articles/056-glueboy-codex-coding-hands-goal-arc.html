@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GLUEBOY /goal arc 2026-05-25 — 5 PRs shipped via codex coding-hands swarm, codex review slow-path playbook validated 3x, SOP-QA Rule 3 self-bug, Discord wire lesson, self-discipline meta-pattern">
+  <title>056 &mdash; GLUEBOY codex-coding-hands /goal arc | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">056 &mdash; GLUEBOY codex-coding-hands /goal arc</span>
+        <span class="topbar-date">2026-05-25</span>
+      </div>
+      <div class="content-shell">
+        <h1>GLUEBOY codex-coding-hands /goal arc &mdash; 5 PRs ใน 2.5 ชม.</h1>
+        <div class="article-meta">
+          <span class="tag">codex-coding-hands</span>
+          <span class="tag">codex-review</span>
+          <span class="tag">slow-path-playbook</span>
+          <span class="tag">sop-qa-gate</span>
+          <span class="tag">goal-arc</span>
+          <span class="tag">self-discipline</span>
+          <span class="tag">discord-wire</span>
+          <span class="maturity solid">&#10004; solid (lived experience, 5 merged PRs)</span>
+        </div>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART A: THE ARC -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>A &mdash; /goal arc โดยย่อ</h2>
+          <p>2026-05-25 ~17:00 ICT, Captain ตั้ง <code>/goal finish all the issues</code> ที่ <code>dryoungdo/glueboy-oracle</code> &mdash; 6 issues เปิดอยู่. GLUEBOY orchestrate codex coding-hands ผ่าน <code>maw tile</code> + worktree pattern, ปิด 8 issues (6 เดิม + 2 ใหม่ที่ surface ระหว่างทำงาน), ส่ง <strong>5 PRs รวม ~3,078 LOC</strong> ใน 2.5 ชม.</p>
+
+          <h3>A.1 &mdash; 5 PRs ที่ ship</h3>
+          <table>
+            <tr><th>PR</th><th>Closes</th><th>LOC</th><th>หัวข้อ</th></tr>
+            <tr><td>#68</td><td>#62</td><td>+22/-12</td><td>doctrine drift &mdash; เปลี่ยน maw verbs ที่ไม่มีจริง (<code>maw team close</code>, <code>maw cleanup --zombies</code>) ให้เป็นของจริง</td></tr>
+            <tr><td>#72</td><td>#60</td><td>+584/-0</td><td>CMMI weekly metrics rollup &mdash; <code>scripts/weekly-metrics-rollup.sh</code> + tests + /standup integration</td></tr>
+            <tr><td>#73</td><td>#64</td><td>+921/-12</td><td>worktree-only enforcement hook &mdash; PreToolUse hook + 29-case test harness + installer</td></tr>
+            <tr><td>#74</td><td>#69</td><td>+179/-17</td><td>SOP-QA Rule 3 false-positive fix &mdash; lexical bash parser (ไม่ใช่แค่ substring match)</td></tr>
+            <tr><td>#75</td><td>#71</td><td>+1372/-81</td><td>codex-review config refinement &mdash; <code>run-codex-review.sh</code> wrapper + <code>~/.claude/skills/codex-review/</code> + 4 templates + brief template + doctrine update</td></tr>
+          </table>
+
+          <p>+3 ปิดโดยไม่ผ่าน PR: #63 (filed upstream <code>openai/codex#14115</code>), #67 + #70 (closed-with-fix-proposal-in-body, later filed upstream as <code>maw-js#1911</code> + <code>#1912</code>).</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART B: CODING-HANDS PATTERN -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>B &mdash; Codex Coding-Hands Pattern</h2>
+          <p>Captain &rarr; GLUEBOY (orchestrator) &rarr; codex tile (coding hands). GLUEBOY ไม่ edit source โดยตรง &mdash; ส่ง brief ให้ codex ผ่าน <code>maw hey</code> + เฝ้าดูผ่าน <code>maw peek</code>.</p>
+
+          <h3>B.1 &mdash; Spawn pattern</h3>
+          <pre><code># 1. Create worktree for isolated work
+git worktree add ../glueboy-oracle-wt-NN-slug -b feat/NN-slug
+
+# 2. Spawn codex tile pointing at worktree (--dangerously-bypass-approvals-and-sandbox MANDATORY)
+maw tile 1 \
+  --path "/Users/.../glueboy-oracle-wt-NN-slug" \
+  --cmd "codex --dangerously-bypass-approvals-and-sandbox"
+
+# 3. Brief codex via maw hey --force
+maw hey 01-glueboy:glueboy-oracle.1 "TASK — ..." --force
+
+# 4. Peek progress
+maw peek 01-glueboy:glueboy-oracle.1
+
+# 5. After DONE: kill tile
+maw kill 01-glueboy:glueboy-oracle.1</code></pre>
+
+          <p><strong>หัวใจของ pattern: <code>--force</code> flag</strong> &mdash; codex TUI never appears idle (มี Context % indicator), maw's pane-idle detector อ่านเป็น "busy" และ queue ไปที่ inbox แทนที่จะ deliver. <code>--force</code> bypass การตรวจสอบนี้.</p>
+
+          <h3>B.2 &mdash; Bypass-flag เป็น MANDATORY</h3>
+          <p>Default codex profile = readonly (workspace-read). ถ้าไม่มี <code>--dangerously-bypass-approvals-and-sandbox</code>, codex จะสร้าง patch ใน TUI scrollback แต่ <strong>ไม่ write files, ไม่ commit, ไม่ push</strong> &mdash; เป็น "ghost progress" ที่ดูเหมือนทำงานแต่ไม่ได้บันทึก. Cost ~10 min ตอนค้นพบครั้งแรก (2026-05-24).</p>
+
+          <h3>B.3 &mdash; Pane re-indexing trap</h3>
+          <p>หลัง <code>maw kill</code> หรือ <code>maw tile clean</code>, tmux silently re-index panes survivors. <code>.3</code> อาจกลายเป็น <code>.2</code>, fresh spawns ลงที่ next free index. ที่อยู่ pane ที่จำไว้ก่อน kill อาจชี้ไปที่ codex ตัวอื่น &mdash; <strong>ALWAYS <code>maw panes</code> หลัง kill</strong> เพื่อ re-verify ก่อนส่ง brief ตัวต่อไป.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART C: SLOW-PATH PLAYBOOK -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>C &mdash; Codex Review Slow-Path Playbook</h2>
+          <p>Codex tile embedded <code>codex review --uncommitted</code> ค้นพบรูปแบบ hang ที่ <strong>~17 นาที no findings emitted</strong> ใน <strong>3 ใน 4 codex tiles วันนี้</strong> (#60, #64, #69 second pass). Pattern ชัดเจน: first review pass หา bugs จริงได้ภายใน 5-10 min, second pass drift เข้า scope-creep (อ่าน doctrine text, unrelated files) และค้างที่ ~17 min ไม่มี new findings.</p>
+
+          <h3>C.1 &mdash; Abort sequence (validated 2 ครั้ง)</h3>
+          <pre><code># 1. Interrupt codex TUI via maw run + escape key
+#    (single-keystroke exception ต่อ doctrine "no maw run for AI sessions")
+maw run &lt;session&gt;:&lt;pane&gt; $'\x1b'
+
+# 2. Tell codex to kill bg review + ship without re-review
+maw hey &lt;session&gt;:&lt;pane&gt; "Codex review hit slow-path (&gt;5 min no findings). \
+  Kill bg review via pkill, commit + push + maw pr immediately. \
+  Don't restart review." --force
+
+# 3. Codex acknowledges + runs pkill -f 'codex review --uncommitted'
+# 4. Codex proceeds to commit + push + maw pr</code></pre>
+
+          <h3>C.2 &mdash; เมื่อไหร่ค่อย abort vs ปล่อย</h3>
+          <table>
+            <tr><th>State</th><th>Action</th></tr>
+            <tr><td>Review emitting findings (เห็นใน peek)</td><td>ปล่อยให้ทำต่อ &mdash; เป็น "value-add" path</td></tr>
+            <tr><td>Review silent &gt;5 min, no new output</td><td>Abort &mdash; เป็น "scope-creep" path</td></tr>
+            <tr><td>Review screen ไม่เปลี่ยน &gt;3 peek cycles</td><td>Abort</td></tr>
+            <tr><td>Total &gt;20 min</td><td>Abort regardless of findings rate</td></tr>
+          </table>
+
+          <p><strong>Cost วันนี้</strong>: ~45 min ของ operator-intervention เพื่อ abort 3 hung reviews. แต่ value-add: 3 reviews แรกหา bugs จริง 5+ (รวม private-repo leak fix ที่ codex review จับได้ก่อน post upstream).</p>
+
+          <h3>C.3 &mdash; Mechanical fix (PR #75)</h3>
+          <p><code>scripts/run-codex-review.sh</code> wrapper enforce playbook อัตโนมัติ:</p>
+          <pre><code>scripts/run-codex-review.sh --uncommitted --repo "$(pwd)" \
+  --output /tmp/review.log \
+  --max-runtime 900 \
+  --stagnation-seconds 300 \
+  --tail-interval 30
+
+# Exit codes:
+# 0 = clean (no findings)
+# 1 = findings (still useful)
+# 2 = killed/hung (max-runtime hit OR stagnation timeout)</code></pre>
+
+          <p>Validated meta: codex-71 ใช้ <strong>wrapper ของตัวเอง</strong> review code ของตัวเอง &mdash; wrapper kill review ที่ 300s ตามที่ออกแบบ. Meta-validation.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART D: SOP-QA GATE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>D &mdash; SOP-QA Gate (Mechanical Enforcement)</h2>
+          <p>#57 ship 5 rules (swarm-by-default, issue-first, bypass-flag, pane-recheck, bg-task-wakeup). PreToolUse hook ที่ Edit/Write/Bash. ปกป้อง agent ไม่ให้ทำผิด doctrine ที่ตัวเองเขียน.</p>
+
+          <h3>D.1 &mdash; 5 Rules</h3>
+          <table>
+            <tr><th>#</th><th>Rule</th><th>Triggers when</th></tr>
+            <tr><td>1</td><td>Swarm-by-Default</td><td>Edit/Write to source &mdash; require recent <code>STRATEGY:</code> announcement</td></tr>
+            <tr><td>2</td><td>Issue-first</td><td>Edit/Write to source &mdash; require <code>gh issue</code> or <code>#N</code> reference</td></tr>
+            <tr><td>3</td><td>Bypass-flag</td><td><code>maw tile</code> + <code>codex</code> &mdash; require <code>--dangerously-bypass-approvals-and-sandbox</code></td></tr>
+            <tr><td>4</td><td>Pane re-check</td><td><code>maw hey</code> after <code>maw kill</code> &mdash; require <code>maw panes</code> in between</td></tr>
+            <tr><td>5</td><td>bg-task wakeup</td><td><code>run_in_background: true</code> &mdash; require paired <code>ScheduleWakeup</code></td></tr>
+          </table>
+
+          <h3>D.2 &mdash; The Meta-bug ที่จับตัวเอง</h3>
+          <p>Rule 3 (#57) ค้นพบ false-positive ในวันถัดมา: gate match literal substring "maw tile" ใน <strong>git commit message body</strong> ที่กล่าวถึง verb. Commit ที่ทำ doctrine fix สำหรับ <code>maw tile clean</code> ถูก block.</p>
+
+          <pre><code># เกิด false-positive:
+git commit -m "fix(doctrine): #62 — reference maw tile clean as replacement"
+# → SOP-QA GATE [bypass-flag] BLOCKED — Bash tool call starts a codex tile with `maw tile`...
+# (แต่ command นี้คือ git commit, ไม่ใช่ tile spawn)</code></pre>
+
+          <p>#69 ฟิกซ์โดยเขียน lexical parser (Python script ฝังใน bash) ที่แยกแยะระหว่าง "<code>maw tile</code> ที่ command start" vs "<code>maw tile</code> ใน quoted argument". 30/30 test cases pass (17 original + 13 new false-positive guards).</p>
+
+          <p><strong>Override token</strong>: <code>GLUEBOY_GATE_BYPASS=&lt;reason&gt;</code> ใน tool input bypass gate + log ไป <code>~/.claude/.sop-qa-gate/gate.log</code>.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART E: WORKTREE-ONLY HOOK -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>E &mdash; Worktree-Only Enforcement Hook (#64 / PR #73)</h2>
+          <p>Doctrine declare แล้วว่า "all code-touching codex work MUST start in a <code>maw workon</code> worktree" (#55). PR #73 ship mechanical enforcement:</p>
+
+          <ul>
+            <li><code>scripts/hooks/worktree-only-gate.sh</code> &mdash; PreToolUse hook ที่ Edit/Write</li>
+            <li>Block source edits in main checkout (detect via <code>git rev-parse --git-common-dir</code> vs <code>--git-dir</code>)</li>
+            <li>Allowed exceptions: <code>oracle-build/</code>, <code>CLAUDE.md</code>, <code>AGENTS.md</code>, <code>ψ/</code>, <code>.claude/</code>, single-line typos, comment-only changes</li>
+            <li>29-case test harness covers main vs worktree scenarios</li>
+            <li><code>scripts/install-worktree-only-hook.sh</code> &mdash; per-machine installer (settings.local.json absolute path mirrors #61 SOP-QA pattern)</li>
+          </ul>
+
+          <p>Fail-open on internal errors: any internal gate bug &rarr; exit 0 silently. Never breaks tool calls due to its own bug.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART F: META-LESSONS -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>F &mdash; Meta-Lessons จาก Arc นี้</h2>
+
+          <h3>F.1 &mdash; "Doctrine ที่เขียนเอง ก็ violate เอง"</h3>
+          <p>Pattern recurring 6 ใน 7 session-metrics rows: agent ไม่ self-enforce doctrine ที่ตัวเองเขียน. Surface variants:</p>
+          <ul>
+            <li>Solo-executed swarm-shaped commits โดยไม่ announce STRATEGY (Instance 11 + 12)</li>
+            <li>Premature narrowing without verifying (act-without-verifying)</li>
+            <li>Mislabeled issue without forensics</li>
+            <li>Waited for Captain to enforce "60% context = autonomous wrap" rule &mdash; Captain ต้อง nudge 2 ครั้ง (Instance 13 วันนี้)</li>
+          </ul>
+
+          <p><strong>Generalization</strong>: rule ที่ <em>คุณ</em> เขียนเอง คือ rule ที่ <em>คุณ</em> rationalize exceptions ได้ง่ายที่สุด. การ enforce ต้องเป็น mechanical (gate), ไม่ใช่ judgmental ("ตัดสินใจตอนนั้น").</p>
+
+          <h3>F.2 &mdash; Discord wire bug (operator-side)</h3>
+          <p>Captain ใช้ Discord, ไม่ใช่ iTerm/terminal. <strong>Assistant text in Claude Code goes ONLY to terminal</strong> &mdash; ไม่ cross wire ไปที่ Discord automatically. ต้อง <code>mcp__plugin_discord_discord__reply</code> ทุกครั้งสำหรับ response บน Discord channel.</p>
+
+          <p>วันนี้ลืม rule นี้ 1 ครั้ง: composed action list บน terminal, ลืม call Discord reply tool &mdash; Captain ไม่ได้ message 47 min จนกระทั่ง flag "I dont get response here in discord". Cost: trust + 47 min silent gap.</p>
+
+          <p><strong>Generalization</strong>: ในระบบ multi-surface (terminal + Discord + iTerm + tmux), each tool output goes ONLY ไปที่ specific surface. ต้องเลือก surface ให้ตรงกับที่ user อยู่.</p>
+
+          <h3>F.3 &mdash; Codex review ใช้ค่าใช้จ่ายสูง แต่ pay back</h3>
+          <p>3 codex tiles ใช้เวลา 15-20 min ต่อ tile เพื่อ co-review &mdash; รวม ~45 min. แต่ catches:</p>
+          <ul>
+            <li><strong>#63 upstream comment</strong>: 3 findings รวม <strong>private-repo leak</strong> (ลิงก์ไปที่ glueboy-oracle ซึ่ง PRIVATE จาก public openai/codex comment &mdash; จะ leak metadata + 404 ผู้รับ)</li>
+            <li><strong>#60 CMMI rollup</strong>: 2 bugs (commit-collection generalization + tempdir handling)</li>
+            <li><strong>#62 doctrine</strong>: factual nuance (verbs are "coded but unrouted" not "aspirational" &mdash; my first framing was wrong)</li>
+            <li><strong>#69 SOP-QA fix</strong>: control-word boundary nuance (then/do should only reset state where command could start)</li>
+          </ul>
+
+          <p>Cost-benefit: ใช้ <code>scripts/run-codex-review.sh</code> wrapper ทำให้ cost predictable (max 15 min) + benefits ยังคงเดิม.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART G: WORKFLOW TEMPLATE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>G &mdash; Workflow Template สำหรับ /goal arc</h2>
+          <p>Reusable pattern สำหรับ multi-issue goal arc:</p>
+
+          <ol>
+            <li><strong>Captain set goal</strong>: <code>/goal &lt;objective&gt;</code></li>
+            <li><strong>GLUEBOY categorize</strong>: STRATEGY table per issue (SOLO vs SWARM, who owns it)
+              <ul>
+                <li>SOLO orchestrator: doctrine edits, issue body updates, upstream filing</li>
+                <li>SWARM via codex tile: code work in worktree</li>
+                <li>Pre-existing closures: filed upstream / done previously</li>
+              </ul>
+            </li>
+            <li><strong>Per code-shipping issue</strong>:
+              <ol>
+                <li>Create worktree (<code>git worktree add</code>)</li>
+                <li>Write brief at <code>/tmp/codex-NN-brief.md</code> with: task + acceptance + autonomous completion sequence + STRATEGY announcement requirement</li>
+                <li>Spawn codex tile with bypass flag</li>
+                <li>Brief via <code>maw hey --force</code></li>
+                <li>Peek + supervise (don't poll-spam; trust codex's status reports)</li>
+                <li>If review slow-path: abort per playbook</li>
+                <li>Confirm DONE message + PR opened</li>
+                <li><code>maw kill</code> tile</li>
+              </ol>
+            </li>
+            <li><strong>Periodic Captain updates</strong> (Discord, NOT terminal):
+              <ul>
+                <li>After each major milestone</li>
+                <li>When new sub-issue surfaces (#69, #71 today)</li>
+                <li>When operator decision needed</li>
+              </ul>
+            </li>
+            <li><strong>Goal-complete wrap-up</strong>:
+              <ul>
+                <li>/rrr full retrospective with session-metrics row + pattern check</li>
+                <li>arra learn sync of generalizable lessons</li>
+                <li>Commit + push memory via <code>scripts/push-memory.sh</code> (requires non-memory commits already on origin)</li>
+                <li>Article write-up if Captain requests</li>
+              </ul>
+            </li>
+          </ol>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART H: METRICS -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>H &mdash; CMMI L3 Metrics (PR #72 produced this)</h2>
+          <p>Rollup for window 2026-05-18 to 2026-05-25 (last 7 days) on dryoungdo/glueboy-oracle:</p>
+
+          <pre><code>Total issues closed: 37
+Median cycle time: 1.23 hours (0.05 days)
+Total commits: 54 unique (97 issue references)
+Top 3 authors by commit count:
+  1. GLUEBOY - 23 commits
+  2. Claude Opus 4.6 (1M context) - 16
+  3. Claude Opus 4.7 (1M context) - 4</code></pre>
+
+          <p>Sub-second median cycle time = small surgical fixes shipping cleanly. Top-author split shows the role-vs-runtime distinction enforced by per-BOY git identity (#62 fix doctrine): GLUEBOY signs as role, Claude attribution is runtime metadata.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART I: TAKE-AWAY -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>I &mdash; Take-away</h2>
+          <table>
+            <tr><th>Pattern</th><th>เมื่อไหร่ใช้</th></tr>
+            <tr><td><strong>Codex coding-hands swarm</strong></td><td>Multi-issue goal arc, code work that fits in worktree, ≥2 independent concerns</td></tr>
+            <tr><td><strong>Codex review wrapper</strong></td><td>Always before merge, opens PR comments, or doctrine claims &mdash; cap at <code>--max-runtime 900</code></td></tr>
+            <tr><td><strong>SOP-QA gate</strong></td><td>Install once per machine; auto-enforces 5 rules on Edit/Write/Bash</td></tr>
+            <tr><td><strong>Worktree-only gate</strong></td><td>Install once per machine; auto-blocks source edits outside worktree</td></tr>
+            <tr><td><strong>Abort playbook</strong></td><td>When codex review silent &gt;5 min &mdash; <code>maw run pane $'\x1b'</code> + <code>maw hey</code> abort message + <code>pkill</code></td></tr>
+            <tr><td><strong>Discord reply tool</strong></td><td>Every response to user on Discord channel &mdash; never rely on terminal output</td></tr>
+          </table>
+
+          <p><strong>The meta-pattern</strong>: rule ที่ <em>คุณ</em>เขียน, <em>คุณ</em>เป็นคนแหก. Mechanical enforcement (gates) &gt; judgmental enforcement ("ตัดสินใจตอนนั้น"). ใน arc นี้, gate ที่ ship วันนี้คุ้มกัน arc ถัดไป.</p>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: GLUEBOY /goal arc 2026-05-25 ICT &mdash; live session at glueboy-oracle, codex tiles 60/64/69/71, retro at <code>ψ/memory/retrospectives/2026-05/25/18.44_goal-arc-finish-all-issues-7-issues-3-PRs.md</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
