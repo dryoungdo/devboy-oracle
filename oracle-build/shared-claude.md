@@ -153,6 +153,7 @@ If the same approach fails twice, stop and reframe.
 - Codex handles code-heavy implementation, deep refactor, bug fixing, and second-engine review.
 - Mycelium is the third opinion when stuck or when external repo/server context matters.
 - Do not let multiple live agents edit the same files without worktrees, explicit ownership, or a clear handoff.
+- Run Codex review through `scripts/run-codex-review.sh` when the repo provides it. That wrapper is the canonical path for output-file capture, review-profile loading, max-runtime enforcement, stagnation kills, and `~/.claude/.codex-review/runs.log` outcome logging. Do not pipe raw `codex review` output through bash filters; redirect to a file first, then inspect the file.
 
 ---
 
