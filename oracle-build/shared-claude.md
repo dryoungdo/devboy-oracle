@@ -492,11 +492,14 @@ When the Codex orchestrator finds a bug or improvement NOT in the original brief
 When code is committed and tests pass, the worktree runs the **entire** completion sequence without asking — no "should I open a PR?", no "want me to clean up?":
 
 1. `git push -u origin <branch>` — push the branch
-2. `maw pr` — open the PR (autonomous, never wait for permission)
-3. `maw hey <parent-oracle-pane> "PR #N opened. Summary: ..."` — report to parent oracle
-4. `/rrr` — capture knowledge (writes to parent oracle via tmux detection)
-5. `maw tile clean` — kill codex panes if any
-6. Session is done — parent oracle runs `maw done <window>` to destroy worktree
+2. Generate the audit-trail body: `bash scripts/codex-pr-body.sh "$(pwd)" > /tmp/pr-body-$$.md` (prepend your hand-written summary above the audit table if useful)
+3. `gh pr create --base main --head <branch> --title "<title>" --body-file /tmp/pr-body-$$.md` — open PR with audit trail attached (preferred over `maw pr` because `maw pr` doesn't support `--body-file` today and would bypass the codex-review audit trail — see #78)
+4. `maw hey <parent-oracle-pane> "PR #N opened. Summary: ..."` — report to parent oracle
+5. `/rrr` — capture knowledge (writes to parent oracle via tmux detection)
+6. `maw tile clean` — kill codex panes if any
+7. Session is done — parent oracle runs `maw done <window>` to destroy worktree
+
+> **Fallback**: `maw pr` is acceptable for trivial PRs (no codex review, no audit trail to attach). For any codex-reviewed work, use `gh pr create --body-file` so the audit trail goes into the PR body.
 
 **Never ask "Want me to open a PR?" or "Should I clean up?"** — just do it. The code is committed, tests pass, completion is autonomous. Waiting for permission to PR is a bug in the workflow.
 
