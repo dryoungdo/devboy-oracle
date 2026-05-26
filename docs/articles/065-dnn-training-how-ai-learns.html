@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DNN Training &mdash; อธิบาย Gradient Descent, Backpropagation, Overfitting ด้วยการเดินลงเขาในหมอก">
+  <title>065 &mdash; DNN Training: How AI Learns | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">065 &mdash; DNN Training: How AI Learns</span>
+        <span class="topbar-date">2026-05-26</span>
+      </div>
+      <div class="content-shell">
+        <h1>DNN Training &mdash; AI เรียนรู้ยังไง (เดินลงเขาในหมอก)</h1>
+        <div class="article-meta">
+          <span class="tag">dnn</span>
+          <span class="tag">training</span>
+          <span class="tag">gradient-descent</span>
+          <span class="tag">backpropagation</span>
+          <span class="tag">loss-function</span>
+          <span class="tag">chula-class</span>
+          <span class="maturity solid">&#10004; solid (standard ML theory + analogies)</span>
+        </div>
+
+        <p><strong>Source:</strong> Chula AI Class (26 พ.ค. 2569) + ML research</p>
+        <p>บทความ <a href="062-ann-deep-dive-board-room.html">062</a> อธิบายว่า ANN "คำนวณ" ยังไง &mdash; บทความนี้อธิบายว่ามัน <strong>"เรียนรู้"</strong> ยังไง = หาค่า weights ที่ดีที่สุดได้อย่างไร</p>
+
+        <section>
+          <h2>1 &mdash; ภาพรวม: จูนกีตาร์พันล้านสาย</h2>
+          <p>ลองนึกภาพ <strong>กีตาร์ที่มี 1 พันล้านสาย</strong> &mdash; สายแต่ละเส้น = weight/parameter ตัวหนึ่ง</p>
+          <ol>
+            <li>ดีดคอร์ด &rarr; เสียงแย่มาก (prediction ผิด)</li>
+            <li>ปรับสายบางเส้น &rarr; ดีดอีกที &rarr; ดีขึ้นนิดหน่อย</li>
+            <li>ทำซ้ำเป็นล้านครั้ง &rarr; เสียงดีขึ้นเรื่อยๆ</li>
+            <li>ถึงจุดที่เสียงดี &rarr; Training เสร็จ!</li>
+          </ol>
+          <table>
+            <tr><th>ในอุปมา</th><th>ใน AI จริง</th></tr>
+            <tr><td>"เสียงแย่" = ผิดไปเท่าไหร่</td><td><strong>Loss Function</strong></td></tr>
+            <tr><td>"ปรับสาย" = ขยับ weights</td><td><strong>Gradient Descent</strong></td></tr>
+            <tr><td>"ทำซ้ำ" = ดีดแล้วปรับอีก</td><td><strong>Epochs</strong></td></tr>
+          </table>
+          <p>Claude มี ~100,000 ล้าน parameters ที่ train แบบนี้ &mdash; algorithm เดียวกัน แค่ scale ใหญ่มาก</p>
+        </section>
+
+        <section>
+          <h2>2 &mdash; Loss Function: "ผิดไปเท่าไหร่?"</h2>
+          <p>ก่อนจะปรับปรุงอะไรได้ ต้องรู้ก่อนว่า <strong>ผิดแค่ไหน</strong></p>
+
+          <h3>Classification</h3>
+          <pre><code>Model บอก: "มั่นใจ 90% ว่าเป็นแมว"
+จริงๆ: เป็นหมา
+&rarr; Error สูงมาก!</code></pre>
+
+          <h3>Regression</h3>
+          <pre><code>Model ทำนาย: ราคาบ้าน 3.5 ล้านบาท
+ราคาจริง: 4.0 ล้านบาท
+&rarr; Error = 500,000 บาท</code></pre>
+
+          <p><strong>เป้าหมาย:</strong> ทำให้ total error จาก training data ทั้งหมดต่ำที่สุด</p>
+        </section>
+
+        <section>
+          <h2>3 &mdash; Gradient Descent: เดินลงเขาในหมอก</h2>
+          <p>นี่คือ algorithm หลักของ AI ทุกตัว ลองจินตนาการ:</p>
+          <p>คุณยืนอยู่บน <strong>ภูเขา</strong> &mdash; หมอกหนามาก มองไม่เห็นอะไรเลย &mdash; เป้าหมาย: ลงไปถึง <strong>หุบเขา</strong> (จุดที่ error ต่ำสุด)</p>
+          <p><strong>วิธีเดียวที่ทำได้:</strong> คลำพื้นใต้เท้า &rarr; รู้สึกว่าทางไหนลาดลง &rarr; ก้าวไปทางนั้น &rarr; ทำซ้ำ</p>
+
+          <pre><code>        Error
+        ^
+   *    |                        * = คุณอยู่ตรงนี้
+    \   |
+     \  |        เป้าหมาย:
+      \ |        เดินลงเนินทีละก้าว
+       \|
+        \
+         \      *  &larr; ก้าวที่ 2
+          \    /
+           \  /
+            \/  &larr; หุบเขา (error ต่ำสุด)
+   ---------+----------------------&gt; Weights</code></pre>
+
+          <p>แต่ละ "ก้าว" = ปรับ weight ทุกตัวนิดหน่อย ไปทิศทางที่ลด error</p>
+
+          <h3>Learning Rate = ขนาดก้าว</h3>
+          <table>
+            <tr><th>ขนาดก้าว</th><th>ผล</th></tr>
+            <tr><td>ใหญ่เกินไป</td><td>กระโดดข้ามหุบเขา กระเด้งไปมา ไม่ลง</td></tr>
+            <tr><td>เล็กเกินไป</td><td>ค่อยๆ คืบ &mdash; train นานเป็นสัปดาห์แทนวัน</td></tr>
+            <tr><td>พอดี</td><td>ลงเนินสม่ำเสมอ ถึงหุบเขาเร็ว</td></tr>
+          </table>
+        </section>
+
+        <section>
+          <h2>4 &mdash; Backpropagation: ส่งความผิดย้อนกลับ</h2>
+          <p>DNN มีหลาย layer &mdash; เมื่อ output ผิด <strong>layer ไหนทำผิด?</strong></p>
+          <p>Backpropagation ตอบคำถามนี้โดย <strong>ส่ง error ย้อนกลับทีละ layer</strong></p>
+
+          <h3>เปรียบเทียบ: งานกลุ่มได้เกรด F</h3>
+          <ol>
+            <li>อาจารย์อ่านรายงาน &rarr; ระบุส่วนที่แย่</li>
+            <li>ส่วนนั้นเขียนโดยใคร? &rarr; ตามไปหา</li>
+            <li>คนนั้นใช้ข้อมูลจากใคร? &rarr; ตามไปอีก</li>
+            <li>แต่ละคนรู้ว่าตัวเอง "ผิดแค่ไหน" &rarr; ปรับปรุงส่วนของตัวเอง</li>
+          </ol>
+
+          <pre><code>Input &rarr; [Layer 1] &rarr; [Layer 2] &rarr; [Layer 3] &rarr; Output &rarr; ERROR!
+
+ส่ง error ย้อนกลับ:
+                                                    &larr; error
+                                      &larr; error ส่วน Layer 3
+                        &larr; error ส่วน Layer 2
+          &larr; error ส่วน Layer 1
+
+แต่ละ layer ปรับ weights ตามส่วนที่ตัวเองรับผิดชอบ</code></pre>
+
+          <p>ไม่ใช่เวทมนตร์ &mdash; เป็นแคลคูลัส (chain rule) ใช้ทีละ layer แต่ไม่ต้องรู้แคลคูลัสก็เข้าใจหลักการ: <strong>ความผิดไหลย้อนกลับ แต่ละ layer แก้ส่วนของตัวเอง</strong></p>
+        </section>
+
+        <section>
+          <h2>5 &mdash; Epochs &amp; Batches</h2>
+          <table>
+            <tr><th>คำ</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr>
+            <tr><td><strong>1 Epoch</strong></td><td>Model เห็น training data ครบทั้งหมด 1 รอบ</td><td>ดูรูปทั้ง 1 ล้านรูป</td></tr>
+            <tr><td><strong>Training</strong></td><td>ทำ 10-100+ epochs</td><td>ดูรูป 1 ล้านรูป ซ้ำ 50 รอบ</td></tr>
+            <tr><td><strong>Batch</strong></td><td>แบ่งข้อมูลเป็นชิ้น ๆ ประมวลผลทีละชิ้น</td><td>ทีละ 256 รูป แทน 1 ล้านรูปพร้อมกัน</td></tr>
+          </table>
+        </section>
+
+        <section>
+          <h2>6 &mdash; เมื่อไหร่ควรหยุด? (Overfitting Trap)</h2>
+          <p>ยิ่ง train นาน training error ยิ่งต่ำ &mdash; แต่ถึงจุดหนึ่ง สิ่งอันตรายเกิดขึ้น:</p>
+
+          <pre><code>Error
+  ^
+  |  Training error ──────__________  (ลงเรื่อยๆ)
+  |
+  |  Test error ──────____/‾‾‾‾‾‾‾‾  (เริ่มขึ้น!)
+  |                   &uarr;
+  |              หยุดตรงนี้!
+  +──────────────────────────────────&gt; Epochs</code></pre>
+
+          <p>Model เริ่ม <strong>ท่องจำ</strong> training data แทนที่จะเรียนรู้ pattern จริง &mdash; เหมือนนักเรียนท่องข้อสอบเก่าคำต่อคำ ทำข้อสอบเก่าได้ 100 คะแนน แต่ข้อสอบใหม่ตก</p>
+          <p><strong>Early Stopping:</strong> ดู test error &mdash; พอเริ่มขึ้น = หยุด train ทันที &mdash; ตรงนั้นคือ sweet spot</p>
+        </section>
+
+        <section>
+          <h2>7 &mdash; ทำไม "Deep" สำคัญ</h2>
+          <p>Network ตื้น (1-2 layers) = เรียนรู้ pattern ง่ายๆ</p>
+          <p>Network ลึก (หลายร้อย layers) = เรียนรู้ <strong>ลำดับขั้น</strong>:</p>
+          <pre><code>Layer 1-2:    จำ "เส้น" กับ "มุม"
+Layer 3-5:    รวม เส้น+มุม เป็น "รูปทรง" (วงกลม, สี่เหลี่ยม)
+Layer 6-10:   รวม รูปทรง เป็น "วัตถุ" (ตา, จมูก, ปาก)
+Layer 11-20:  รวม วัตถุ เป็น "ใบหน้า"
+Layer 21+:    รู้จำว่าเป็น "ใบหน้าของใคร"</code></pre>
+
+          <p>AI สมัยนี้ (GPT, Claude) ใช้หลักร้อย layers กับ parameters หลายหมื่นล้าน &mdash; <strong>algorithm เดียวกันที่อธิบายข้างบนทุกอย่าง</strong> แค่ scale ใหญ่กว่า + data เยอะกว่า + GPU หลายพันตัว train เป็นสัปดาห์</p>
+          <p><strong>คณิตศาสตร์ไม่ใหม่ scale ต่างหากที่เปลี่ยนทุกอย่าง</strong></p>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: Chula AI Class handout + ML standard theory (Gradient Descent, Backpropagation) &mdash; 2026-05-26</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

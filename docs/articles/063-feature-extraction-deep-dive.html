@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Feature Extraction Deep Dive &mdash; ทำไม Features สำคัญ, สูตร Spam ทีละตัวเลข, 3 ตัวอย่างจริง (การแพทย์/บ้าน/ลูกค้า), Dimensions, Good vs Bad Features">
+  <title>063 &mdash; Feature Extraction Deep Dive | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">063 &mdash; Feature Extraction Deep Dive</span>
+        <span class="topbar-date">2026-05-26</span>
+      </div>
+      <div class="content-shell">
+        <h1>Feature Extraction &mdash; สอนคอมพิวเตอร์ให้มองโลกเป็นตัวเลข</h1>
+        <div class="article-meta">
+          <span class="tag">feature-extraction</span>
+          <span class="tag">machine-learning</span>
+          <span class="tag">spam-detector</span>
+          <span class="tag">dimensions</span>
+          <span class="tag">signal-vs-noise</span>
+          <span class="tag">chula-class</span>
+          <span class="maturity solid">&#10004; solid (class formula + worked examples)</span>
+        </div>
+
+        <p><strong>Source:</strong> Handout โดย รศ.ดร.อติวงศ์ สุชาโต &mdash; จุฬาลงกรณ์มหาวิทยาลัย (26 พ.ค. 2569)</p>
+        <p>Deep dive เรื่อง Feature Extraction จาก Article 057 &mdash; เขียนให้คนไม่ใช่ technical อ่านแล้วเข้าใจ ทำไม features สำคัญ ใช้ตัวเลขจริงอธิบายทุกจุด</p>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 1: WHY FEATURES MATTER -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>1 &mdash; ทำไม Feature Extraction สำคัญ</h2>
+
+          <p>ML model เก่งได้แค่เท่าข้อมูลที่ใส่เข้าไป &mdash; <strong>ขยะเข้า = ขยะออก (Garbage In, Garbage Out)</strong></p>
+
+          <p>เปรียบเทียบ: สมมติจะจ้างพ่อครัวเก่งที่สุดในโลก แต่ให้วัตถุดิบเน่า &mdash; อาหารที่ออกมาก็กินไม่ได้อยู่ดี ML model เหมือนพ่อครัว features คือวัตถุดิบ ต่อให้ algorithm ดีแค่ไหน ถ้า features ห่วย ผลลัพธ์ก็ห่วยตาม</p>
+
+          <p><strong>Feature Extraction</strong> = กระบวนการเปลี่ยนข้อมูลดิบ (อีเมล, ผลเลือด, พฤติกรรมลูกค้า) ให้เป็น <strong>ตัวเลข</strong> ที่ model ใช้ตัดสินใจได้</p>
+
+          <p>คอมพิวเตอร์ไม่อ่านอีเมลเหมือนคน &mdash; มันต้องการตัวเลข เช่น &ldquo;อีเมลนี้มีลิงก์กี่อัน?&rdquo; &ldquo;ผู้ส่งน่าเชื่อถือแค่ไหน?&rdquo; การเลือก features ที่ถูกต้องคือ 80% ของความสำเร็จ</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 2: SPAM FORMULA NUMBER BY NUMBER -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>2 &mdash; ผ่าสูตร Spam ทีละตัวเลข</h2>
+
+          <pre><code>Score = -4.0 + 6.0(1-REP) + 0.25(#RCP) + 0.7(#LINK) + 1.2(#URG) + 0.9(#SPAM)
+
+Score &gt; 0 &rarr; SPAM
+Score &le; 0 &rarr; NOT SPAM</code></pre>
+
+          <h3>2.1 &mdash; ค่าคงที่ -4.0 คืออะไร?</h3>
+          <p>ค่า -4.0 คือ <strong>bias</strong> &mdash; จุดเริ่มต้นของ model ลองคิดแบบนี้: ถ้าอีเมลมาจากคนน่าเชื่อถือ, ส่งถึงคนเดียว, ไม่มีลิงก์, ไม่มีคำเร่งด่วน, ไม่มีคำ spam ผลรวมฝั่งขวาจะน้อยมาก &mdash; หักกับ -4.0 แล้ว score ติดลบ = <strong>ไม่ใช่ spam</strong></p>
+
+          <p>พูดง่าย ๆ: model ตั้งต้น &ldquo;เชื่อว่าอีเมลปกติ&rdquo; ก่อน แล้วให้ features ต่าง ๆ ค่อย ๆ ดัน score ขึ้นไป ถ้าดันข้ามศูนย์ได้ = spam</p>
+
+          <h3>2.2 &mdash; ทำไม REP มีตัวคูณ 6.0 (สูงสุด)?</h3>
+          <table>
+            <tr><th>Feature</th><th>ตัวคูณ (Coefficient)</th><th>ความหมาย</th></tr>
+            <tr><td>(1-REP) ความไม่น่าเชื่อถือ</td><td><strong>6.0</strong></td><td>Signal แรงที่สุด</td></tr>
+            <tr><td>#URG จำนวนคำเร่งด่วน</td><td>1.2</td><td>แรงรองลงมา</td></tr>
+            <tr><td>#SPAM จำนวน spam keywords</td><td>0.9</td><td>ปานกลาง</td></tr>
+            <tr><td>#LINK จำนวนลิงก์</td><td>0.7</td><td>ปานกลาง</td></tr>
+            <tr><td>#RCP จำนวนผู้รับ</td><td>0.25</td><td>อ่อนที่สุด</td></tr>
+          </table>
+
+          <p><strong>ตัวคูณ = น้ำหนักของหลักฐาน</strong> &mdash; ยิ่งตัวคูณใหญ่ feature นั้นยิ่งมีอิทธิพลต่อการตัดสิน</p>
+
+          <p>ทำไม REP สูงสุด? เพราะในโลกจริง <strong>ใครส่ง</strong> สำคัญกว่า <strong>ส่งอะไร</strong> &mdash; คนแปลกหน้าส่งมาบอก &ldquo;คุณถูกรางวัล&rdquo; กับเพื่อนสนิทส่งมาบอก &ldquo;คุณถูกรางวัล&rdquo; ต่างกันสิ้นเชิง สูตรนี้สะท้อนสัญชาตญาณมนุษย์ &mdash; เช็กผู้ส่งก่อน</p>
+
+          <p>สังเกตว่าสูตรใช้ <code>(1-REP)</code> ไม่ใช่ <code>REP</code> ตรง ๆ &mdash; เพราะ REP=1.0 หมายถึง &ldquo;น่าเชื่อถือมาก&rdquo; แต่เราต้องการ <strong>ยิ่งไม่น่าเชื่อถือ ยิ่งได้ score สูง</strong> ดังนั้นกลับค่า: REP=0.1 (ไม่น่าเชื่อถือ) &rarr; (1-0.1) = 0.9 &rarr; 6.0 &times; 0.9 = 5.4 คะแนน</p>
+
+          <h3>2.3 &mdash; ทำไมโครงสร้าง &ldquo;ยิ่งเลขสูง = ยิ่ง spam&rdquo;?</h3>
+          <p>สูตรนี้ออกแบบให้ <strong>ทุก feature ดันไปทางเดียวกัน</strong> &mdash; ยิ่งผู้ส่งไม่น่าเชื่อถือ, ยิ่งผู้รับเยอะ, ยิ่งลิงก์เยอะ, ยิ่งคำเร่งด่วนเยอะ, ยิ่งคำ spam เยอะ &rarr; score ยิ่งสูง ทุก feature ช่วยกัน &ldquo;ดัน&rdquo; score ข้ามเส้น 0</p>
+
+          <p>ถ้า feature ใดไม่น่าสงสัย (เช่น ลิงก์=0) มันก็บวก 0 เข้าไป &mdash; ไม่เป็นภาระ ไม่หักคะแนน</p>
+
+          <h3>2.4 &mdash; คำนวณจริง: อีเมลจากเพื่อนสนิท</h3>
+          <pre><code>REP=0.95  #RCP=1  #LINK=0  #URG=0  #SPAM=0
+
+Score = -4.0 + 6.0(1-0.95) + 0.25(1) + 0.7(0) + 1.2(0) + 0.9(0)
+     = -4.0 + 6.0(0.05) + 0.25 + 0 + 0 + 0
+     = -4.0 + 0.3 + 0.25
+     = <strong>-3.45</strong> &rarr; NOT SPAM &#10004;</code></pre>
+          <p>Bias -4.0 แรงมาก features ปกติหมด score ยังติดลบลึก</p>
+
+          <h3>2.5 &mdash; คำนวณจริง: อีเมลหลอกลวง</h3>
+          <pre><code>REP=0.1  #RCP=50  #LINK=5  #URG=3  #SPAM=4
+
+Score = -4.0 + 6.0(1-0.1) + 0.25(50) + 0.7(5) + 1.2(3) + 0.9(4)
+     = -4.0 + 6.0(0.9)  + 12.5     + 3.5    + 3.6    + 3.6
+     = -4.0 + 5.4        + 12.5     + 3.5    + 3.6    + 3.6
+     = <strong>+24.6</strong> &rarr; SPAM &#10004;</code></pre>
+          <p>ทุก feature ช่วยกันดัน &mdash; ผู้ส่งไม่น่าเชื่อถือ (+5.4), ส่ง 50 คน (+12.5), ลิงก์ 5 อัน (+3.5) ผลรวมทิ้ง bias -4.0 ไปไกล</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 3: THREE MORE EXAMPLES -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>3 &mdash; Feature Extraction ในโลกจริง (3 ตัวอย่าง)</h2>
+
+          <h3>3.1 &mdash; วินิจฉัยโรคจากผลเลือด (Medical Diagnosis)</h3>
+          <p>หมอสั่งตรวจเลือด ผลออกมาเป็นตัวเลขเยอะมาก &mdash; แต่ไม่ใช่ทุกตัวเลขจะเกี่ยวข้อง ถ้าจะทำนายว่า คนไข้เป็นเบาหวานหรือไม่ features ที่สำคัญคือ:</p>
+          <table>
+            <tr><th>Feature</th><th>ตัวอย่างค่า</th><th>ทำไมสำคัญ</th></tr>
+            <tr><td>Fasting Blood Sugar (FBS)</td><td>130 mg/dL</td><td>น้ำตาลในเลือดตอนอดอาหาร &mdash; ตัวชี้วัดหลัก</td></tr>
+            <tr><td>HbA1c</td><td>7.2%</td><td>น้ำตาลเฉลี่ย 3 เดือน &mdash; เห็นแนวโน้มระยะยาว</td></tr>
+            <tr><td>BMI</td><td>28.5</td><td>ดัชนีมวลกาย &mdash; ความอ้วนเพิ่มความเสี่ยง</td></tr>
+            <tr><td>Age</td><td>55 ปี</td><td>อายุมากขึ้น ความเสี่ยงสูงขึ้น</td></tr>
+            <tr><td>Family History</td><td>1 (มี) / 0 (ไม่มี)</td><td>พันธุกรรม &mdash; พ่อแม่เป็น ลูกเสี่ยง</td></tr>
+          </table>
+          <p>สังเกต: สีผม, เบอร์โทร, ชื่อ &mdash; ไม่เกี่ยวกับเบาหวานเลย ใส่เข้าไปก็เป็นแค่ noise ทำให้ model สับสน</p>
+
+          <h3>3.2 &mdash; ทำนายราคาบ้าน (House Price Prediction)</h3>
+          <p>จะซื้อบ้าน ราคาขึ้นกับอะไร? features ที่ดี:</p>
+          <table>
+            <tr><th>Feature</th><th>ตัวอย่างค่า</th><th>ทำไมสำคัญ</th></tr>
+            <tr><td>พื้นที่ใช้สอย (sq.m.)</td><td>120</td><td>บ้านใหญ่ = แพงกว่า (แทบทุกครั้ง)</td></tr>
+            <tr><td>จำนวนห้องนอน</td><td>3</td><td>ห้องมาก = แพงกว่า</td></tr>
+            <tr><td>ระยะทางถึง BTS (km)</td><td>0.5</td><td>ใกล้รถไฟ = แพงขึ้นอย่างชัดเจน</td></tr>
+            <tr><td>อายุบ้าน (ปี)</td><td>5</td><td>บ้านใหม่ = แพงกว่า</td></tr>
+            <tr><td>ชั้น (กรณีคอนโด)</td><td>25</td><td>ชั้นสูง = วิวดี = premium</td></tr>
+          </table>
+          <p>สิ่งที่ <strong>ไม่ควร</strong> เป็น feature: สีทาบ้าน, ชื่อเจ้าของ, วันที่ประกาศขาย &mdash; ไม่มี signal ต่อราคาจริง</p>
+
+          <h3>3.3 &mdash; ทำนายลูกค้าจะเลิกใช้บริการ (Customer Churn)</h3>
+          <p>บริษัทโทรศัพท์อยากรู้ว่าลูกค้าคนไหนกำลังจะยกเลิก features ที่เป็นสัญญาณเตือน:</p>
+          <table>
+            <tr><th>Feature</th><th>ตัวอย่างค่า</th><th>ทำไมสำคัญ</th></tr>
+            <tr><td>จำนวนครั้งโทรเข้า Call Center/เดือน</td><td>5</td><td>โทรบ่อย = มีปัญหา = เสี่ยงยกเลิก</td></tr>
+            <tr><td>ยอดใช้งานเฉลี่ย/เดือน (%การเปลี่ยนแปลง)</td><td>-40%</td><td>ใช้น้อยลงเรื่อย ๆ = กำลังหนี</td></tr>
+            <tr><td>จำนวนเดือนที่ใช้บริการ</td><td>3</td><td>ลูกค้าใหม่เปลี่ยนใจง่ายกว่าคนอยู่มา 5 ปี</td></tr>
+            <tr><td>จำนวนครั้งเปลี่ยนแพ็กเกจ</td><td>4</td><td>เปลี่ยนบ่อย = ไม่ satisfied</td></tr>
+            <tr><td>มีโปรโมชันผูกมัดหรือไม่</td><td>0 (ไม่มี)</td><td>ไม่ผูกมัด = ยกเลิกได้ทุกเมื่อ</td></tr>
+          </table>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 4: DIMENSIONS -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>4 &mdash; Dimensions: แต่ละ Feature = 1 มิติ</h2>
+
+          <p>ทุก feature ที่เพิ่มเข้ามา = เพิ่ม <strong>มิติ</strong> ให้ข้อมูล 1 อัน</p>
+
+          <table>
+            <tr><th>จำนวน Features</th><th>มิติ</th><th>มนุษย์มองเห็นไหม</th></tr>
+            <tr><td>1 (เช่น น้ำตาลในเลือด)</td><td>1D &mdash; เส้นตรง</td><td>&#10004; เห็น</td></tr>
+            <tr><td>2 (น้ำตาล + BMI)</td><td>2D &mdash; กราฟ x,y</td><td>&#10004; เห็น</td></tr>
+            <tr><td>3 (น้ำตาล + BMI + อายุ)</td><td>3D &mdash; กล่อง x,y,z</td><td>&#10004; พอเห็น</td></tr>
+            <tr><td>5 (spam detector)</td><td>5D</td><td>&#10008; จินตนาการไม่ออก</td></tr>
+            <tr><td>1,000+ (รูปภาพ)</td><td>1,000D+</td><td>&#10008; ไม่มีทาง</td></tr>
+          </table>
+
+          <p><strong>จุดสำคัญ:</strong> มนุษย์จินตนาการได้แค่ 2-3 มิติ แต่คอมพิวเตอร์ทำงานกับ 1,000 มิติได้ไม่มีปัญหา &mdash; นี่คือเหตุผลที่ ML มีประโยชน์ มันเห็น patterns ใน data ที่คนมองไม่เห็น</p>
+
+          <p>ตัวอย่าง: Spam detector มี 5 features = ข้อมูลอยู่ใน 5 มิติ ทุกอีเมลคือ &ldquo;จุดหนึ่งจุด&rdquo; ใน space 5 มิตินี้ Model หา &ldquo;เส้นแบ่ง&rdquo; ที่แยก spam กับ not-spam ในพื้นที่ 5 มิติ &mdash; เหมือนหาเส้นแบ่งบนกราฟ x,y แต่ซับซ้อนกว่า</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 5: GOOD vs BAD FEATURES -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>5 &mdash; Feature ดี vs Feature แย่ (Signal vs Noise)</h2>
+
+          <h3>Feature ที่ดี = Signal</h3>
+          <ul>
+            <li><strong>เปลี่ยนแปลงตามสิ่งที่จะทำนาย</strong> &mdash; น้ำตาลในเลือดสูง &rarr; เบาหวานจริง ๆ มีความสัมพันธ์ชัดเจน</li>
+            <li><strong>วัดได้ ทำซ้ำได้</strong> &mdash; &ldquo;พื้นที่ 120 ตร.ม.&rdquo; วัดใครก็ได้เลข 120 เหมือนกัน</li>
+            <li><strong>ไม่ซ้ำซ้อนกับ features อื่น</strong> &mdash; ถ้าใส่ทั้ง &ldquo;พื้นที่ (ตร.ม.)&rdquo; และ &ldquo;พื้นที่ (ตร.ฟุต)&rdquo; = ข้อมูลเดียวกัน 2 ครั้ง ไม่ช่วยอะไร</li>
+          </ul>
+
+          <h3>Feature ที่แย่ = Noise</h3>
+          <ul>
+            <li><strong>ไม่เกี่ยวกับสิ่งที่ทำนาย</strong> &mdash; สีทาบ้านไม่บอกราคาบ้าน เบอร์โทรไม่บอกว่าเป็นเบาหวาน</li>
+            <li><strong>สุ่มเกินไป</strong> &mdash; เลขที่บ้านอาจ &ldquo;บังเอิญ&rdquo; ตรงกับราคาในข้อมูล training แต่ไม่มี logic อะไร model จะ &ldquo;จำ&rdquo; pattern ปลอมนี้ไป &rarr; ทำนายผิดกับข้อมูลใหม่ (overfitting)</li>
+            <li><strong>เปลี่ยนแปลงตลอดเวลาแบบไม่มี pattern</strong> &mdash; เช่น timestamp ตอนกดบันทึก ไม่มี signal</li>
+          </ul>
+
+          <h3>ทดสอบง่าย ๆ: &ldquo;ถ้า feature นี้เปลี่ยน ผลลัพธ์ควรเปลี่ยนด้วยไหม?&rdquo;</h3>
+          <table>
+            <tr><th>Feature</th><th>ผลลัพธ์เปลี่ยนไหม?</th><th>ดี/แย่</th></tr>
+            <tr><td>น้ำตาลในเลือด 90 &rarr; 200</td><td>&#10004; ใช่ ความเสี่ยงเบาหวานสูงขึ้นชัด</td><td><strong>Good</strong></td></tr>
+            <tr><td>เบอร์โทรคนไข้เปลี่ยน</td><td>&#10008; ไม่ ไม่เกี่ยวกับเบาหวาน</td><td><strong>Bad</strong></td></tr>
+            <tr><td>ระยะถึง BTS 0.5 &rarr; 15 km</td><td>&#10004; ใช่ ราคาบ้านต่างกันมาก</td><td><strong>Good</strong></td></tr>
+            <tr><td>สีบ้าน ขาว &rarr; ฟ้า</td><td>&#10008; ไม่ ไม่กระทบราคาจริง</td><td><strong>Bad</strong></td></tr>
+          </table>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- TAKEAWAY -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>6 &mdash; สรุป: Feature Extraction ใน 1 ประโยค</h2>
+          <p>Feature Extraction คือศิลปะของการเลือกว่า <strong>จะบอกอะไรกับ model</strong> &mdash; เลือกดี model เก่ง เลือกห่วย model โง่ ไม่ว่า algorithm จะดีแค่ไหน</p>
+
+          <table>
+            <tr><th>แนวคิด</th><th>จำแบบนี้</th></tr>
+            <tr><td>Garbage In = Garbage Out</td><td>วัตถุดิบเน่า = อาหารเน่า ต่อให้พ่อครัวเก่ง</td></tr>
+            <tr><td>Coefficient = น้ำหนักหลักฐาน</td><td>ตัวคูณใหญ่ = feature นั้นสำคัญมาก</td></tr>
+            <tr><td>Bias = จุดเริ่มต้น</td><td>-4.0 = &ldquo;เชื่อว่าปกติก่อน จนกว่าหลักฐานจะพิสูจน์เป็นอื่น&rdquo;</td></tr>
+            <tr><td>Dimensions = จำนวน features</td><td>5 features = 5 มิติ คอมเห็นได้หมด คนเห็นได้แค่ 3</td></tr>
+            <tr><td>Signal vs Noise</td><td>&ldquo;ถ้า feature เปลี่ยน ผลลัพธ์ควรเปลี่ยนด้วยไหม?&rdquo;</td></tr>
+          </table>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: &ldquo;AI Models as&rdquo; handout &mdash; รศ.ดร.อติวงศ์ สุชาโต, คณะวิศวกรรมศาสตร์, จุฬาลงกรณ์มหาวิทยาลัย (26 พ.ค. 2569) &mdash; Deep dive from Article 057</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

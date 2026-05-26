@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Binary Classification &amp; Overfitting &mdash; Decision Boundary, Polynomial Degree, Bias-Variance explained for non-technical readers with ASCII diagrams">
+  <title>058 &mdash; Binary Classification &amp; Overfitting | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">058 &mdash; Binary Classification &amp; Overfitting</span>
+        <span class="topbar-date">2026-05-26</span>
+      </div>
+      <div class="content-shell">
+        <h1>Binary Classification &amp; Overfitting &mdash; Deep Dive</h1>
+        <div class="article-meta">
+          <span class="tag">binary-classification</span>
+          <span class="tag">decision-boundary</span>
+          <span class="tag">overfitting</span>
+          <span class="tag">polynomial-degree</span>
+          <span class="tag">chula-class</span>
+          <span class="maturity solid">&#10004; solid (class handout + interactive lab)</span>
+        </div>
+
+        <p><strong>Source:</strong> Handout by Assoc. Prof. Dr. Atiwong Suchato &mdash; Faculty of Engineering, Chulalongkorn University (26 May 2026)</p>
+        <p><strong>Interactive Widget:</strong> <a href="https://nicenathapong.github.io/ai-interactive-widget/binaryClassificationPolynomialDegree.html" target="_blank" rel="noopener">Binary Classification Polynomial Degree Visualizer &rarr;</a></p>
+        <p>This article explains classification, decision boundaries, and overfitting from scratch &mdash; zero jargon, plenty of pictures. If you can sort laundry into darks and lights, you already understand the core idea.</p>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SECTION 1: CLASSIFICATION -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>1 &mdash; What is Classification?</h2>
+          <p>Classification is <strong>sorting things into bins</strong>. That is it. You do it every day:</p>
+          <ul>
+            <li><strong>Email</strong> &rarr; Spam or Not Spam (2 bins)</li>
+            <li><strong>Photo</strong> &rarr; Cat or Dog (2 bins)</li>
+            <li><strong>Medical scan</strong> &rarr; Healthy or Needs-attention (2 bins)</li>
+          </ul>
+          <p>When there are exactly <strong>two bins</strong>, we call it <em>binary classification</em>. The computer looks at the data (numbers describing each item) and decides: Bin A or Bin B.</p>
+          <p>But how does it decide? It draws a line.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SECTION 2: DECISION BOUNDARY -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>2 &mdash; The Decision Boundary (The Line on the Map)</h2>
+          <p>Imagine a map with two countries. A border runs between them &mdash; everything north of the border is Country A, everything south is Country B. That border is the <strong>decision boundary</strong>.</p>
+          <p>In classification, the computer draws exactly this kind of border through the data. Points on one side get labeled Class A; points on the other side get Class B.</p>
+
+<pre><code>    Quiz 2
+    score
+      |
+   10 |  x         x            x = Pass (Class A)
+      |     x    x               o = Fail (Class B)
+    7 | - - - - - - - - -  &larr; decision boundary
+      |  o     o
+    4 |     o        o
+      |  o
+    1 |________________________
+      1    3    5    7    9   Quiz 1 score</code></pre>
+
+          <p>Everything above the line &rarr; predicted Pass. Everything below &rarr; predicted Fail. The line IS the decision. The question is: <strong>what shape should that line be?</strong></p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SECTION 3: LINEAR vs POLYNOMIAL -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>3 &mdash; Straight Lines vs Curvy Lines</h2>
+          <p>The shape of the boundary depends on how much flexibility we give the computer. Think of it as choosing a tool to draw with:</p>
+
+          <h3>Degree 1 &mdash; Ruler (straight line)</h3>
+          <p>The simplest possible boundary. One straight cut through the data. Works when the two groups sit on opposite sides neatly &mdash; but if the data curves, a straight line will misclassify points on both ends.</p>
+
+          <h3>Degree 2 &mdash; French curve (one bend)</h3>
+          <p>Now the boundary can curve once, like the letter U or an arc. More flexible &mdash; it can wrap around a cluster that a straight line would slice through.</p>
+
+          <h3>Degree 3-5 &mdash; Freehand squiggle (many wiggles)</h3>
+          <p>The boundary can twist and turn to dodge around individual data points. It fits the training data almost perfectly. Sounds great &mdash; but this is where trouble starts.</p>
+
+<pre><code>  DEGREE 1 (straight)       DEGREE 3 (wiggly)
+
+    |  x  x                   |  x  x
+    |  x     x                |  x /   x
+    | --------\---            |  /  \   \
+    |  o  o    \              | o  o \   |
+    |     o     o             |    o  \--/  o
+    |________________________ |________________________
+
+    misses 2 points           hits every point
+    but the LINE makes sense  but the SHAPE is suspicious</code></pre>
+
+          <p>The straight line gets a couple of points wrong, but you can see the general trend. The wiggly line nails every training point &mdash; but the twists exist only to chase individual dots, not because the real pattern is that complicated.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SECTION 4: OVERFITTING -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>4 &mdash; Overfitting: The Student Who Memorized Too Hard</h2>
+          <p>This is the single most important concept in machine learning. Here is the best way to think about it:</p>
+
+          <blockquote>
+            <p><strong>Imagine a student preparing for a math exam.</strong></p>
+            <p><strong>Underfitting</strong> = the student barely studied. Glanced at the textbook once. On exam day, they cannot solve even the easy problems. Their "model" of math is too simple &mdash; a straight line through curved data.</p>
+            <p><strong>Overfitting</strong> = the student memorized every practice problem <em>and its answer</em>, word for word. They ace the practice test with a perfect score. But on the real exam, where questions are phrased slightly differently, they freeze. They did not learn <em>math</em> &mdash; they learned <em>specific answers</em>.</p>
+            <p><strong>Just right</strong> = the student understood the underlying principles. They can solve new problems they have never seen before, because they learned the <em>pattern</em>, not the <em>examples</em>.</p>
+          </blockquote>
+
+          <p>In classification terms:</p>
+          <table>
+            <tr><th></th><th>Boundary shape</th><th>Training accuracy</th><th>New data accuracy</th></tr>
+            <tr><td><strong>Underfitting</strong></td><td>Too straight (degree 1 for curved data)</td><td>Low</td><td>Low</td></tr>
+            <tr><td><strong>Just right</strong></td><td>Matches the real pattern (degree 2-3)</td><td>Good</td><td>Good</td></tr>
+            <tr><td><strong>Overfitting</strong></td><td>Too wiggly (degree 5 chasing noise)</td><td>Perfect</td><td>Poor</td></tr>
+          </table>
+
+          <p><strong>The trap:</strong> overfitting <em>looks</em> like success because it scores perfectly on data you already have. It only fails when new, unseen data arrives &mdash; which is the only data that matters in the real world.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SECTION 5: TOO RIGID vs TOO FLEXIBLE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>5 &mdash; Too Rigid vs Too Flexible</h2>
+          <p>There is a fundamental tension in every model:</p>
+
+          <ul>
+            <li><strong>Too rigid</strong> (low degree) &mdash; the model cannot capture the real pattern. It ignores the data and draws the same boring straight line no matter what. It is <em>consistently wrong</em> in a predictable way.</li>
+            <li><strong>Too flexible</strong> (high degree) &mdash; the model captures everything, including random noise and measurement errors. It is <em>wildly different</em> every time you train it on slightly different data, because it is chasing noise instead of signal.</li>
+          </ul>
+
+          <p>The sweet spot is in the middle: flexible enough to capture the real shape of the data, rigid enough to ignore the random wobble.</p>
+
+<pre><code>  Model quality vs. Flexibility
+
+  Error on
+  new data
+    |
+    |  \
+    |   \                        /
+    |    \                     /
+    |     \                  /
+    |      \     sweet     /
+    |       \    spot    /
+    |        \___.__.__/
+    |
+    |_________________________________
+       rigid                  flexible
+     (degree 1)              (degree 5)</code></pre>
+
+          <p>Start too rigid &rarr; errors are high because the model is too simple. Increase flexibility &rarr; errors drop as the model starts matching real patterns. Keep increasing &rarr; errors rise again because the model is memorizing noise. The best model lives at the bottom of that valley.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SECTION 6: WORKED EXAMPLE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>6 &mdash; Worked Example: 10 Students, Pass or Fail</h2>
+          <p>Ten students took two quizzes. Blue dots passed the course; red dots failed. Here is the data on a 2D plot:</p>
+
+<pre><code>    Quiz 2
+      |
+   10 |        <strong>B</strong>                 B = passed (blue)
+    9 |  <strong>B</strong>           <strong>B</strong>          R = failed (red)
+    8 |     <strong>B</strong>     <strong>B</strong>
+    7 |
+    6 |  R              R
+    5 |
+    4 |     R     R
+    3 |  R
+    2 |
+      |________________________
+      1  2  3  4  5  6  7  8   Quiz 1</code></pre>
+
+          <h3>Degree 1 (straight line)</h3>
+          <p>The computer draws a horizontal line at about Quiz 2 = 7. Everything above &rarr; Pass. Everything below &rarr; Fail.</p>
+
+<pre><code>      |
+   10 |        B                  &uarr; Pass zone
+    9 |  B           B
+    8 |     B     B
+    7 | ========================  &larr; boundary
+    6 |  R              R         &darr; Fail zone
+    4 |     R     R
+    3 |  R
+      |________________________
+
+  Result: 10/10 correct on this data!
+  Clean, simple, easy to trust.</code></pre>
+
+          <h3>Degree 5 (wiggly line)</h3>
+          <p>The computer draws a curve that snakes between every single point, hugging each one individually:</p>
+
+<pre><code>      |
+   10 |        B
+    9 |  B  /--+  \   B
+    8 |   B/    B  \-/
+    7 |  /            \
+    6 | / R     ,---.  R\
+    5 ||   \   /     \   |
+    4 |  \  R-+   R   |  |
+    3 |  R\          /
+    2 |    \________/
+      |________________________
+
+  Result: 10/10 correct on training data!
+  But look at that snake. If one new student
+  scores (5, 7), the model might say FAIL
+  because the curve dips there &mdash; even though
+  (5, 7) clearly belongs with the passers.</code></pre>
+
+          <p>Both models score 10/10 on the training data. But only the straight line will work well on new students. The wiggly line memorized the specific ten students instead of learning the real rule ("score above ~7 on Quiz 2 and you pass").</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SECTION 7: TRY IT -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>7 &mdash; Try It Yourself</h2>
+          <p>Open the interactive widget and drag the polynomial degree slider from 1 to 5. Watch how the boundary goes from a clean line to a tangled mess:</p>
+          <p><a href="https://nicenathapong.github.io/ai-interactive-widget/binaryClassificationPolynomialDegree.html" target="_blank" rel="noopener"><strong>Open Binary Classification Widget &rarr;</strong></a></p>
+          <ol>
+            <li>Set degree to <strong>1</strong> &mdash; notice the straight boundary. Some points may be on the wrong side.</li>
+            <li>Set degree to <strong>2</strong> &mdash; the boundary bends. More points land on the correct side.</li>
+            <li>Set degree to <strong>5</strong> &mdash; the boundary twists wildly. Every training point is correct, but the shape makes no intuitive sense.</li>
+            <li>Ask yourself: <em>if I added one new data point, which boundary would I trust to classify it correctly?</em></li>
+          </ol>
+          <p>The answer is almost always degree 1 or 2. The simplest boundary that fits the data well enough is the one that generalizes to new, unseen data.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SECTION 8: KEY TAKEAWAYS -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>8 &mdash; Key Takeaways</h2>
+          <table>
+            <tr><th>#</th><th>Lesson</th></tr>
+            <tr><td>1</td><td><strong>Classification = sorting into bins.</strong> Binary classification = exactly two bins.</td></tr>
+            <tr><td>2</td><td><strong>Decision boundary = the dividing line.</strong> Its shape determines how the model sorts new items.</td></tr>
+            <tr><td>3</td><td><strong>More flexibility is not always better.</strong> A wiggly boundary fits old data perfectly but fails on new data.</td></tr>
+            <tr><td>4</td><td><strong>Overfitting = memorizing, not learning.</strong> The model aces the practice test but fails the real exam.</td></tr>
+            <tr><td>5</td><td><strong>Underfitting = not studying enough.</strong> The model is too simple to capture even the obvious pattern.</td></tr>
+            <tr><td>6</td><td><strong>The sweet spot is "just flexible enough"</strong> &mdash; capturing the real pattern while ignoring noise.</td></tr>
+          </table>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: &ldquo;AI Models&rdquo; handout &mdash; Assoc. Prof. Dr. Atiwong Suchato, Faculty of Engineering, Chulalongkorn University (26 May 2026) + <a href="https://nicenathapong.github.io/ai-interactive-widget/binaryClassificationPolynomialDegree.html" target="_blank" rel="noopener">Interactive Widget by nicenathapong</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

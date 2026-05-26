@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Anomaly Detection &amp; Dimensionality Reduction &mdash; Unsupervised Learning Deep Dive พร้อมตัวอย่างจริง ภาษาคนอ่านได้">
+  <title>059 &mdash; Anomaly Detection &amp; Dimensionality Reduction | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">059 &mdash; Anomaly Detection &amp; Dimensionality Reduction</span>
+        <span class="topbar-date">2026-05-26</span>
+      </div>
+      <div class="content-shell">
+        <h1>Anomaly Detection &amp; Dimensionality Reduction</h1>
+        <div class="article-meta">
+          <span class="tag">unsupervised-learning</span>
+          <span class="tag">anomaly-detection</span>
+          <span class="tag">dimensionality-reduction</span>
+          <span class="tag">chula-class</span>
+          <span class="maturity solid">&#10004; solid (class material + real-world examples)</span>
+        </div>
+
+        <p><strong>Source:</strong> Chula AI Class (Unsupervised Learning subtypes) &mdash; deep-dive companion to <a href="057-ai-models-chula-class.html">Article 057</a></p>
+        <p>Two powerful techniques that don't need labeled data. One finds the weird stuff. The other throws away the noise.</p>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART A: ANOMALY DETECTION -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>Part A &mdash; Anomaly Detection: Finding the Odd One Out</h2>
+
+          <h3>What is it?</h3>
+          <p>Imagine a basket with 99 apples and 1 orange. Anomaly detection is the model that looks at the basket and says: <strong>"That orange doesn't belong."</strong></p>
+          <p>How: the model learns what "normal" looks like from the bulk of the data, then flags anything too far outside that pattern. Think of it like drawing a circle around where most data lives &mdash; inside = normal, way outside = anomaly.</p>
+          <p>The key insight: <strong>you don't need labels.</strong> Nobody hand-tags each transaction as "fraud" or "not fraud." The model figures out normal on its own.</p>
+
+          <h3>Example 1: Credit Card Fraud</h3>
+          <p>Your card has 6 months of history. The model learns: typical spend 500&ndash;2,000 baht, location Bangkok, time 8am&ndash;11pm.</p>
+          <p>Then one night: <strong>50,000 baht in Lagos, Nigeria at 3:17am.</strong></p>
+          <p>Three dimensions off at once (amount, location, time). The model doesn't know the word "fraud" &mdash; it just knows this looks <em>nothing</em> like your behavior. Flag it.</p>
+
+          <h3>Example 2: Network Security (DDoS)</h3>
+          <p>A server normally handles <strong>100 requests/second</strong> (range: 60&ndash;150). Suddenly: <strong>50,000 requests/second</strong> from 10,000 IPs. That's 500x normal &mdash; the model flags it as a probable <strong>DDoS attack</strong>.</p>
+
+          <h3>Example 3: Factory Predictive Maintenance</h3>
+          <p>A motor's vibration sensor reads <strong>0.5&ndash;1.2 Hz</strong> for a year. One morning: <strong>4.5 Hz</strong> (3&ndash;4x normal). Flag. An engineer finds a failing bearing &mdash; early repair costs 3,000 baht vs. 150,000 baht + 2 days downtime if it seizes.</p>
+
+          <h3>Why unsupervised?</h3>
+          <p>You never told the model <em>what</em> to look for. You just showed it thousands of normal data points: <strong>"Learn what normal looks like. Tell me when something isn't."</strong></p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART B: DIMENSIONALITY REDUCTION -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>Part B &mdash; Dimensionality Reduction: Keeping What Matters</h2>
+
+          <h3>What is it?</h3>
+          <p>Imagine describing a person with 50 attributes: height, weight, shoe size, eye color, hair length, favorite food, blood type... But to predict whether they'd enjoy a sci-fi movie, most of those don't matter.</p>
+          <p>Dimensionality reduction boils 50 attributes down to the <strong>3&ndash;5 that actually matter</strong>.</p>
+
+          <h3>Why reduce?</h3>
+          <table>
+            <tr><th>Reason</th><th>Explanation</th></tr>
+            <tr><td><strong>Speed</strong></td><td>20 features runs dramatically faster than 1,000</td></tr>
+            <tr><td><strong>Noise</strong></td><td>Shoe size doesn't predict income &mdash; including it confuses the model</td></tr>
+            <tr><td><strong>Overfitting</strong></td><td>Too many dimensions + limited data = memorizing noise, not learning patterns</td></tr>
+            <tr><td><strong>Visualization</strong></td><td>Can't plot 50 dimensions, but can plot 2&ndash;3</td></tr>
+          </table>
+
+          <h3>The Netflix Example</h3>
+          <p>Netflix tracks ~<strong>1,000 behavioral signals</strong> per user: watch time per genre, time of day, intro skip rate, series completion rate, ratings, pause frequency, rewatch rate...</p>
+          <p>A model on 1,000 raw features would be slow and noisy. So they reduce to ~<strong>20 "taste dimensions"</strong>:</p>
+          <ul>
+            <li>"Likes fast-paced action" (combines action watch time + completion + rewatch)</li>
+            <li>"Prefers short episodes" (episode length preference + skip patterns)</li>
+            <li>"Late-night binge watcher" (time-of-day + session length)</li>
+          </ul>
+          <p>These 20 capture <strong>~95% of useful information</strong>. The other 5%? Noise.</p>
+
+          <h3>The Curse of Dimensionality</h3>
+          <p>More dimensions = you need <strong>exponentially more data</strong> to fill the space.</p>
+          <p>In 1D (a line), 10 points cover it well. In 2D (a square), you need 10&times;10 = 100. In 3D (a cube), 10&times;10&times;10 = 1,000. By dimension 50? You'd need 10<sup>50</sup> points &mdash; more than atoms in the Earth.</p>
+          <p>Your data becomes so sparse that no point is near any other. The model can't find patterns. Dimensionality reduction is the fix: cut to dimensions that matter, and your data is dense enough to learn from.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SUMMARY -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>Summary &mdash; Two Sides of Unsupervised Learning</h2>
+          <table>
+            <tr><th></th><th>Anomaly Detection</th><th>Dimensionality Reduction</th></tr>
+            <tr><td><strong>Goal</strong></td><td>Find the weird one</td><td>Simplify the data</td></tr>
+            <tr><td><strong>Analogy</strong></td><td>99 apples, find the orange</td><td>50 attributes &rarr; 5 that matter</td></tr>
+            <tr><td><strong>Needs labels?</strong></td><td>No &mdash; learns "normal" from bulk data</td><td>No &mdash; finds structure mathematically</td></tr>
+            <tr><td><strong>Real example</strong></td><td>Credit card fraud, DDoS, bearing failure</td><td>Netflix 1,000 features &rarr; 20 taste dimensions</td></tr>
+            <tr><td><strong>Key insight</strong></td><td>You don't define "abnormal" &mdash; the data does</td><td>Most features are redundant or noise</td></tr>
+          </table>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Companion to <a href="057-ai-models-chula-class.html">057 AI Models (Chula Class)</a> &mdash; Unsupervised Learning deep dive</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

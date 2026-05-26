@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Regression &mdash; ทำนายตัวเลข: Linear Regression, Best-Fit Line, Multiple Features, และการเชื่อมต่อกับ Neural Network (Chula Class)">
+  <title>061 &mdash; Regression (Chula Class) | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">061 &mdash; Regression (Chula Class)</span>
+        <span class="topbar-date">2026-05-26</span>
+      </div>
+      <div class="content-shell">
+        <h1>Regression &mdash; ทำนายตัวเลข ไม่ใช่แยกกลุ่ม</h1>
+        <div class="article-meta">
+          <span class="tag">machine-learning</span>
+          <span class="tag">regression</span>
+          <span class="tag">linear-regression</span>
+          <span class="tag">neural-network</span>
+          <span class="tag">chula-class</span>
+          <span class="maturity solid">&#10004; solid (class handout + worked examples)</span>
+        </div>
+
+        <p><strong>Source:</strong> Chula AI class &mdash; Linear Regression as foundation for ANN</p>
+        <p>บทความก่อน (057) ดู ML แบบภาพรวม &mdash; บทนี้ zoom เข้าที่ <strong>Regression</strong> ตัวเดียว เพราะสูตรเส้นตรงเส้นเดียวนี้ <em>คือ</em> neuron ตัวแรกของเรา</p>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 1: WHAT IS REGRESSION -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>1 &mdash; Regression คืออะไร?</h2>
+          <p>ML มี 2 งานหลักใน Supervised Learning:</p>
+          <table>
+            <tr><th>งาน</th><th>คำถาม</th><th>ผลลัพธ์</th><th>ตัวอย่าง</th></tr>
+            <tr><td><strong>Classification</strong></td><td>อยู่กลุ่มไหน?</td><td>ป้ายชื่อ (label)</td><td>spam / not spam, แมว / หมา</td></tr>
+            <tr><td><strong>Regression</strong></td><td>เท่าไหร่?</td><td>ตัวเลข (number)</td><td>ราคาบ้าน, อุณหภูมิพรุ่งนี้, ยอดขาย</td></tr>
+          </table>
+          <p><strong>จำง่าย:</strong> Classification = "ถังไหน?" &mdash; Regression = "เท่าไหร่?"</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 2: LINEAR REGRESSION -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>2 &mdash; Linear Regression: เส้นตรงที่ดีที่สุด</h2>
+
+          <h3>2.1 &mdash; ตัวอย่าง: ราคาบ้านตามขนาด</h3>
+          <p>สมมติมีข้อมูลบ้าน 5 หลัง:</p>
+          <table>
+            <tr><th>ขนาด (ตร.ม.)</th><th>ราคา (ล้านบาท)</th></tr>
+            <tr><td>30</td><td>1.5</td></tr>
+            <tr><td>50</td><td>2.5</td></tr>
+            <tr><td>70</td><td>3.2</td></tr>
+            <tr><td>90</td><td>4.0</td></tr>
+            <tr><td>120</td><td>5.5</td></tr>
+          </table>
+
+          <h3>2.2 &mdash; วาดจุดบนกราฟ</h3>
+          <pre><code>ราคา (ล้าน)
+  6 |
+    |                                    * (120, 5.5)
+  5 |
+    |
+  4 |                        * (90, 4.0)
+    |
+  3 |              * (70, 3.2)
+    |
+  2 |      * (50, 2.5)
+    |
+  1 | * (30, 1.5)
+    |
+  0 +----+----+----+----+----+----+----
+    0   20   40   60   80  100  120  140
+                  ขนาด (ตร.ม.)</code></pre>
+
+          <p>จุดทั้ง 5 เรียงเป็นแนวตรงคร่าว ๆ &mdash; ถ้าลากเส้นตรง "ดีที่สุด" ผ่านจุดพวกนี้ได้ เราจะทำนายราคาบ้านขนาดไหนก็ได้</p>
+
+          <h3>2.3 &mdash; สูตรเส้นตรง: y = mx + c</h3>
+          <table>
+            <tr><th>สัญลักษณ์</th><th>ชื่อ</th><th>ความหมาย</th></tr>
+            <tr><td><strong>y</strong></td><td>ผลลัพธ์</td><td>ราคาบ้าน (สิ่งที่ต้องการทำนาย)</td></tr>
+            <tr><td><strong>x</strong></td><td>input</td><td>ขนาดบ้าน (ตร.ม.)</td></tr>
+            <tr><td><strong>m</strong></td><td>ความชัน (slope)</td><td>ราคาเพิ่มขึ้นกี่ล้าน <em>ต่อ</em> ตร.ม. ที่เพิ่ม</td></tr>
+            <tr><td><strong>c</strong></td><td>จุดตัดแกน (intercept / bias)</td><td>ราคาฐานตั้งต้น (ถ้าบ้านมีขนาด 0)</td></tr>
+          </table>
+
+          <h3>2.4 &mdash; หาค่า m และ c จากข้อมูล</h3>
+          <p>ใช้ Least Squares (หาเส้นที่ทำให้ระยะห่างรวมจากจุดทั้ง 5 ไปถึงเส้นน้อยที่สุด):</p>
+          <pre><code>ข้อมูล 5 จุด:
+  x = [30, 50, 70, 90, 120]      y = [1.5, 2.5, 3.2, 4.0, 5.5]
+
+ขั้นที่ 1: หาค่าเฉลี่ย
+  x&#772; = (30+50+70+90+120) / 5 = 360/5 = 72
+  y&#772; = (1.5+2.5+3.2+4.0+5.5) / 5 = 16.7/5 = 3.34
+
+ขั้นที่ 2: คำนวณ m (slope)
+  m = &sum;(x-x&#772;)(y-y&#772;) / &sum;(x-x&#772;)&sup2;
+
+  แต่ละจุด:
+  (30-72)(1.5-3.34) = (-42)(-1.84) =  77.28
+  (50-72)(2.5-3.34) = (-22)(-0.84) =  18.48
+  (70-72)(3.2-3.34) = (-2)(-0.14)  =   0.28
+  (90-72)(4.0-3.34) = (18)(0.66)   =  11.88
+  (120-72)(5.5-3.34)= (48)(2.16)   = 103.68
+                                     -------
+  &sum;(x-x&#772;)(y-y&#772;) = 211.60
+
+  (30-72)&sup2;  = 1764
+  (50-72)&sup2;  =  484
+  (70-72)&sup2;  =    4
+  (90-72)&sup2;  =  324
+  (120-72)&sup2; = 2304
+              ----
+  &sum;(x-x&#772;)&sup2; = 4880
+
+  m = 211.60 / 4880 = 0.04336 ล้าน/ตร.ม.
+    &asymp; <strong>43,360 บาท ต่อ ตร.ม.</strong>
+
+ขั้นที่ 3: คำนวณ c (intercept)
+  c = y&#772; - m&middot;x&#772;
+  c = 3.34 - 0.04336 &times; 72
+  c = 3.34 - 3.122 = <strong>0.218 ล้าน</strong></code></pre>
+
+          <p><strong>สูตรที่ได้:</strong></p>
+          <pre><code>ราคา = 0.0434 &times; ขนาด + 0.218
+
+(หรือ: ราคา = 43,360 &times; ตร.ม. + 218,000 บาท)</code></pre>
+
+          <h3>2.5 &mdash; ทำนาย: บ้าน 80 ตร.ม. ราคาเท่าไหร่?</h3>
+          <pre><code>ราคา = 0.0434 &times; 80 + 0.218
+     = 3.472 + 0.218
+     = <strong>3.69 ล้านบาท</strong></code></pre>
+
+          <h3>2.6 &mdash; Best-Fit Line บนกราฟ</h3>
+          <pre><code>ราคา (ล้าน)
+  6 |                                  .&middot;&middot;* (120, 5.5)
+    |                             .&middot;&middot;&acute;
+  5 |                        .&middot;&middot;&acute;
+    |                   .&middot;&middot;&acute;
+  4 |              .&middot;* (90, 4.0)
+    |          .&middot;&middot;&acute;
+  3 |      .&middot;* (70, 3.2)
+    |   .&middot;&middot;&acute; &uarr; (50, 2.5)
+  2 |.&middot;*
+    | &uarr; (30, 1.5)
+  1 |
+    |     y = 0.0434x + 0.218
+  0 +----+----+----+----+----+----+----
+    0   20   40   60   80  100  120  140
+                  ขนาด (ตร.ม.)
+
+  เส้น .&middot;&middot;&middot; = best-fit line (ผ่านใกล้ทุกจุดที่สุด)
+  * = ข้อมูลจริง</code></pre>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 3: WHAT IS TRAINING -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>3 &mdash; "Training" คืออะไร?</h2>
+          <p>Training = <strong>หาค่า m กับ c ที่ทำให้เส้นอยู่ใกล้จุดทั้งหมดมากที่สุด</strong></p>
+          <p>ลองนึกภาพ: ถ้าเราลากเส้นมั่ว ๆ จุดจะห่างจากเส้นเยอะ ถ้าเราปรับ m กับ c ทีละนิด เส้นจะค่อย ๆ เข้าใกล้จุดมากขึ้น &mdash; นั่นคือ "การเรียนรู้"</p>
+          <pre><code>เส้นแย่ (m, c มั่ว):          เส้นดี (m, c ที่ train แล้ว):
+
+  *                              *
+       *                      . *
+  --------  เส้นห่างจุด     . *
+     *                    .*
+  *                     .*
+                       .  &larr; จุดอยู่ชิดเส้น!</code></pre>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 4: ERROR MEASUREMENT -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>4 &mdash; วัดว่าเส้นดีแค่ไหน (Error)</h2>
+          <p>ถ้าจุดจริงคือ 3.2 ล้าน แต่เส้นทำนาย 3.0 ล้าน &rarr; error = 0.2 ล้าน</p>
+          <p>เราเอา error ของทุกจุดมาคิดรวม:</p>
+          <pre><code>จุด      จริง    ทำนาย    ห่าง     ห่าง&sup2;
+30 ตร.ม.  1.50    1.52    -0.02     0.0004
+50 ตร.ม.  2.50    2.39     0.11     0.0121
+70 ตร.ม.  3.20    3.26    -0.06     0.0036
+90 ตร.ม.  4.00    4.12    -0.12     0.0144
+120 ตร.ม. 5.50    5.43     0.07     0.0049
+                                   -------
+            Mean Squared Error =    0.0354/5
+                               =    <strong>0.0071</strong>
+
+RMSE = &radic;0.0071 = <strong>0.084 ล้าน &asymp; 84,000 บาท</strong></code></pre>
+          <p><strong>แปลว่า:</strong> โดยเฉลี่ย เส้นของเราทำนายคลาดเคลื่อนประมาณ 84,000 บาท &mdash; สำหรับบ้านหลักล้าน ถือว่าดี</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 5: MULTIPLE FEATURES -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>5 &mdash; Multiple Features: ราคาบ้านไม่ได้ขึ้นกับขนาดอย่างเดียว</h2>
+          <p>ความจริงแล้ว ราคาบ้านขึ้นกับหลายปัจจัย:</p>
+          <ul>
+            <li>ขนาด (ตร.ม.)</li>
+            <li>จำนวนห้องนอน</li>
+            <li>คะแนนทำเล (0-10)</li>
+            <li>อายุบ้าน (ปี)</li>
+          </ul>
+
+          <p>สูตรขยายจาก <code>y = mx + c</code> เป็น:</p>
+          <pre><code>1 feature:    ราคา = m&middot;ขนาด + c
+
+4 features:   ราคา = w1&middot;ขนาด + w2&middot;ห้องนอน + w3&middot;ทำเล + w4&middot;อายุ + bias
+
+ตัวอย่างค่าที่ train ได้:
+  ราคา = 0.043&middot;ขนาด + 0.5&middot;ห้องนอน + 0.3&middot;ทำเล - 0.05&middot;อายุ + 0.2
+
+  w1 = +0.043  &rarr; ขนาดเพิ่ม 1 ตร.ม. ราคาขึ้น 43,000
+  w2 = +0.5    &rarr; ห้องนอนเพิ่ม 1 ห้อง ราคาขึ้น 500,000
+  w3 = +0.3    &rarr; ทำเลดีขึ้น 1 คะแนน ราคาขึ้น 300,000
+  w4 = -0.05   &rarr; บ้านเก่าขึ้น 1 ปี ราคาลด 50,000
+  bias = 0.2   &rarr; ราคาฐาน 200,000</code></pre>
+
+          <p><strong>สิ่งที่เปลี่ยน:</strong> แทนที่จะมี m ตัวเดียว ตอนนี้มี <strong>w (weight)</strong> หลายตัว &mdash; ตัวละปัจจัย &mdash; บวก bias 1 ตัว</p>
+          <p>Training = <strong>หาค่า w1, w2, w3, w4, bias ที่ทำให้ error น้อยที่สุด</strong> &mdash; หลักการเดิม</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 6: CONNECTION TO ANN -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>6 &mdash; สูตรนี้ <em>คือ</em> Neuron! (Mind-Blown)</h2>
+          <p>กลับไปดูสูตร multiple regression:</p>
+          <pre><code>y = w1&middot;x1 + w2&middot;x2 + w3&middot;x3 + w4&middot;x4 + bias</code></pre>
+          <p>ตอนนี้วาด neuron 1 ตัว:</p>
+          <pre><code>        weights
+x1 &mdash;&mdash; w1 &mdash;&#9582;
+x2 &mdash;&mdash; w2 &mdash;&#9582;
+               &sum; + bias &mdash;&rarr; output (y)
+x3 &mdash;&mdash; w3 &mdash;&#9582;
+x4 &mdash;&mdash; w4 &mdash;&#9582;
+
+Neuron ทำอะไร?
+  1. รับ inputs (x1, x2, x3, x4)
+  2. คูณแต่ละตัวด้วย weight (w1, w2, w3, w4)
+  3. บวกทั้งหมดเข้าด้วยกัน + bias
+  4. ได้ output
+
+&rarr; สูตร <strong>เดียวกัน</strong>กับ multiple linear regression!</code></pre>
+
+          <table>
+            <tr><th>ภาษา Regression</th><th>ภาษา Neural Network</th></tr>
+            <tr><td>feature (x)</td><td>input</td></tr>
+            <tr><td>weight / slope (w)</td><td>weight (w)</td></tr>
+            <tr><td>intercept (c)</td><td>bias (b)</td></tr>
+            <tr><td>prediction (y)</td><td>output</td></tr>
+            <tr><td>training (หา w, c ที่ดีที่สุด)</td><td>training (ปรับ weights ให้ดีที่สุด)</td></tr>
+          </table>
+
+          <p><strong>Linear Regression = Neuron 1 ตัว ที่ไม่มี activation function</strong></p>
+          <p>พอเอา neuron หลายตัวมาต่อกันเป็น layer &rarr; ANN &rarr; ต่อหลาย layer &rarr; Deep Learning</p>
+          <pre><code>Linear Regression        1 Neuron              ANN/DNN
+y = wx + b          &rarr;  y = f(wx + b)     &rarr;  หลาย neurons + หลาย layers
+                         f = activation         = Deep Learning
+                         function</code></pre>
+          <p>ทุกอย่างเริ่มจากเส้นตรงเส้นเดียว <code>y = mx + c</code></p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 7: BEYOND LINEAR -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>7 &mdash; Beyond Linear: เส้นโค้ง (Polynomial Regression)</h2>
+          <p>ถ้าข้อมูลไม่เป็นเส้นตรง เราใช้ polynomial:</p>
+          <pre><code>Linear (degree 1):     y = w&middot;x + b                เส้นตรง
+Quadratic (degree 2):  y = w1&middot;x&sup2; + w2&middot;x + b      โค้ง 1 ที
+Cubic (degree 3):      y = w1&middot;x&sup3; + w2&middot;x&sup2; + w3&middot;x + b  โค้ง S</code></pre>
+
+          <p><strong>ข้อควรระวัง:</strong> degree สูง = เส้นพลิ้วตาม training data &rarr; <strong>overfitting</strong></p>
+          <pre><code>Degree 1 (เส้นตรง):       Degree 10 (โค้งมั่ว):
+                           &#8766;    &#8766;
+ *  .&middot;&middot;&middot;&middot;  *              * &#8765;  &#8765;  *
+.&middot;&middot;&acute;       .&middot;*          &#8766; &#8766;     &#8766; &#8766;
+                         &#8765;*         *&#8765;
+อาจพลาดบ้าง              จำ data เก่าแม่น
+แต่ทำนาย data ใหม่ได้ดี   แต่ทำนาย data ใหม่แย่มาก</code></pre>
+          <p>เหมือน Classification ที่ decision boundary ซับซ้อนเกินไป (ดู article 057) &mdash; ปัญหาเดียวกัน ชื่อเดียวกัน: <strong>overfitting</strong></p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SUMMARY -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>สรุป</h2>
+          <table>
+            <tr><th>#</th><th>บทเรียน</th></tr>
+            <tr><td>1</td><td><strong>Regression = ทำนายตัวเลข</strong> (&ne; Classification ที่ทำนายกลุ่ม)</td></tr>
+            <tr><td>2</td><td><strong>y = mx + c</strong> &mdash; m บอกว่า input เปลี่ยน 1 หน่วย output เปลี่ยนเท่าไหร่, c คือค่าตั้งต้น</td></tr>
+            <tr><td>3</td><td><strong>Training = หาค่า m, c ที่ดีที่สุด</strong> ให้เส้นอยู่ใกล้ข้อมูลจริงมากที่สุด</td></tr>
+            <tr><td>4</td><td><strong>Error วัดเป็นตัวเลข</strong> &mdash; RMSE บอกว่าโดยเฉลี่ยทำนายพลาดเท่าไหร่</td></tr>
+            <tr><td>5</td><td><strong>Multiple features</strong> &rarr; weight หลายตัว + bias &mdash; สูตรเดียวกับ neuron 1 ตัว</td></tr>
+            <tr><td>6</td><td><strong>Neuron = Linear Regression + activation function</strong> &mdash; ต่อหลายตัว = ANN = Deep Learning</td></tr>
+            <tr><td>7</td><td><strong>Polynomial = เส้นโค้ง</strong> &mdash; ยืดหยุ่นกว่า แต่ degree สูงเกิน = overfitting</td></tr>
+          </table>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: Chula AI Class &mdash; Linear Regression to ANN foundation (26 &mdash; 27 พ.ค. 2569)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

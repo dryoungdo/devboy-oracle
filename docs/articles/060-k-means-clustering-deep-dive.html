@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="K-Means Clustering Deep Dive &mdash; Candy Analogy, Full Numerical Walkthrough, SSE, Elbow Method, Limitations &amp; Real Business Use Cases">
+  <title>060 &mdash; K-Means Clustering Deep Dive | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">060 &mdash; K-Means Clustering Deep Dive</span>
+        <span class="topbar-date">2026-05-26</span>
+      </div>
+      <div class="content-shell">
+        <h1>K-Means Clustering &mdash; Deep Dive with Numbers</h1>
+        <div class="article-meta">
+          <span class="tag">machine-learning</span>
+          <span class="tag">unsupervised</span>
+          <span class="tag">clustering</span>
+          <span class="tag">k-means</span>
+          <span class="tag">sse</span>
+          <span class="tag">elbow-method</span>
+          <span class="tag">chula-class</span>
+          <span class="maturity solid">&#10004; solid (numerical walkthrough + interactive lab)</span>
+        </div>
+
+        <p><strong>Source:</strong> Chula class handout (26 May 2026) + <a href="https://nicenathapong.github.io/ai-interactive-widget/kMeansClustering.html" target="_blank" rel="noopener">Interactive K-Means Widget</a></p>
+        <p>Article 057 introduced K-Means in the big picture. This article goes deeper &mdash; full math, real numbers, every step visible.</p>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 1: WHAT IS CLUSTERING? -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>1 &mdash; What is Clustering?</h2>
+
+          <p>Imagine you dump 100 mixed candies on a table. Nobody tells you what the groups are. You just naturally start sorting: red ones here, green ones there, yellow in the corner. You are <strong>clustering</strong> &mdash; finding groups that share something in common, without any labels or instructions.</p>
+
+          <p>That is exactly what <strong>unsupervised learning</strong> does. The algorithm looks at the data, finds natural groupings, and assigns each data point to a group. No teacher, no answer key.</p>
+
+          <pre><code>Supervised Learning:   "This candy is RED" (you have labels)
+Unsupervised Learning: "These candies look similar" (no labels &mdash; find groups yourself)</code></pre>
+
+          <p><strong>K-Means</strong> is the most common clustering algorithm. The &ldquo;K&rdquo; = how many groups you want. &ldquo;Means&rdquo; = the algorithm uses averages (means) to find the center of each group.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 2: ALGORITHM STEP BY STEP -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>2 &mdash; K-Means Algorithm &mdash; Step by Step with Numbers</h2>
+
+          <h3>2.1 &mdash; Setup</h3>
+          <p>6 data points (think: customers plotted by visit frequency and average order amount):</p>
+          <pre><code>A = (2, 3)    B = (3, 4)    C = (8, 7)
+D = (9, 8)    E = (2, 8)    F = (3, 9)</code></pre>
+
+          <p>We choose <strong>K = 2</strong> (two groups). Random initial centroids:</p>
+          <pre><code>C1 = (2, 3)   &larr; happens to be point A
+C2 = (8, 7)   &larr; happens to be point C</code></pre>
+
+          <pre><code>  9 |       F
+  8 |    E              D
+  7 |                C
+  6 |
+  5 |
+  4 |    B
+  3 | A
+  2 |
+  1 |
+    +---+---+---+---+---+---+---+---+---+
+    0   1   2   3   4   5   6   7   8   9</code></pre>
+
+          <!-- ─── ITERATION 1 ─── -->
+          <h3>2.2 &mdash; Iteration 1: Calculate Distances</h3>
+
+          <p>Distance formula (Euclidean): <code>d = &radic;((x2-x1)&sup2; + (y2-y1)&sup2;)</code></p>
+
+          <table>
+            <tr><th>Point</th><th>Distance to C1 (2,3)</th><th>Distance to C2 (8,7)</th><th>Nearest</th></tr>
+            <tr>
+              <td>A (2,3)</td>
+              <td>&radic;((2-2)&sup2;+(3-3)&sup2;) = <strong>0.00</strong></td>
+              <td>&radic;((8-2)&sup2;+(7-3)&sup2;) = &radic;(36+16) = <strong>7.21</strong></td>
+              <td>C1</td>
+            </tr>
+            <tr>
+              <td>B (3,4)</td>
+              <td>&radic;((3-2)&sup2;+(4-3)&sup2;) = &radic;(1+1) = <strong>1.41</strong></td>
+              <td>&radic;((8-3)&sup2;+(7-4)&sup2;) = &radic;(25+9) = <strong>5.83</strong></td>
+              <td>C1</td>
+            </tr>
+            <tr>
+              <td>C (8,7)</td>
+              <td>&radic;((2-8)&sup2;+(3-7)&sup2;) = &radic;(36+16) = <strong>7.21</strong></td>
+              <td>&radic;((8-8)&sup2;+(7-7)&sup2;) = <strong>0.00</strong></td>
+              <td>C2</td>
+            </tr>
+            <tr>
+              <td>D (9,8)</td>
+              <td>&radic;((2-9)&sup2;+(3-8)&sup2;) = &radic;(49+25) = <strong>8.60</strong></td>
+              <td>&radic;((8-9)&sup2;+(7-8)&sup2;) = &radic;(1+1) = <strong>1.41</strong></td>
+              <td>C2</td>
+            </tr>
+            <tr>
+              <td>E (2,8)</td>
+              <td>&radic;((2-2)&sup2;+(3-8)&sup2;) = &radic;(0+25) = <strong>5.00</strong></td>
+              <td>&radic;((8-2)&sup2;+(7-8)&sup2;) = &radic;(36+1) = <strong>6.08</strong></td>
+              <td>C1</td>
+            </tr>
+            <tr>
+              <td>F (3,9)</td>
+              <td>&radic;((2-3)&sup2;+(3-9)&sup2;) = &radic;(1+36) = <strong>6.08</strong></td>
+              <td>&radic;((8-3)&sup2;+(7-9)&sup2;) = &radic;(25+4) = <strong>5.39</strong></td>
+              <td>C2</td>
+            </tr>
+          </table>
+
+          <h3>2.3 &mdash; Iteration 1: Assign &amp; Recalculate</h3>
+          <pre><code>Cluster 1 (C1): A(2,3), B(3,4), E(2,8)
+Cluster 2 (C2): C(8,7), D(9,8), F(3,9)</code></pre>
+
+          <pre><code>  9 |       F*
+  8 |    E              D*
+  7 |                C*
+  6 |
+  5 |
+  4 |    B
+  3 | A
+    +---+---+---+---+---+---+---+---+---+
+         Cluster 1            Cluster 2
+         (A, B, E)           (C, D, F*)
+
+    * = F landed in Cluster 2 (closer to C2 by 0.69)</code></pre>
+
+          <p>New centroids = average of each cluster&rsquo;s points:</p>
+          <pre><code>New C1 = ((2+3+2)/3, (3+4+8)/3) = (7/3, 15/3) = (2.33, 5.00)
+New C2 = ((8+9+3)/3, (7+8+9)/3) = (20/3, 24/3) = (6.67, 8.00)</code></pre>
+
+          <!-- ─── ITERATION 2 ─── -->
+          <h3>2.4 &mdash; Iteration 2: Recalculate Distances</h3>
+          <p>Now with C1 = (2.33, 5.00) and C2 = (6.67, 8.00):</p>
+
+          <table>
+            <tr><th>Point</th><th>Distance to C1 (2.33, 5.00)</th><th>Distance to C2 (6.67, 8.00)</th><th>Nearest</th></tr>
+            <tr>
+              <td>A (2,3)</td>
+              <td>&radic;(0.11+4.00) = <strong>2.03</strong></td>
+              <td>&radic;(21.81+25.00) = <strong>6.84</strong></td>
+              <td>C1</td>
+            </tr>
+            <tr>
+              <td>B (3,4)</td>
+              <td>&radic;(0.45+1.00) = <strong>1.20</strong></td>
+              <td>&radic;(13.47+16.00) = <strong>5.43</strong></td>
+              <td>C1</td>
+            </tr>
+            <tr>
+              <td>C (8,7)</td>
+              <td>&radic;(32.15+4.00) = <strong>6.01</strong></td>
+              <td>&radic;(1.77+1.00) = <strong>1.66</strong></td>
+              <td>C2</td>
+            </tr>
+            <tr>
+              <td>D (9,8)</td>
+              <td>&radic;(44.49+9.00) = <strong>7.31</strong></td>
+              <td>&radic;(5.43+0.00) = <strong>2.33</strong></td>
+              <td>C2</td>
+            </tr>
+            <tr>
+              <td>E (2,8)</td>
+              <td>&radic;(0.11+9.00) = <strong>3.02</strong></td>
+              <td>&radic;(21.81+0.00) = <strong>4.67</strong></td>
+              <td>C1</td>
+            </tr>
+            <tr>
+              <td>F (3,9)</td>
+              <td>&radic;(0.45+16.00) = <strong>4.06</strong></td>
+              <td>&radic;(13.47+1.00) = <strong>3.80</strong></td>
+              <td>C2</td>
+            </tr>
+          </table>
+
+          <h3>2.5 &mdash; Iteration 2: Result</h3>
+          <pre><code>Cluster 1: A(2,3), B(3,4), E(2,8)   &larr; same as before
+Cluster 2: C(8,7), D(9,8), F(3,9)   &larr; same as before
+
+Assignments did NOT change &rarr; CONVERGED. Algorithm stops.</code></pre>
+
+          <p>New centroids = same as iteration 1: C1 = (2.33, 5.00), C2 = (6.67, 8.00). No movement. Done.</p>
+
+          <pre><code>  9 |       F . . . . . . . . [C2]
+  8 |    E  . . . . . . . D
+  7 |    .  . . . . . . C
+  6 |    .  . . . . . .
+  5 | [C1]  . . . . . .
+  4 |    B  . . . . . .
+  3 | A     . . . . . .
+    +---+---+---+---+---+---+---+---+---+
+
+    [C1] = centroid at (2.33, 5.00)
+    [C2] = centroid at (6.67, 8.00)
+    Dotted area = approximate cluster boundary</code></pre>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 3: SSE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>3 &mdash; SSE (Sum of Squared Errors)</h2>
+
+          <p>SSE answers one question: <strong>&ldquo;How spread out are the points from their center?&rdquo;</strong></p>
+
+          <pre><code>SSE = sum of (distance from each point to its centroid)&sup2;
+
+Lower SSE = tighter groups = better clustering
+Higher SSE = looser groups = worse clustering</code></pre>
+
+          <p>For our final clusters:</p>
+          <pre><code>Cluster 1 (centroid 2.33, 5.00):
+  A: (2-2.33)&sup2; + (3-5.00)&sup2; = 0.11 + 4.00 = 4.11
+  B: (3-2.33)&sup2; + (4-5.00)&sup2; = 0.45 + 1.00 = 1.45
+  E: (2-2.33)&sup2; + (8-5.00)&sup2; = 0.11 + 9.00 = 9.11
+
+Cluster 2 (centroid 6.67, 8.00):
+  C: (8-6.67)&sup2; + (7-8.00)&sup2; = 1.77 + 1.00 = 2.77
+  D: (9-6.67)&sup2; + (8-8.00)&sup2; = 5.43 + 0.00 = 5.43
+  F: (3-6.67)&sup2; + (9-8.00)&sup2; = 13.47 + 1.00 = 14.47
+
+Total SSE = 4.11 + 1.45 + 9.11 + 2.77 + 5.43 + 14.47 = 37.33</code></pre>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 4: ELBOW METHOD -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>4 &mdash; The Elbow Method: &ldquo;How Many Groups?&rdquo;</h2>
+
+          <p>The hardest question in K-Means: <strong>what K should I pick?</strong> The Elbow Method is a visual trick.</p>
+
+          <p>Run K-Means with K = 1, 2, 3, 4, 5. Record the SSE each time:</p>
+
+          <pre><code>K=1:  SSE = 95.3   (everything in one blob)
+K=2:  SSE = 37.3   (big drop!)
+K=3:  SSE = 12.0   (another big drop!)
+K=4:  SSE = 10.1   (tiny improvement)
+K=5:  SSE =  8.8   (barely moved)
+
+SSE
+ |
+95|  *
+   |
+   |
+37|      *
+   |
+12|          *
+10|              *
+ 9|                  *
+   +--+--+--+--+--+--
+      1  2  3  4  5   K</code></pre>
+
+          <p>The &ldquo;elbow&rdquo; is where the line bends &mdash; SSE stops dropping fast and starts to plateau. Here the elbow is at <strong>K = 3</strong>. Going from 1 to 3 gives huge improvement. Going from 3 to 5 barely helps. So K = 3 is the sweet spot.</p>
+
+          <p>Rule of thumb: <strong>more groups always lowers SSE</strong> (at K = N, SSE = 0 because each point is its own cluster). The elbow tells you where the &ldquo;return on investment&rdquo; of adding groups runs out.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 5: WHEN K-MEANS FAILS -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>5 &mdash; When K-Means Fails</h2>
+
+          <p>K-Means assumes clusters are round (spherical) and roughly the same size. When real data breaks these assumptions, it struggles:</p>
+
+          <h3>5.1 &mdash; Non-spherical clusters</h3>
+          <pre><code>Reality: two crescent moons     K-Means sees:
+
+  ** ***                         [---Cluster 1---]
+ *       *                       [---Cluster 2---]
+  ** ***
+       ** ***                    K-Means cuts straight
+      *       *                  through the crescents.
+       ** ***                    It cannot wrap around shapes.</code></pre>
+
+          <h3>5.2 &mdash; Different-sized clusters</h3>
+          <pre><code>  Small tight        LARGE spread cluster
+  cluster ****       *    *      *
+   (50 pts) **       *  *    *  *   *
+            **       *      *     *
+                     * *  *   *  * *
+                        (500 pts)
+
+K-Means steals points from the big cluster to &ldquo;balance&rdquo; the small one.</code></pre>
+
+          <h3>5.3 &mdash; Different density clusters</h3>
+          <p>One cluster is packed tight, another is spread thin. K-Means treats them the same because it only cares about distance, not density.</p>
+
+          <h3>5.4 &mdash; Sensitive to starting position</h3>
+          <pre><code>Same data, different random centroids &rarr; different final clusters.
+
+Run 1: centroids start at (1,1) and (2,2) &rarr; bad result (local minimum)
+Run 2: centroids start at (1,1) and (9,9) &rarr; good result
+
+Fix: run K-Means 10-20 times with different random starts.
+     Keep the result with the lowest SSE.
+     (This is what &ldquo;K-Means++&rdquo; initialization improves.)</code></pre>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 6: REAL BUSINESS EXAMPLES -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>6 &mdash; Real Business Examples</h2>
+
+          <table>
+            <tr><th>Domain</th><th>What gets clustered</th><th>Features used</th><th>Business value</th></tr>
+            <tr>
+              <td><strong>Customer Segmentation</strong></td>
+              <td>Customers</td>
+              <td>Visit frequency, avg order, recency</td>
+              <td>Target promotions per segment (VIP vs. at-risk vs. new)</td>
+            </tr>
+            <tr>
+              <td><strong>Gene Expression</strong></td>
+              <td>Genes</td>
+              <td>Expression levels across conditions</td>
+              <td>Find co-regulated gene groups for drug targets</td>
+            </tr>
+            <tr>
+              <td><strong>Document Grouping</strong></td>
+              <td>Articles / emails</td>
+              <td>Word frequency vectors (TF-IDF)</td>
+              <td>Auto-categorize support tickets, news feeds</td>
+            </tr>
+            <tr>
+              <td><strong>Image Compression</strong></td>
+              <td>Pixel colors</td>
+              <td>RGB values</td>
+              <td>Reduce 16M colors to K representative colors</td>
+            </tr>
+            <tr>
+              <td><strong>Retail Store Layout</strong></td>
+              <td>Products</td>
+              <td>Co-purchase frequency</td>
+              <td>Place related products near each other</td>
+            </tr>
+          </table>
+
+          <h3>Customer segmentation example (from class)</h3>
+          <pre><code>  Avg Order
+  Amount ($)
+   |
+80 |              * *     &larr; Cluster 3: &ldquo;Big spenders, visit rarely&rdquo;
+60 |            *   *
+   |
+40 |  * *                 &larr; Cluster 2: &ldquo;Moderate, regular&rdquo;
+30 | *  *   *
+   |
+10 | * * *                &larr; Cluster 1: &ldquo;Casual browsers&rdquo;
+ 5 |*  *
+   +-+-+-+-+-+-+-+-+-+-+
+   0 1 2 3 4 5 6 7 8 9
+     Visit Frequency (per month)</code></pre>
+
+          <p>Once segmented, each cluster gets a different marketing strategy. No human had to define the groups &mdash; the algorithm found them from the data.</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- INTERACTIVE LAB -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>&#127891; Interactive Lab &mdash; Try It Yourself</h2>
+          <p><a href="https://nicenathapong.github.io/ai-interactive-widget/kMeansClustering.html" target="_blank" rel="noopener">&#128279; Open K-Means Widget &rarr;</a></p>
+
+          <h4>What to try</h4>
+          <ol>
+            <li>Set K = 2, click Initialize, then click Step repeatedly &mdash; watch the centroids move</li>
+            <li>Try K = 3 on the same data &mdash; compare the SSE. Lower?</li>
+            <li>Click Initialize multiple times with same K &mdash; notice different starting centroids give different results</li>
+            <li>Try K = 6 &mdash; SSE is very low but the groups are meaningless (overfitting)</li>
+          </ol>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- KEY TAKEAWAYS -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>Key Takeaways</h2>
+          <table>
+            <tr><th>#</th><th>Takeaway</th></tr>
+            <tr><td>1</td><td><strong>Clustering = finding groups without labels.</strong> Like sorting candies by color without anyone telling you the categories.</td></tr>
+            <tr><td>2</td><td><strong>K-Means repeats 3 steps</strong>: assign to nearest centroid &rarr; recalculate centroid &rarr; repeat until stable.</td></tr>
+            <tr><td>3</td><td><strong>SSE measures cluster quality.</strong> Lower = tighter = better.</td></tr>
+            <tr><td>4</td><td><strong>Elbow Method picks K.</strong> Plot SSE vs K &mdash; the bend in the curve is your answer.</td></tr>
+            <tr><td>5</td><td><strong>K-Means fails on non-round, uneven clusters</strong> and is sensitive to random starting points. Run it multiple times.</td></tr>
+            <tr><td>6</td><td><strong>Real impact:</strong> customer segments, gene analysis, document grouping, image compression &mdash; anywhere you need to find structure in unlabeled data.</td></tr>
+          </table>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: Chula class handout &mdash; AI Models (26 May 2026) + <a href="https://nicenathapong.github.io/ai-interactive-widget/kMeansClustering.html" target="_blank" rel="noopener">Interactive K-Means Widget</a> by nicenathapong</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

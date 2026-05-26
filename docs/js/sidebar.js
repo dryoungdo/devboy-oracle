@@ -83,7 +83,15 @@ var DEVBOY_NAV = [
       ['056-glueboy-codex-coding-hands-goal-arc.html', '056 GLUEBOY /goal arc']
     ]],
     ['Chula AI Class', [
-      ['057-ai-models-chula-class.html', '057 AI Models (Chula Class)']
+      ['057-ai-models-chula-class.html', '057 AI Models (Overview)'],
+      ['063-feature-extraction-deep-dive.html', '063 Feature Extraction'],
+      ['058-binary-classification-overfitting.html', '058 Classification &amp; Overfitting'],
+      ['061-regression-chula-class.html', '061 Regression'],
+      ['060-k-means-clustering-deep-dive.html', '060 K-Means Clustering'],
+      ['059-anomaly-detection-dimensionality-reduction.html', '059 Anomaly &amp; Dim. Reduction'],
+      ['064-reinforcement-learning-alphago.html', '064 Reinforcement Learning'],
+      ['062-ann-deep-dive-board-room.html', '062 ANN Deep Dive'],
+      ['065-dnn-training-how-ai-learns.html', '065 DNN Training']
     ]]
 ];
 

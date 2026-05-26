@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ANN Deep Dive &mdash; จาก y=mx+c ถึง Neural Network: คำนวณทุกตัวเลขด้วยมือ ผ่านตัวอย่าง Board Room ANN">
+  <title>062 &mdash; ANN Deep Dive (Board Room) | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">062 &mdash; ANN Deep Dive (Board Room)</span>
+        <span class="topbar-date">2026-05-26</span>
+      </div>
+      <div class="content-shell">
+        <h1>ANN Deep Dive &mdash; คำนวณด้วยมือทุกตัวเลข</h1>
+        <div class="article-meta">
+          <span class="tag">ann</span>
+          <span class="tag">neural-network</span>
+          <span class="tag">activation-function</span>
+          <span class="tag">matrix</span>
+          <span class="tag">chula-class</span>
+          <span class="maturity solid">&#10004; solid (class content + numerical walkthrough)</span>
+        </div>
+
+        <p><strong>Source:</strong> Chula AI Class (26 &nbsp;&#3614;.&#3588;. 2569) + Board Room ANN widget by nicenathapong</p>
+        <p>บทความ <a href="057-ai-models-chula-class.html">057</a> สรุปภาพรวม ML &mdash; บทความนี้ zoom เข้าไปใน <strong>ANN</strong> โดยเฉพาะ คำนวณทุกตัวเลขทีละ step ให้เห็นว่า neural network ทำอะไรข้างใน</p>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 1. FROM LINEAR REGRESSION TO A NEURON -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>1 &mdash; จาก y = mx + c สู่ Neuron</h2>
+
+          <p>Linear Regression คือสูตรง่ายที่สุดในโลก:</p>
+          <pre><code>y = mx + c
+
+m = ความชัน (slope)
+c = จุดตัดแกน y (intercept)</code></pre>
+
+          <p><strong>Neuron 1 ตัว ทำเหมือนกันเป๊ะ</strong> &mdash; แค่เปลี่ยนชื่อ: m เรียก <strong>weight (w)</strong>, c เรียก <strong>bias (b)</strong></p>
+
+          <pre><code>y = w &middot; x + b     &larr; Neuron 1 input</code></pre>
+
+          <p>ถ้ามีหลาย input ก็คูณแต่ละตัวด้วย weight ของมัน แล้วรวมกัน:</p>
+
+          <pre><code>y = w1&middot;x1 + w2&middot;x2 + w3&middot;x3 + b</code></pre>
+
+          <h3>อุปมา: กรรมการตัดสินการแข่งขัน</h3>
+          <p>คิดว่า neuron เป็น <strong>กรรมการ</strong> ที่ให้คะแนนผู้เข้าแข่งขัน:</p>
+          <ul>
+            <li>แต่ละเกณฑ์ (x) มี <strong>น้ำหนักความสำคัญ</strong> (w)</li>
+            <li>คะแนนรวม = ผลรวมถ่วงน้ำหนัก</li>
+            <li>เช่น เกณฑ์ "ความคิดสร้างสรรค์" สำคัญมาก (w=0.5) แต่ "ความเร็ว" สำคัญน้อย (w=0.1)</li>
+          </ul>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 2. BOARD ROOM FULL WALKTHROUGH -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>2 &mdash; Board Room ANN &mdash; คำนวณด้วยมือ</h2>
+
+          <h3>2.1 &mdash; โครงสร้าง Network</h3>
+          <pre><code>  INPUT LAYER         HIDDEN LAYER        OUTPUT LAYER
+ ____________        ____________        ____________
+|            |      |            |      |            |
+| ROI = 0.8  |--+--&gt;| Neuron H1  |--+--&gt;| Approve    |
+|____________|  |   |____________|  |   |____________|
+                |                   |
+ ____________   |    ____________   |    ____________
+|            |  |   |            |  |   |            |
+| Align= 0.7|--+--&gt;| Neuron H2  |--+--&gt;| Delay      |
+|____________|  |   |____________|  |   |____________|
+                |                   |
+ ____________   |                   |    ____________
+|            |  |                   |   |            |
+| Risk = 0.3 |--+                  +--&gt;| Reject     |
+|____________|                          |____________|
+
+3 inputs &rarr; 2 hidden neurons &rarr; 3 outputs</code></pre>
+          <p>ทุก input ต่อกับทุก hidden neuron, ทุก hidden neuron ต่อกับทุก output &mdash; เรียกว่า <strong>fully connected</strong></p>
+
+          <h3>2.2 &mdash; Step 1: Input &rarr; Hidden Layer</h3>
+          <p>กำหนด weights ของ hidden neurons:</p>
+          <table>
+            <tr><th></th><th>w_ROI</th><th>w_Align</th><th>w_Risk</th><th>bias</th></tr>
+            <tr><td><strong>H1</strong></td><td>0.6</td><td>0.3</td><td>-0.5</td><td>0.1</td></tr>
+            <tr><td><strong>H2</strong></td><td>0.2</td><td>0.5</td><td>0.8</td><td>-0.2</td></tr>
+          </table>
+
+          <p><strong>คำนวณ H1:</strong></p>
+          <pre><code>H1 = (0.6 &times; 0.8) + (0.3 &times; 0.7) + (-0.5 &times; 0.3) + 0.1
+   =    0.48     +    0.21     +   (-0.15)    + 0.1
+   = 0.64</code></pre>
+          <p>H1 = 0.64 &mdash; สังเกต: w_Risk เป็นลบ &rarr; Risk สูง = ดึงคะแนนลง (สมเหตุสมผล)</p>
+
+          <p><strong>คำนวณ H2:</strong></p>
+          <pre><code>H2 = (0.2 &times; 0.8) + (0.5 &times; 0.7) + (0.8 &times; 0.3) + (-0.2)
+   =    0.16     +    0.35     +    0.24     - 0.2
+   = 0.55</code></pre>
+          <p>H2 = 0.55 &mdash; H2 ให้น้ำหนัก Risk สูง (w=0.8) = neuron ตัวนี้ "ตรวจจับความเสี่ยง"</p>
+
+          <h3>2.3 &mdash; Step 2: Hidden &rarr; Output Layer</h3>
+          <p>H1 (0.64) กับ H2 (0.55) กลายเป็น input ของ 3 output neurons:</p>
+          <table>
+            <tr><th></th><th>w_H1</th><th>w_H2</th><th>bias</th></tr>
+            <tr><td><strong>Approve</strong></td><td>0.9</td><td>-0.4</td><td>0.1</td></tr>
+            <tr><td><strong>Delay</strong></td><td>0.3</td><td>0.3</td><td>0.0</td></tr>
+            <tr><td><strong>Reject</strong></td><td>-0.5</td><td>0.7</td><td>0.2</td></tr>
+          </table>
+
+          <pre><code>Approve = (0.9 &times; 0.64) + (-0.4 &times; 0.55) + 0.1
+        =    0.576    +   (-0.22)    + 0.1
+        = <strong>0.456</strong>
+
+Delay   = (0.3 &times; 0.64) + (0.3 &times; 0.55) + 0.0
+        =    0.192    +    0.165    + 0.0
+        = <strong>0.357</strong>
+
+Reject  = (-0.5 &times; 0.64) + (0.7 &times; 0.55) + 0.2
+        =   (-0.32)    +    0.385   + 0.2
+        = <strong>0.265</strong></code></pre>
+
+          <h3>2.4 &mdash; ผลลัพธ์</h3>
+          <table>
+            <tr><th>Output</th><th>Score</th><th>Decision</th></tr>
+            <tr><td>Approve</td><td><strong>0.456</strong></td><td>&larr; สูงสุด = ตัดสินใจนี้</td></tr>
+            <tr><td>Delay</td><td>0.357</td><td></td></tr>
+            <tr><td>Reject</td><td>0.265</td><td></td></tr>
+          </table>
+          <p>ROI สูง (0.8) + Alignment ดี (0.7) + Risk ต่ำ (0.3) &rarr; <strong>Approve</strong> &mdash; สมเหตุสมผล</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 3. ACTIVATION FUNCTIONS -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>3 &mdash; Activation Function &mdash; ประตูที่ทำให้ Network ฉลาดขึ้น</h2>
+
+          <p>ตัวอย่างข้างบนเป็นแค่การบวกคูณ (linear) &mdash; ไม่ว่าจะมีกี่ layer ก็ยุบรวมเป็นสูตร linear ได้เสมอ เหมือนกรรมการที่ทำได้แค่ <strong>ลากเส้นตรง</strong></p>
+
+          <p><strong>Activation function</strong> เพิ่ม "กฎ if-then" หลังการคำนวณ &rarr; network เรียนรู้ pattern ที่ซับซ้อนได้</p>
+
+          <h3>ReLU &mdash; วาล์วน้ำทางเดียว</h3>
+          <pre><code>ReLU(x) = x   ถ้า x &gt; 0
+           0   ถ้า x &le; 0
+
+เหมือนวาล์วน้ำ: น้ำไหลได้ทางเดียว (บวก)
+ค่าลบถูกปิดกั้นหมด &rarr; 0
+
+ตัวอย่าง:
+  ReLU(0.64)  = 0.64   (ผ่าน)
+  ReLU(-0.3)  = 0      (ปิดกั้น)</code></pre>
+
+          <h3>Sigmoid &mdash; เกจวัดความมั่นใจ</h3>
+          <pre><code>Sigmoid(x) = 1 / (1 + e^(-x))
+
+บีบทุกค่าให้อยู่ระหว่าง 0 ถึง 1
+เหมือนเกจวัดความมั่นใจ:
+  ค่าลบมาก &rarr; เข้าใกล้ 0 (ไม่มั่นใจ)
+  ค่าบวกมาก &rarr; เข้าใกล้ 1 (มั่นใจมาก)
+
+ตัวอย่าง:
+  Sigmoid(0.64) = 1/(1 + e^(-0.64)) = 0.655
+  Sigmoid(-2.0) = 1/(1 + e^(2.0))   = 0.119
+  Sigmoid(5.0)  = 1/(1 + e^(-5.0))  = 0.993</code></pre>
+
+          <p><strong>ถ้าใส่ ReLU ใน Board Room</strong>: H1=0.64 ผ่าน (เป็นบวก), H2=0.55 ผ่าน &mdash; ในกรณีนี้ผลเหมือนเดิมเพราะทั้งคู่เป็นบวก แต่ถ้า H1 ออกมาติดลบ ReLU จะตัดเป็น 0 &rarr; neuron ตัวนั้น "ปิด" &rarr; ข้อมูลไหลผ่านเฉพาะ path ที่มีค่า</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 4. WHY LAYERS MATTER -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>4 &mdash; ทำไมต้อง &ldquo;หลาย Layer&rdquo;</h2>
+
+          <table>
+            <tr><th>Layers</th><th>เรียนรู้อะไรได้</th><th>อุปมา</th></tr>
+            <tr><td><strong>1 layer</strong></td><td>เส้นตรง &mdash; pattern ง่ายๆ</td><td>ร่างภาพด้วยไม้บรรทัด</td></tr>
+            <tr><td><strong>2 layers</strong></td><td>เส้นโค้ง + การรวม pattern</td><td>ร่างภาพด้วยไม้โค้ง (French curve)</td></tr>
+            <tr><td><strong>หลาย layers (Deep)</strong></td><td>ใบหน้า, ภาษา, เสียง, ดนตรี</td><td>ภาพ HD จากกล้องโปร</td></tr>
+          </table>
+
+          <p>Board Room ของเรามี 1 hidden layer &mdash; เพียงพอสำหรับ "ถ้า ROI สูง + Risk ต่ำ &rarr; Approve" แต่ถ้าจะตัดสินใจซับซ้อนกว่านี้ (เช่น วิเคราะห์เอกสารโครงการ + ประวัติทีม + สภาพตลาด) ต้องเพิ่ม layers อีกหลายชั้น</p>
+
+          <pre><code>1 filter  = ภาพร่างคร่าวๆ
+3 filters = เห็นรูปร่าง
+10 filters = เห็นรายละเอียด
+100+ filters (Deep Learning) = เห็นทุกอย่าง</code></pre>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- 5. WEIGHT MATRIX -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>5 &mdash; Weight Matrix &mdash; เลขกณิตที่อยู่เบื้องหลัง</h2>
+
+          <p>Weights ทั้งหมดจาก Input &rarr; Hidden เขียนเป็น <strong>matrix</strong> (ตารางตัวเลข) ได้:</p>
+
+          <pre><code>    Input vector       Weight matrix W         Bias vector
+                     (2 rows &times; 3 cols)
+
+                    | w_ROI   w_Align  w_Risk |
+                    |  0.6      0.3     -0.5  |   H1 row
+                    |  0.2      0.5      0.8  |   H2 row
+
+    [ROI, Align, Risk] &times; W^T + [b1, b2] = [H1, H2]</code></pre>
+
+          <p><strong>คำนวณทีละขั้น (matrix multiplication):</strong></p>
+          <pre><code>Step 1: แถว H1 &times; input column
+
+  | 0.6  0.3  -0.5 |   | 0.8 |         | 0.54 |
+  | 0.2  0.5   0.8 | &times; | 0.7 |    =    | 0.75 |
+                        | 0.3 |
+
+  H1 = (0.6&times;0.8) + (0.3&times;0.7) + (-0.5&times;0.3) = 0.48 + 0.21 - 0.15 = 0.54
+  H2 = (0.2&times;0.8) + (0.5&times;0.7) + (0.8&times;0.3)  = 0.16 + 0.35 + 0.24 = 0.75
+
+Step 2: บวก bias
+
+  H1 = 0.54 + 0.1  = 0.64  &#10004;
+  H2 = 0.75 + (-0.2) = 0.55  &#10004;</code></pre>
+
+          <p>ตัวเลขตรงกับที่คำนวณด้วยมือในข้อ 2 &mdash; matrix multiplication ทำเหมือนกันแค่เขียนสั้นกว่า</p>
+
+          <p><strong>ข้อดีของ matrix form:</strong> คอมพิวเตอร์คำนวณ matrix multiplication เร็วมาก (GPU ทำได้พันล้าน operations ต่อวินาที) &mdash; นี่คือเหตุผลที่ Deep Learning ต้องใช้ GPU</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- KEY INSIGHT -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>Key Insight</h2>
+          <p><strong>"การเรียนรู้" ของ AI = ปรับตัวเลขใน weight matrix จนผลลัพธ์ถูกต้อง</strong></p>
+          <p>Board Room ANN มี (3&times;2) + (2&times;3) = 12 weights + 5 biases = <strong>17 parameters</strong></p>
+          <p>ChatGPT/Claude มี <strong>หลายร้อยพันล้าน parameters</strong> &mdash; แต่หลักการเดียวกัน: คูณ, บวก, ผ่าน activation, ส่งต่อ &mdash; ซ้ำหลาย layer จนได้คำตอบ</p>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: Chula AI Class (26 &nbsp;&#3614;.&#3588;. 2569) handout + Board Room ANN widget by nicenathapong</p>
+          <p>Deep dive from <a href="057-ai-models-chula-class.html">057 AI Models (Chula Class)</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
