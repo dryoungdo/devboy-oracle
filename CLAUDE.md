@@ -922,6 +922,14 @@ When code is committed and tests pass, the worktree runs the **entire** completi
 
 Use Codex as second-engine reviewer before any non-trivial code change ships, especially pre-merge, pre-PR, or pre-bug-fix-claim.
 
+### Convergence discipline
+
+Codex review iterates until clean, with a maximum of 4 passes. Two consecutive clean passes means converged and ready to ship. If pass 4 finishes without convergence, create a blocker issue, escalate to the parent, and do not ship the PR.
+
+Do not override `--max-runtime` in briefs unless there is a specific reason. Wrapper defaults (900s max runtime + 300s stagnation detection) are tuned to empirical review durations.
+
+PR bodies are generated from `~/.claude/.codex-review/runs.log` via `scripts/codex-pr-body.sh`, bounded to the current review window with `CODEX_REVIEW_SINCE`, giving reviewers an audit trail of findings, fixes, and verification passes.
+
 Full procedure: `ψ/reference/codex-claude-twin-engine.md`.
 
 ---
