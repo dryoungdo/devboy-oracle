@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Classification — Polynomial Degree Visualizer | DEVBOY Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600&family=IBM+Plex+Sans+Thai:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#fbf8f1;--bg-alt:#f5f0e6;--ink:#111827;--ink-mid:#4b5563;
+--accent:#27246f;--accent-light:#4338ca;--warm-red:#7d241f;
+--gold:#6f4a0b;--radius:10px;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+body{
+font-family:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
+background:var(--bg);color:var(--ink);
+display:flex;flex-direction:column;align-items:center;
+min-height:100vh;padding:1.5rem 1rem 3rem;
+}
+header{text-align:center;margin-bottom:1.5rem;max-width:640px}
+header h1{
+font-size:1.4rem;font-weight:600;color:var(--accent);
+margin-bottom:.25rem;line-height:1.3;
+}
+header .subtitle{font-size:.85rem;color:var(--ink-mid);font-weight:400}
+
+.canvas-wrap{
+position:relative;
+background:#fff;border-radius:var(--radius);
+box-shadow:var(--shadow);padding:12px;
+max-width:624px;width:100%;
+}
+canvas{
+display:block;width:100%;border-radius:6px;
+cursor:crosshair;background:#fff;
+}
+
+.controls{
+max-width:624px;width:100%;
+background:var(--bg-alt);border-radius:var(--radius);
+box-shadow:var(--shadow);padding:1.25rem 1.5rem;
+margin-top:1rem;
+}
+.control-row{
+display:flex;align-items:center;gap:1rem;
+flex-wrap:wrap;margin-bottom:.75rem;
+}
+.control-row:last-child{margin-bottom:0}
+.control-row label{
+font-size:.85rem;font-weight:600;color:var(--ink);
+white-space:nowrap;min-width:110px;
+}
+.slider-wrap{display:flex;align-items:center;gap:.6rem;flex:1;min-width:180px}
+input[type=range]{
+flex:1;accent-color:var(--accent-light);height:6px;cursor:pointer;
+}
+.degree-val{
+display:inline-flex;align-items:center;justify-content:center;
+width:28px;height:28px;border-radius:50%;
+background:var(--accent);color:#fff;
+font-size:.85rem;font-weight:600;
+}
+.btn{
+padding:.45rem 1rem;border:none;border-radius:6px;
+font-family:inherit;font-size:.8rem;font-weight:600;
+cursor:pointer;transition:background .15s,transform .1s;
+}
+.btn:active{transform:scale(.97)}
+.btn-accent{background:var(--accent-light);color:#fff}
+.btn-accent:hover{background:var(--accent)}
+.btn-red{background:var(--warm-red);color:#fff}
+.btn-red:hover{background:#5f1a16}
+.btn-outline{
+background:transparent;color:var(--accent);
+border:1.5px solid var(--accent);
+}
+.btn-outline:hover{background:var(--accent);color:#fff}
+
+.class-toggle{
+display:flex;align-items:center;gap:.5rem;
+font-size:.8rem;color:var(--ink-mid);
+}
+.class-swatch{
+width:14px;height:14px;border-radius:50%;display:inline-block;
+border:2px solid rgba(0,0,0,.15);
+}
+
+.stats{
+display:flex;gap:1.5rem;flex-wrap:wrap;
+margin-top:.5rem;padding-top:.75rem;
+border-top:1px solid rgba(0,0,0,.08);
+}
+.stat-item{font-size:.8rem;color:var(--ink-mid)}
+.stat-item strong{color:var(--ink);font-weight:600}
+
+.info{
+max-width:624px;width:100%;margin-top:1rem;
+font-size:.82rem;color:var(--ink-mid);line-height:1.6;
+}
+.degree-desc{
+background:var(--bg-alt);border-radius:var(--radius);
+padding:.75rem 1rem;margin-bottom:.5rem;
+border-left:3px solid var(--accent-light);
+}
+.overfit-warn{
+background:#fef3c7;border-radius:var(--radius);
+padding:.6rem 1rem;margin-top:.5rem;
+border-left:3px solid var(--gold);
+color:var(--gold);font-weight:600;font-size:.8rem;
+display:none;
+}
+
+.back-link{
+margin-top:1.5rem;font-size:.82rem;
+color:var(--accent-light);text-decoration:none;
+}
+.back-link:hover{text-decoration:underline}
+
+@media(max-width:480px){
+header h1{font-size:1.15rem}
+.controls{padding:1rem}
+.control-row{gap:.6rem}
+.control-row label{min-width:auto;width:100%}
+.stats{gap:.8rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Binary Classification — Polynomial Degree Visualizer</h1>
+<p class="subtitle">DEVBOY Lab — NEXUS AI Chula Class</p>
+</header>
+
+<div class="canvas-wrap">
+<canvas id="plotCanvas" width="600" height="400"></canvas>
+</div>
+
+<div class="controls">
+<div class="control-row">
+<label>Polynomial Degree</label>
+<div class="slider-wrap">
+<input type="range" id="degreeSlider" min="1" max="5" step="1" value="1">
+<span class="degree-val" id="degreeVal">1</span>
+</div>
+</div>
+<div class="control-row">
+<label>Add Point</label>
+<div class="class-toggle">
+<button class="btn btn-outline" id="classToggle">
+<span class="class-swatch" id="classSwatch" style="background:var(--accent-light)"></span>
+&nbsp;Class A
+</button>
+<span style="font-size:.75rem;color:var(--ink-mid)">Click canvas to place</span>
+</div>
+<button class="btn btn-red" id="resetBtn">Reset Data</button>
+</div>
+<div class="stats">
+<div class="stat-item">Training Accuracy: <strong id="accuracyVal">—</strong></div>
+<div class="stat-item">Parameters: <strong id="paramCount">—</strong></div>
+<div class="stat-item">Points: <strong id="pointCount">—</strong></div>
+</div>
+</div>
+
+<div class="info">
+<div class="degree-desc" id="degreeDesc"></div>
+<div class="overfit-warn" id="overfitWarn">
+⚠️ Overfitting risk — model memorizes noise instead of learning patterns
+</div>
+</div>
+
+<a class="back-link" href="../articles/058-binary-classification-overfitting.html">&larr; Back to Article 058</a>
+
+<script>
+(function(){
+const canvas = document.getElementById('plotCanvas');
+const ctx = canvas.getContext('2d');
+const degreeSlider = document.getElementById('degreeSlider');
+const degreeValEl = document.getElementById('degreeVal');
+const classToggle = document.getElementById('classToggle');
+const classSwatch = document.getElementById('classSwatch');
+const resetBtn = document.getElementById('resetBtn');
+const accuracyVal = document.getElementById('accuracyVal');
+const paramCountEl = document.getElementById('paramCount');
+const pointCountEl = document.getElementById('pointCount');
+const degreeDescEl = document.getElementById('degreeDesc');
+const overfitWarn = document.getElementById('overfitWarn');
+
+const W = 600, H = 400;
+let currentClass = 0;
+let points = [];
+let weights = [];
+
+const degreeNames = {
+1: {th:'เส้นตรง', en:'Linear'},
+2: {th:'พาราโบลา', en:'Quadratic'},
+3: {th:'เส้นโค้งลูกบาศก์', en:'Cubic'},
+4: {th:'ควอร์ติก', en:'Quartic'},
+5: {th:'ควินติก', en:'Quintic'}
+};
+
+function numFeatures(d){
+let c=0;
+for(let i=0;i<=d;i++) for(let j=0;j<=d-i;j++) c++;
+return c;
+}
+
+function generateDefaultPoints(){
+const classA = [
+{x:0.35,y:0.45,c:0},{x:0.50,y:0.55,c:0},{x:0.45,y:0.40,c:0},
+{x:0.55,y:0.48,c:0},{x:0.42,y:0.52,c:0},{x:0.50,y:0.42,c:0},
+{x:0.48,y:0.58,c:0},{x:0.52,y:0.50,c:0},{x:0.40,y:0.48,c:0},
+{x:0.58,y:0.45,c:0}
+];
+const classB = [
+{x:0.10,y:0.15,c:1},{x:0.85,y:0.80,c:1},{x:0.15,y:0.80,c:1},
+{x:0.80,y:0.15,c:1},{x:0.20,y:0.25,c:1},{x:0.78,y:0.72,c:1},
+{x:0.12,y:0.65,c:1},{x:0.88,y:0.30,c:1},{x:0.25,y:0.85,c:1},
+{x:0.75,y:0.10,c:1},{x:0.90,y:0.60,c:1},{x:0.08,y:0.40,c:1}
+];
+return [...classA,...classB];
+}
+
+function polyFeatures(x,y,d){
+const f=[];
+for(let i=0;i<=d;i++){
+for(let j=0;j<=d-i;j++){
+f.push(Math.pow(x,i)*Math.pow(y,j));
+}
+}
+return f;
+}
+
+function sigmoid(z){return 1/(1+Math.exp(-Math.max(-500,Math.min(500,z))))}
+
+function predict(features,w){
+let z=0;
+for(let i=0;i<features.length;i++) z+=features[i]*w[i];
+return sigmoid(z);
+}
+
+function trainLogistic(pts,degree,iterations,lr){
+const nf=numFeatures(degree);
+const w=new Float64Array(nf);
+const n=pts.length;
+if(n===0) return w;
+
+const X=pts.map(p=>polyFeatures(p.x,p.y,degree));
+const Y=pts.map(p=>p.c);
+
+for(let iter=0;iter<iterations;iter++){
+const grad=new Float64Array(nf);
+for(let i=0;i<n;i++){
+const pred=predict(X[i],w);
+const err=pred-Y[i];
+for(let j=0;j<nf;j++) grad[j]+=err*X[i][j];
+}
+for(let j=0;j<nf;j++){
+w[j]-=lr*(grad[j]/n + 0.001*w[j]);
+}
+}
+return w;
+}
+
+function computeAccuracy(pts,w,degree){
+if(pts.length===0) return 0;
+let correct=0;
+for(const p of pts){
+const f=polyFeatures(p.x,p.y,degree);
+const pred=predict(f,w)>=0.5?1:0;
+if(pred===p.c) correct++;
+}
+return correct/pts.length;
+}
+
+function render(){
+const degree=parseInt(degreeSlider.value);
+const nf=numFeatures(degree);
+
+weights=trainLogistic(points,degree,1500,1.0);
+
+const dpr=window.devicePixelRatio||1;
+const displayW=canvas.clientWidth||W;
+const displayH=canvas.clientHeight||H;
+canvas.width=W*dpr;
+canvas.height=H*dpr;
+canvas.style.width=displayW+'px';
+canvas.style.height=displayH+'px';
+ctx.setTransform(dpr,0,0,dpr,0,0);
+
+const gridStep=4;
+const imgData=ctx.createImageData(Math.ceil(W/gridStep),Math.ceil(H/gridStep));
+
+for(let gy=0;gy<imgData.height;gy++){
+for(let gx=0;gx<imgData.width;gx++){
+const nx=(gx*gridStep)/W;
+const ny=(gy*gridStep)/H;
+const f=polyFeatures(nx,ny,degree);
+const prob=predict(f,weights);
+const idx=(gy*imgData.width+gx)*4;
+if(prob<0.5){
+imgData.data[idx]=67;imgData.data[idx+1]=56;imgData.data[idx+2]=202;
+imgData.data[idx+3]=Math.round((0.5-prob)*2*45)+15;
+} else {
+imgData.data[idx]=125;imgData.data[idx+1]=36;imgData.data[idx+2]=31;
+imgData.data[idx+3]=Math.round((prob-0.5)*2*45)+15;
+}
+}
+}
+
+const tmpCanvas=document.createElement('canvas');
+tmpCanvas.width=imgData.width;tmpCanvas.height=imgData.height;
+tmpCanvas.getContext('2d').putImageData(imgData,0,0);
+ctx.imageSmoothingEnabled=true;
+ctx.drawImage(tmpCanvas,0,0,W,H);
+
+drawBoundary(degree);
+drawAxes();
+drawPoints();
+updateInfo(degree,nf);
+}
+
+function drawBoundary(degree){
+ctx.strokeStyle='rgba(17,24,39,0.35)';
+ctx.lineWidth=1.5;
+ctx.setLineDash([5,4]);
+
+const step=3;
+const grid=[];
+for(let y=0;y<H;y+=step){
+const row=[];
+for(let x=0;x<W;x+=step){
+const f=polyFeatures(x/W,y/H,degree);
+row.push(predict(f,weights)-0.5);
+}
+grid.push(row);
+}
+
+for(let gy=0;gy<grid.length-1;gy++){
+for(let gx=0;gx<grid[0].length-1;gx++){
+const v00=grid[gy][gx],v10=grid[gy][gx+1];
+const v01=grid[gy+1][gx],v11=grid[gy+1][gx+1];
+const x0=gx*step,y0=gy*step;
+
+const edges=[];
+if(v00*v10<0) edges.push([x0+step*(-v00)/(v10-v00),y0]);
+if(v10*v11<0) edges.push([x0+step,y0+step*(-v10)/(v11-v10)]);
+if(v01*v11<0) edges.push([x0+step*(-v01)/(v11-v01),y0+step]);
+if(v00*v01<0) edges.push([x0,y0+step*(-v00)/(v01-v00)]);
+
+if(edges.length>=2){
+ctx.beginPath();
+ctx.moveTo(edges[0][0],edges[0][1]);
+ctx.lineTo(edges[1][0],edges[1][1]);
+ctx.stroke();
+}
+}
+}
+ctx.setLineDash([]);
+}
+
+function drawAxes(){
+ctx.strokeStyle='rgba(0,0,0,0.08)';
+ctx.lineWidth=1;
+for(let i=1;i<10;i++){
+const x=W*i/10, y=H*i/10;
+ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+}
+ctx.strokeStyle='rgba(0,0,0,0.15)';
+ctx.lineWidth=1;
+ctx.strokeRect(0,0,W,H);
+
+ctx.fillStyle='var(--ink-mid)';
+ctx.font='11px IBM Plex Sans Thai, system-ui';
+ctx.textAlign='center';
+for(let i=0;i<=10;i+=2){
+ctx.fillText((i/10).toFixed(1), W*i/10, H-4);
+}
+ctx.textAlign='right';
+for(let i=0;i<=10;i+=2){
+ctx.fillText((1-i/10).toFixed(1), 28, H*i/10+4);
+}
+}
+
+function drawPoints(){
+for(const p of points){
+const px=p.x*W, py=p.y*H;
+ctx.beginPath();
+ctx.arc(px,py,6,0,Math.PI*2);
+ctx.fillStyle=p.c===0?'#4338ca':'#7d241f';
+ctx.fill();
+ctx.strokeStyle='#fff';
+ctx.lineWidth=2;
+ctx.stroke();
+}
+}
+
+function updateInfo(degree,nf){
+degreeValEl.textContent=degree;
+
+const info=degreeNames[degree];
+degreeDescEl.innerHTML=
+'<strong>Degree '+degree+': '+info.th+' ('+info.en+')</strong> — '+
+nf+' parameters'+
+(degree===1?' | boundary = เส้นตรงแบ่ง 2 ฝั่ง':
+degree===2?' | boundary = เส้นโค้ง conic section':
+degree===3?' | boundary สามารถโค้งงอได้มากขึ้น':
+degree===4?' | boundary ซับซ้อนสูง — เริ่มเสี่ยง overfit':
+' | boundary ซับซ้อนมาก — overfitting เกือบแน่นอน');
+
+overfitWarn.style.display=degree>=4?'block':'none';
+
+const acc=computeAccuracy(points,weights,degree);
+accuracyVal.textContent=(acc*100).toFixed(1)+'%';
+paramCountEl.textContent=nf;
+pointCountEl.textContent=points.length;
+}
+
+function handleCanvasClick(e){
+const rect=canvas.getBoundingClientRect();
+const scaleX=W/rect.width;
+const scaleY=H/rect.height;
+const cx=(e.clientX-rect.left)*scaleX;
+const cy=(e.clientY-rect.top)*scaleY;
+const nx=cx/W, ny=cy/H;
+if(nx<0||nx>1||ny<0||ny>1) return;
+points.push({x:nx,y:ny,c:currentClass});
+render();
+}
+
+canvas.addEventListener('click',handleCanvasClick);
+
+classToggle.addEventListener('click',function(){
+currentClass=currentClass===0?1:0;
+classSwatch.style.background=currentClass===0?'var(--accent-light)':'var(--warm-red)';
+classToggle.innerHTML='';
+const sw=document.createElement('span');
+sw.className='class-swatch';
+sw.id='classSwatch';
+sw.style.background=currentClass===0?'var(--accent-light)':'var(--warm-red)';
+classToggle.appendChild(sw);
+classToggle.appendChild(document.createTextNode(
+' '+(currentClass===0?'Class A':'Class B')
+));
+});
+
+resetBtn.addEventListener('click',function(){
+points=generateDefaultPoints();
+render();
+});
+
+degreeSlider.addEventListener('input',function(){
+render();
+});
+
+let resizeTimer;
+window.addEventListener('resize',function(){
+clearTimeout(resizeTimer);
+resizeTimer=setTimeout(function(){
+const wrap=canvas.parentElement;
+const maxW=Math.min(600,wrap.clientWidth-24);
+const ratio=H/W;
+canvas.style.width=maxW+'px';
+canvas.style.height=Math.round(maxW*ratio)+'px';
+},100);
+});
+
+points=generateDefaultPoints();
+(function initSize(){
+const wrap=canvas.parentElement;
+const maxW=Math.min(600,wrap.clientWidth-24);
+const ratio=H/W;
+canvas.style.width=maxW+'px';
+canvas.style.height=Math.round(maxW*ratio)+'px';
+})();
+render();
+})();
+</script>
+</body>
+</html>

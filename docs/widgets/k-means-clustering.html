@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="K-Means Clustering Interactive Step-by-Step Lab — DEVBOY Lab, NEXUS AI Chula Class">
+  <title>K-Means Clustering — Step-by-Step Lab | DEVBOY Lab</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600&family=IBM+Plex+Sans+Thai:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf8f1; --bg-alt: #f5f0e6; --ink: #111827; --ink-mid: #4b5563;
+      --accent: #27246f; --accent-light: #4338ca; --warm-red: #7d241f;
+      --gold: #6f4a0b; --radius: 10px; --shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 17px; scroll-behavior: smooth; }
+    body {
+      font-family: 'IBM Plex Sans Thai', 'Noto Sans Thai', system-ui, sans-serif;
+      color: var(--ink); background: var(--bg); line-height: 1.7;
+      -webkit-font-smoothing: antialiased; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 2rem 1rem;
+    }
+    .widget-shell {
+      max-width: 780px; width: 100%;
+    }
+    .back-link {
+      display: inline-block; margin-bottom: 1rem; color: var(--accent-light);
+      text-decoration: none; font-size: 0.9rem; font-weight: 600;
+    }
+    .back-link:hover { text-decoration: underline; }
+    .title-bar {
+      text-align: center; margin-bottom: 1.5rem;
+    }
+    .title-bar h1 {
+      font-size: 1.5rem; font-weight: 600; color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+    .title-bar .subtitle {
+      font-size: 0.85rem; color: var(--ink-mid); font-weight: 400;
+    }
+    .canvas-wrap {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      border: 1px solid #e5e0d5; padding: 12px; margin-bottom: 0.5rem;
+      position: relative;
+    }
+    canvas {
+      display: block; width: 100%; border-radius: 6px;
+      cursor: crosshair; background: #fefcf8;
+    }
+    .canvas-label {
+      text-align: center; font-size: 0.82rem; color: var(--ink-mid);
+      padding: 0.4rem 0 0; min-height: 1.4em;
+    }
+    .card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      border: 1px solid #e5e0d5; padding: 1rem 1.2rem; margin-bottom: 0.75rem;
+    }
+    .controls-row {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    }
+    .slider-group {
+      display: flex; align-items: center; gap: 0.5rem; margin-right: 0.5rem;
+    }
+    .slider-group label { font-size: 0.85rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
+    .slider-group input[type=range] {
+      width: 90px; accent-color: var(--accent-light);
+    }
+    .slider-group .k-val {
+      font-size: 1rem; font-weight: 600; color: var(--accent);
+      min-width: 1.2em; text-align: center;
+    }
+    .btn {
+      border: none; border-radius: 6px; padding: 0.45rem 0.9rem;
+      font-family: inherit; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; transition: background .15s, transform .1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-light); }
+    .btn-step { background: var(--warm-red); color: #fff; }
+    .btn-step:hover { background: #a33c32; }
+    .btn-run { background: var(--gold); color: #fff; }
+    .btn-run:hover { background: #8b5e10; }
+    .btn-outline {
+      background: transparent; color: var(--ink-mid);
+      border: 1.5px solid #d1cdc4;
+    }
+    .btn-outline:hover { background: var(--bg-alt); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .info-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.6rem;
+    }
+    .info-item {
+      background: var(--bg-alt); border-radius: 6px; padding: 0.55rem 0.75rem;
+      text-align: center;
+    }
+    .info-item .info-label {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--ink-mid); font-weight: 600; margin-bottom: 0.15rem;
+    }
+    .info-item .info-value {
+      font-size: 1rem; font-weight: 600; color: var(--accent);
+    }
+    .status-bar {
+      text-align: center; font-size: 0.85rem; color: var(--ink-mid);
+      padding: 0.3rem 0;
+    }
+    .status-bar.converged { color: var(--warm-red); font-weight: 600; }
+    .tip {
+      text-align: center; font-size: 0.8rem; color: var(--ink-mid);
+      margin-top: 0.25rem; font-style: italic;
+    }
+    .mode-badge {
+      display: inline-block; font-size: 0.7rem; font-weight: 600;
+      padding: 0.15rem 0.5rem; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .mode-badge.add-mode {
+      background: #d1fae5; color: #065f46;
+    }
+    @media (max-width: 600px) {
+      body { padding: 1rem 0.5rem; }
+      .title-bar h1 { font-size: 1.2rem; }
+      .controls-row { gap: 0.4rem; }
+      .btn { padding: 0.4rem 0.65rem; font-size: 0.78rem; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-shell">
+    <a class="back-link" href="../articles/060-k-means-clustering-deep-dive.html">&larr; Back to Article 060</a>
+    <div class="title-bar">
+      <h1>K-Means Clustering &mdash; Step-by-Step Lab</h1>
+      <div class="subtitle">DEVBOY Lab &mdash; NEXUS AI Chula Class</div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="plot" width="600" height="400"></canvas>
+      <div class="canvas-label" id="canvasLabel">K = 3 &rarr; Looking for 3 natural groups in the data</div>
+    </div>
+
+    <div class="card">
+      <div class="controls-row">
+        <div class="slider-group">
+          <label for="kSlider">K</label>
+          <input type="range" id="kSlider" min="2" max="5" value="3">
+          <span class="k-val" id="kVal">3</span>
+        </div>
+        <button class="btn btn-primary" id="btnInit">Initialize</button>
+        <button class="btn btn-step" id="btnStep" disabled>Step</button>
+        <button class="btn btn-run" id="btnRun" disabled>Run to Convergence</button>
+        <button class="btn btn-outline" id="btnReset">Reset</button>
+        <button class="btn btn-outline" id="btnAdd">Add Points</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Phase</div>
+          <div class="info-value" id="infoPhase">&mdash;</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Step</div>
+          <div class="info-value" id="infoStep">0</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Iterations</div>
+          <div class="info-value" id="infoIter">0</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">SSE</div>
+          <div class="info-value" id="infoSSE">&mdash;</div>
+        </div>
+      </div>
+      <div class="status-bar" id="statusBar">Ready &mdash; press Initialize to begin</div>
+    </div>
+
+    <div class="tip" id="tipText"></div>
+  </div>
+
+  <script>
+    (function () {
+      var COLORS = ['#4338ca', '#7d241f', '#6f4a0b', '#059669', '#9333ea'];
+      var GRAY = '#b0b0b0';
+      var CENTROID_SIZE = 10;
+      var POINT_RADIUS = 5;
+      var CONVERGENCE_THRESHOLD = 0.001;
+      var ANIMATION_DELAY = 200;
+      var PADDING = 40;
+
+      var canvas = document.getElementById('plot');
+      var ctx = canvas.getContext('2d');
+      var kSlider = document.getElementById('kSlider');
+      var kVal = document.getElementById('kVal');
+      var btnInit = document.getElementById('btnInit');
+      var btnStep = document.getElementById('btnStep');
+      var btnRun = document.getElementById('btnRun');
+      var btnReset = document.getElementById('btnReset');
+      var btnAdd = document.getElementById('btnAdd');
+      var canvasLabel = document.getElementById('canvasLabel');
+      var infoPhase = document.getElementById('infoPhase');
+      var infoStep = document.getElementById('infoStep');
+      var infoIter = document.getElementById('infoIter');
+      var infoSSE = document.getElementById('infoSSE');
+      var statusBar = document.getElementById('statusBar');
+      var tipText = document.getElementById('tipText');
+
+      var points = [];
+      var centroids = [];
+      var assignments = [];
+      var K = 3;
+      var phase = 'idle';
+      var stepCount = 0;
+      var iterCount = 0;
+      var addMode = false;
+      var running = false;
+      var dpr = window.devicePixelRatio || 1;
+
+      var dataMinX = 0, dataMaxX = 100, dataMinY = 0, dataMaxY = 100;
+
+      function generatePoints() {
+        var pts = [];
+        var clusters = [
+          { cx: 25, cy: 30, spread: 8 },
+          { cx: 70, cy: 65, spread: 10 },
+          { cx: 30, cy: 75, spread: 7 }
+        ];
+        for (var c = 0; c < clusters.length; c++) {
+          var n = c === 1 ? 12 : 10;
+          for (var i = 0; i < n; i++) {
+            pts.push({
+              x: clusters[c].cx + (Math.random() - 0.5) * clusters[c].spread * 2,
+              y: clusters[c].cy + (Math.random() - 0.5) * clusters[c].spread * 2
+            });
+          }
+        }
+        return pts;
+      }
+
+      function resizeCanvas() {
+        var rect = canvas.parentElement.getBoundingClientRect();
+        var w = rect.width - 24;
+        var h = Math.round(w * (400 / 600));
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        draw();
+      }
+
+      function toCanvasX(dataX) {
+        var w = canvas.width / dpr;
+        return PADDING + (dataX - dataMinX) / (dataMaxX - dataMinX) * (w - PADDING * 2);
+      }
+
+      function toCanvasY(dataY) {
+        var h = canvas.height / dpr;
+        return (h - PADDING) - (dataY - dataMinY) / (dataMaxY - dataMinY) * (h - PADDING * 2);
+      }
+
+      function toDataX(cx) {
+        var w = canvas.width / dpr;
+        return dataMinX + (cx - PADDING) / (w - PADDING * 2) * (dataMaxX - dataMinX);
+      }
+
+      function toDataY(cy) {
+        var h = canvas.height / dpr;
+        return dataMinY + ((h - PADDING) - cy) / (h - PADDING * 2) * (dataMaxY - dataMinY);
+      }
+
+      function drawAxes() {
+        var w = canvas.width / dpr;
+        var h = canvas.height / dpr;
+        ctx.strokeStyle = '#d1cdc4';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(PADDING, PADDING / 2);
+        ctx.lineTo(PADDING, h - PADDING);
+        ctx.lineTo(w - PADDING / 2, h - PADDING);
+        ctx.stroke();
+
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '10px system-ui';
+        ctx.textAlign = 'center';
+        for (var v = 0; v <= 100; v += 20) {
+          var px = toCanvasX(v);
+          var py = toCanvasY(v);
+          ctx.fillText(v, px, h - PADDING + 14);
+          ctx.textAlign = 'right';
+          ctx.fillText(v, PADDING - 6, py + 3);
+          ctx.textAlign = 'center';
+          ctx.strokeStyle = '#eee';
+          ctx.beginPath();
+          ctx.moveTo(px, PADDING / 2);
+          ctx.lineTo(px, h - PADDING);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(PADDING, py);
+          ctx.lineTo(w - PADDING / 2, py);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = '#d1cdc4';
+      }
+
+      function drawLines() {
+        if (assignments.length === 0) return;
+        for (var i = 0; i < points.length; i++) {
+          var ci = assignments[i];
+          if (ci < 0 || ci >= centroids.length) continue;
+          var c = centroids[ci];
+          ctx.strokeStyle = COLORS[ci % COLORS.length] + '30';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(toCanvasX(points[i].x), toCanvasY(points[i].y));
+          ctx.lineTo(toCanvasX(c.x), toCanvasY(c.y));
+          ctx.stroke();
+        }
+      }
+
+      function drawPoints() {
+        for (var i = 0; i < points.length; i++) {
+          var color = GRAY;
+          if (assignments.length > 0 && assignments[i] >= 0) {
+            color = COLORS[assignments[i] % COLORS.length];
+          }
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(toCanvasX(points[i].x), toCanvasY(points[i].y), POINT_RADIUS, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      }
+
+      function drawCentroids() {
+        for (var i = 0; i < centroids.length; i++) {
+          var cx = toCanvasX(centroids[i].x);
+          var cy = toCanvasY(centroids[i].y);
+          var s = CENTROID_SIZE;
+          ctx.fillStyle = COLORS[i % COLORS.length];
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - s);
+          ctx.lineTo(cx + s * 0.6, cy - s * 0.3);
+          ctx.lineTo(cx + s, cy + s * 0.1);
+          ctx.lineTo(cx + s * 0.45, cy + s * 0.55);
+          ctx.lineTo(cx + s * 0.6, cy + s);
+          ctx.lineTo(cx, cy + s * 0.7);
+          ctx.lineTo(cx - s * 0.6, cy + s);
+          ctx.lineTo(cx - s * 0.45, cy + s * 0.55);
+          ctx.lineTo(cx - s, cy + s * 0.1);
+          ctx.lineTo(cx - s * 0.6, cy - s * 0.3);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+      function draw() {
+        var w = canvas.width / dpr;
+        var h = canvas.height / dpr;
+        ctx.clearRect(0, 0, w, h);
+        drawAxes();
+        drawLines();
+        drawPoints();
+        drawCentroids();
+      }
+
+      function computeSSE() {
+        if (assignments.length === 0 || centroids.length === 0) return null;
+        var sse = 0;
+        for (var i = 0; i < points.length; i++) {
+          var ci = assignments[i];
+          if (ci < 0 || ci >= centroids.length) continue;
+          var dx = points[i].x - centroids[ci].x;
+          var dy = points[i].y - centroids[ci].y;
+          sse += dx * dx + dy * dy;
+        }
+        return sse;
+      }
+
+      function updateInfo() {
+        var phaseText = '—';
+        if (phase === 'initialized') phaseText = 'Initialized';
+        else if (phase === 'assign') phaseText = 'Assign';
+        else if (phase === 'update') phaseText = 'Update';
+        else if (phase === 'converged') phaseText = 'Converged!';
+        infoPhase.textContent = phaseText;
+        infoStep.textContent = stepCount;
+        infoIter.textContent = iterCount;
+        var sse = computeSSE();
+        infoSSE.textContent = sse !== null ? sse.toFixed(2) : '—';
+
+        if (phase === 'converged') {
+          statusBar.textContent = '✓ Converged in ' + iterCount + ' iterations — SSE = ' + (sse !== null ? sse.toFixed(2) : '?');
+          statusBar.className = 'status-bar converged';
+          tipText.textContent = '💡 Try Initialize multiple times — different starting positions give different results!';
+        } else if (phase === 'initialized') {
+          statusBar.textContent = 'Centroids placed randomly — press Step or Run';
+          statusBar.className = 'status-bar';
+          tipText.textContent = '';
+        } else if (phase === 'assign') {
+          statusBar.textContent = 'Assigning each point to nearest centroid...';
+          statusBar.className = 'status-bar';
+          tipText.textContent = '';
+        } else if (phase === 'update') {
+          statusBar.textContent = 'Updating centroids to cluster means...';
+          statusBar.className = 'status-bar';
+          tipText.textContent = '';
+        } else {
+          statusBar.textContent = 'Ready — press Initialize to begin';
+          statusBar.className = 'status-bar';
+          tipText.textContent = '';
+        }
+
+        canvasLabel.textContent = 'K = ' + K + ' → Looking for ' + K + ' natural groups in the data';
+        if (phase === 'converged') {
+          canvasLabel.textContent = '✓ Converged in ' + iterCount + ' iterations — SSE = ' + (sse !== null ? sse.toFixed(2) : '?');
+        }
+      }
+
+      function dist(a, b) {
+        var dx = a.x - b.x;
+        var dy = a.y - b.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      function assignStep() {
+        assignments = [];
+        for (var i = 0; i < points.length; i++) {
+          var minD = Infinity;
+          var minC = 0;
+          for (var c = 0; c < centroids.length; c++) {
+            var d = dist(points[i], centroids[c]);
+            if (d < minD) { minD = d; minC = c; }
+          }
+          assignments.push(minC);
+        }
+      }
+
+      function updateStep() {
+        var moved = false;
+        for (var c = 0; c < centroids.length; c++) {
+          var sumX = 0, sumY = 0, count = 0;
+          for (var i = 0; i < points.length; i++) {
+            if (assignments[i] === c) {
+              sumX += points[i].x;
+              sumY += points[i].y;
+              count++;
+            }
+          }
+          if (count > 0) {
+            var newX = sumX / count;
+            var newY = sumY / count;
+            if (dist(centroids[c], { x: newX, y: newY }) > CONVERGENCE_THRESHOLD) {
+              moved = true;
+            }
+            centroids[c] = { x: newX, y: newY };
+          }
+        }
+        return moved;
+      }
+
+      function doStep() {
+        if (phase === 'converged') return false;
+
+        if (phase === 'initialized' || phase === 'update') {
+          assignStep();
+          phase = 'assign';
+          stepCount++;
+          draw();
+          updateInfo();
+          return true;
+        }
+
+        if (phase === 'assign') {
+          var moved = updateStep();
+          phase = 'update';
+          stepCount++;
+          iterCount++;
+          draw();
+          updateInfo();
+          if (!moved) {
+            phase = 'converged';
+            btnStep.disabled = true;
+            btnRun.disabled = true;
+            draw();
+            updateInfo();
+            return false;
+          }
+          return true;
+        }
+
+        return false;
+      }
+
+      function initialize() {
+        running = false;
+        K = parseInt(kSlider.value);
+        centroids = [];
+        assignments = [];
+        stepCount = 0;
+        iterCount = 0;
+        phase = 'initialized';
+
+        var minPX = Infinity, maxPX = -Infinity, minPY = Infinity, maxPY = -Infinity;
+        for (var i = 0; i < points.length; i++) {
+          if (points[i].x < minPX) minPX = points[i].x;
+          if (points[i].x > maxPX) maxPX = points[i].x;
+          if (points[i].y < minPY) minPY = points[i].y;
+          if (points[i].y > maxPY) maxPY = points[i].y;
+        }
+
+        for (var c = 0; c < K; c++) {
+          centroids.push({
+            x: minPX + Math.random() * (maxPX - minPX),
+            y: minPY + Math.random() * (maxPY - minPY)
+          });
+        }
+
+        btnStep.disabled = false;
+        btnRun.disabled = false;
+        draw();
+        updateInfo();
+      }
+
+      function reset() {
+        running = false;
+        centroids = [];
+        assignments = [];
+        stepCount = 0;
+        iterCount = 0;
+        phase = 'idle';
+        btnStep.disabled = true;
+        btnRun.disabled = true;
+        draw();
+        updateInfo();
+      }
+
+      function runToConvergence() {
+        if (phase === 'converged' || running) return;
+        running = true;
+        btnStep.disabled = true;
+        btnInit.disabled = true;
+        btnRun.disabled = true;
+
+        function tick() {
+          if (!running) {
+            btnInit.disabled = false;
+            return;
+          }
+          var cont = doStep();
+          if (cont && phase !== 'converged') {
+            setTimeout(tick, ANIMATION_DELAY);
+          } else {
+            running = false;
+            btnInit.disabled = false;
+            if (phase !== 'converged') {
+              btnStep.disabled = false;
+              btnRun.disabled = false;
+            }
+          }
+        }
+        tick();
+      }
+
+      function toggleAddMode() {
+        addMode = !addMode;
+        if (addMode) {
+          btnAdd.textContent = 'Done Adding';
+          btnAdd.classList.remove('btn-outline');
+          btnAdd.classList.add('btn-primary');
+        } else {
+          btnAdd.textContent = 'Add Points';
+          btnAdd.classList.remove('btn-primary');
+          btnAdd.classList.add('btn-outline');
+        }
+      }
+
+      canvas.addEventListener('click', function (e) {
+        if (!addMode) return;
+        var rect = canvas.getBoundingClientRect();
+        var mx = e.clientX - rect.left;
+        var my = e.clientY - rect.top;
+        var dx = toDataX(mx);
+        var dy = toDataY(my);
+        if (dx >= dataMinX && dx <= dataMaxX && dy >= dataMinY && dy <= dataMaxY) {
+          points.push({ x: dx, y: dy });
+          if (assignments.length > 0) {
+            assignments.push(-1);
+          }
+          draw();
+        }
+      });
+
+      kSlider.addEventListener('input', function () {
+        K = parseInt(kSlider.value);
+        kVal.textContent = K;
+        canvasLabel.textContent = 'K = ' + K + ' → Looking for ' + K + ' natural groups in the data';
+      });
+
+      btnInit.addEventListener('click', initialize);
+      btnStep.addEventListener('click', function () { doStep(); });
+      btnRun.addEventListener('click', runToConvergence);
+      btnReset.addEventListener('click', reset);
+      btnAdd.addEventListener('click', toggleAddMode);
+
+      points = generatePoints();
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      updateInfo();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Board Room ANN — Neural Network Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600&family=IBM+Plex+Sans+Thai:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#fbf8f1;--bg-alt:#f5f0e6;--ink:#111827;--ink-mid:#4b5563;
+--accent:#27246f;--accent-light:#4338ca;--warm-red:#7d241f;
+--gold:#6f4a0b;--radius:10px;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+body{
+font-family:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
+background:var(--bg);color:var(--ink);line-height:1.6;
+padding:1rem;max-width:900px;margin:0 auto;
+}
+h1{font-size:1.5rem;font-weight:600;color:var(--accent);text-align:center;margin-bottom:.25rem}
+.subtitle{text-align:center;color:var(--ink-mid);font-size:.875rem;margin-bottom:1.25rem}
+.back-link{display:inline-block;margin-bottom:1rem;color:var(--accent-light);text-decoration:none;font-size:.875rem}
+.back-link:hover{text-decoration:underline}
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.25rem;margin-bottom:1rem}
+.network-wrap{display:flex;justify-content:center;overflow-x:auto}
+.network-wrap svg{max-width:100%;height:auto}
+.tabs{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.tab{
+flex:1;min-width:100px;padding:.5rem 1rem;border:2px solid var(--accent);
+border-radius:var(--radius);background:var(--bg);color:var(--accent);
+font-weight:600;cursor:pointer;text-align:center;font-size:.875rem;
+font-family:inherit;transition:all .15s;
+}
+.tab.active{background:var(--accent);color:#fff}
+.tab:hover:not(.active){background:var(--bg-alt)}
+.slider-group{margin-bottom:.75rem}
+.slider-group label{display:block;font-weight:600;font-size:.875rem;margin-bottom:.25rem;color:var(--ink)}
+.slider-row{display:flex;align-items:center;gap:.75rem}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent)}
+.slider-val{min-width:3rem;text-align:right;font-weight:600;font-size:.875rem;color:var(--accent)}
+.decision{
+text-align:center;padding:.75rem;border-radius:var(--radius);
+font-size:1.125rem;font-weight:600;margin:.75rem 0;
+}
+.decision.approve{background:#d1fae5;color:#065f46}
+.decision.delay{background:#fef3c7;color:#92400e}
+.decision.reject{background:#fee2e2;color:#991b1b}
+.calc-block{
+background:var(--bg-alt);border-radius:var(--radius);padding:1rem;
+font-family:'IBM Plex Mono',monospace;font-size:.78rem;line-height:1.8;
+overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:var(--ink);
+}
+.edu-panel{font-size:.875rem;color:var(--ink-mid);line-height:1.7}
+.edu-panel strong{color:var(--ink)}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+.btn{
+padding:.5rem 1rem;border:2px solid var(--accent);border-radius:var(--radius);
+background:var(--bg);color:var(--accent);font-weight:600;cursor:pointer;
+font-family:inherit;font-size:.8rem;transition:all .15s;
+}
+.btn:hover{background:var(--accent);color:#fff}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-light)}
+.loss-display{font-size:.875rem;color:var(--ink-mid);margin-bottom:.5rem}
+.loss-display span{font-weight:600;color:var(--accent)}
+.train-log{
+max-height:120px;overflow-y:auto;background:var(--bg-alt);border-radius:var(--radius);
+padding:.75rem;font-size:.75rem;color:var(--ink-mid);line-height:1.6;
+}
+.train-examples{font-size:.8rem;margin-bottom:.75rem}
+.train-examples table{width:100%;border-collapse:collapse}
+.train-examples th,.train-examples td{
+padding:.3rem .5rem;text-align:center;border-bottom:1px solid var(--bg-alt);font-size:.78rem;
+}
+.train-examples th{color:var(--ink-mid);font-weight:600}
+.test-prompt{
+background:var(--bg-alt);border-radius:var(--radius);padding:.75rem;
+font-size:.875rem;color:var(--ink-mid);margin-top:.75rem;
+}
+.output-bars{display:flex;gap:.5rem;justify-content:center;margin:.75rem 0;flex-wrap:wrap}
+.output-bar{text-align:center;min-width:90px}
+.output-bar .bar-fill{
+height:8px;border-radius:4px;background:var(--accent);margin-top:.25rem;
+transition:width .2s;
+}
+.output-bar .bar-label{font-size:.75rem;color:var(--ink-mid)}
+.output-bar .bar-pct{font-size:.875rem;font-weight:600;color:var(--accent)}
+.epoch-counter{font-size:.8rem;color:var(--ink-mid)}
+@media(max-width:600px){
+body{padding:.5rem}
+h1{font-size:1.25rem}
+.card{padding:.75rem}
+.tabs{gap:.25rem}
+.tab{padding:.4rem .5rem;font-size:.78rem;min-width:80px}
+.btn{padding:.4rem .75rem;font-size:.75rem}
+}
+</style>
+</head>
+<body>
+
+<a class="back-link" href="../articles/062-ann-deep-dive-board-room.html">&larr; Back to Article 062</a>
+<h1>Board Room ANN &mdash; Neural Network Simulator</h1>
+<p class="subtitle">DEVBOY Lab &mdash; NEXUS AI Chula Class</p>
+
+<div class="card">
+<div class="network-wrap">
+<svg id="nn-svg" viewBox="0 0 700 360" width="700" height="360"></svg>
+</div>
+</div>
+
+<div class="card" id="output-section">
+<div class="output-bars" id="output-bars"></div>
+<div class="decision" id="decision-box"></div>
+</div>
+
+<div class="card">
+<div class="tabs">
+<button class="tab active" data-mode="manual" onclick="setMode('manual')">Manual</button>
+<button class="tab" data-mode="train" onclick="setMode('train')">Train</button>
+<button class="tab" data-mode="test" onclick="setMode('test')">Test</button>
+</div>
+
+<div id="panel-manual">
+<div class="slider-group">
+<label>ROI</label>
+<div class="slider-row">
+<input type="range" min="0" max="1" step="0.05" value="0.5" id="sl-roi" oninput="onSlider()">
+<span class="slider-val" id="val-roi">0.50</span>
+</div>
+</div>
+<div class="slider-group">
+<label>Alignment</label>
+<div class="slider-row">
+<input type="range" min="0" max="1" step="0.05" value="0.5" id="sl-align" oninput="onSlider()">
+<span class="slider-val" id="val-align">0.50</span>
+</div>
+</div>
+<div class="slider-group">
+<label>Risk</label>
+<div class="slider-row">
+<input type="range" min="0" max="1" step="0.05" value="0.5" id="sl-risk" oninput="onSlider()">
+<span class="slider-val" id="val-risk">0.50</span>
+</div>
+</div>
+</div>
+
+<div id="panel-train" style="display:none">
+<div class="train-examples">
+<table>
+<thead><tr><th>ROI</th><th>Align</th><th>Risk</th><th>Target</th></tr></thead>
+<tbody id="train-table-body"></tbody>
+</table>
+</div>
+<div class="btn-row">
+<button class="btn primary" onclick="trainStep(1)">Train 1 Epoch</button>
+<button class="btn primary" onclick="trainStep(10)">Train 10 Epochs</button>
+<button class="btn" onclick="resetWeights()">Reset Weights</button>
+</div>
+<div class="loss-display">Loss: <span id="loss-val">—</span> &nbsp; <span class="epoch-counter">Epoch: <span id="epoch-val">0</span></span></div>
+<div class="train-log" id="train-log"></div>
+</div>
+
+<div id="panel-test" style="display:none">
+<div class="slider-group">
+<label>ROI</label>
+<div class="slider-row">
+<input type="range" min="0" max="1" step="0.05" value="0.7" id="sl-roi-t" oninput="onSlider()">
+<span class="slider-val" id="val-roi-t">0.70</span>
+</div>
+</div>
+<div class="slider-group">
+<label>Alignment</label>
+<div class="slider-row">
+<input type="range" min="0" max="1" step="0.05" value="0.8" id="sl-align-t" oninput="onSlider()">
+<span class="slider-val" id="val-align-t">0.80</span>
+</div>
+</div>
+<div class="slider-group">
+<label>Risk</label>
+<div class="slider-row">
+<input type="range" min="0" max="1" step="0.05" value="0.2" id="sl-risk-t" oninput="onSlider()">
+<span class="slider-val" id="val-risk-t">0.20</span>
+</div>
+</div>
+<div class="test-prompt" id="test-prompt"></div>
+</div>
+</div>
+
+<div class="card">
+<div class="calc-block" id="calc-block"></div>
+</div>
+
+<div class="card">
+<div class="edu-panel" id="edu-panel"></div>
+</div>
+
+<script>
+var SVG_NS = "http://www.w3.org/2000/svg";
+var inputNames = ["ROI", "Alignment", "Risk"];
+var hiddenNames = ["H1", "H2"];
+var outputNames = ["Approve", "Delay", "Reject"];
+
+var defaultWIH = [[0.6, 0.3, -0.5], [0.2, 0.5, 0.8]];
+var defaultBH = [0.1, -0.2];
+var defaultWHO = [[0.9, -0.4], [0.3, 0.3], [-0.5, 0.7]];
+var defaultBO = [0.1, 0.0, 0.2];
+
+var wIH, bH, wHO, bO;
+var currentMode = "manual";
+var epochCount = 0;
+
+var trainingData = [
+  {inputs: [0.9, 0.8, 0.2], target: 0},
+  {inputs: [0.3, 0.2, 0.8], target: 2},
+  {inputs: [0.6, 0.7, 0.5], target: 1},
+  {inputs: [0.8, 0.9, 0.1], target: 0},
+  {inputs: [0.1, 0.3, 0.9], target: 2},
+  {inputs: [0.5, 0.5, 0.6], target: 1},
+  {inputs: [0.7, 0.4, 0.3], target: 0},
+  {inputs: [0.2, 0.6, 0.7], target: 2}
+];
+
+function deepCopy(a) { return JSON.parse(JSON.stringify(a)); }
+
+function resetWeights() {
+  wIH = deepCopy(defaultWIH);
+  bH = deepCopy(defaultBH);
+  wHO = deepCopy(defaultWHO);
+  bO = deepCopy(defaultBO);
+  epochCount = 0;
+  document.getElementById("epoch-val").textContent = "0";
+  document.getElementById("loss-val").textContent = "—";
+  document.getElementById("train-log").textContent = "";
+  runForward();
+}
+
+function relu(x) { return Math.max(0, x); }
+function reluDeriv(x) { return x > 0 ? 1 : 0; }
+
+function softmax(arr) {
+  var max = Math.max.apply(null, arr);
+  var exps = arr.map(function(v) { return Math.exp(v - max); });
+  var sum = exps.reduce(function(a, b) { return a + b; }, 0);
+  return exps.map(function(v) { return v / sum; });
+}
+
+function forward(inputs) {
+  var hRaw = [];
+  var hAct = [];
+  for (var j = 0; j < 2; j++) {
+    var s = bH[j];
+    for (var i = 0; i < 3; i++) s += wIH[j][i] * inputs[i];
+    hRaw.push(s);
+    hAct.push(relu(s));
+  }
+  var oRaw = [];
+  for (var k = 0; k < 3; k++) {
+    var s = bO[k];
+    for (var j = 0; j < 2; j++) s += wHO[k][j] * hAct[j];
+    oRaw.push(s);
+  }
+  var oProb = softmax(oRaw);
+  return {inputs: inputs, hRaw: hRaw, hAct: hAct, oRaw: oRaw, oProb: oProb};
+}
+
+function crossEntropyLoss(prob, target) {
+  return -Math.log(Math.max(prob[target], 1e-9));
+}
+
+function trainOneExample(inputs, target, lr) {
+  var res = forward(inputs);
+  var dO = res.oProb.slice();
+  dO[target] -= 1;
+
+  var dWHO = [];
+  var dBO = dO.slice();
+  for (var k = 0; k < 3; k++) {
+    dWHO.push([]);
+    for (var j = 0; j < 2; j++) {
+      dWHO[k].push(dO[k] * res.hAct[j]);
+    }
+  }
+
+  var dH = [0, 0];
+  for (var j = 0; j < 2; j++) {
+    for (var k = 0; k < 3; k++) {
+      dH[j] += dO[k] * wHO[k][j];
+    }
+    dH[j] *= reluDeriv(res.hRaw[j]);
+  }
+
+  var dWIH = [];
+  var dBH = dH.slice();
+  for (var j = 0; j < 2; j++) {
+    dWIH.push([]);
+    for (var i = 0; i < 3; i++) {
+      dWIH[j].push(dH[j] * inputs[i]);
+    }
+  }
+
+  for (var k = 0; k < 3; k++) {
+    for (var j = 0; j < 2; j++) wHO[k][j] -= lr * dWHO[k][j];
+    bO[k] -= lr * dBO[k];
+  }
+  for (var j = 0; j < 2; j++) {
+    for (var i = 0; i < 3; i++) wIH[j][i] -= lr * dWIH[j][i];
+    bH[j] -= lr * dBH[j];
+  }
+
+  return crossEntropyLoss(res.oProb, target);
+}
+
+function trainEpoch(lr) {
+  var totalLoss = 0;
+  for (var d = 0; d < trainingData.length; d++) {
+    totalLoss += trainOneExample(trainingData[d].inputs, trainingData[d].target, lr);
+  }
+  return totalLoss / trainingData.length;
+}
+
+function trainStep(n) {
+  var log = document.getElementById("train-log");
+  for (var e = 0; e < n; e++) {
+    epochCount++;
+    var loss = trainEpoch(0.1);
+    document.getElementById("loss-val").textContent = loss.toFixed(4);
+    document.getElementById("epoch-val").textContent = epochCount;
+    log.textContent += "Epoch " + epochCount + ": loss = " + loss.toFixed(4) + "\n";
+  }
+  log.scrollTop = log.scrollHeight;
+  runForward();
+}
+
+function getInputs() {
+  if (currentMode === "test") {
+    return [
+      parseFloat(document.getElementById("sl-roi-t").value),
+      parseFloat(document.getElementById("sl-align-t").value),
+      parseFloat(document.getElementById("sl-risk-t").value)
+    ];
+  }
+  return [
+    parseFloat(document.getElementById("sl-roi").value),
+    parseFloat(document.getElementById("sl-align").value),
+    parseFloat(document.getElementById("sl-risk").value)
+  ];
+}
+
+function onSlider() {
+  var ids = currentMode === "test"
+    ? [["sl-roi-t","val-roi-t"],["sl-align-t","val-align-t"],["sl-risk-t","val-risk-t"]]
+    : [["sl-roi","val-roi"],["sl-align","val-align"],["sl-risk","val-risk"]];
+  ids.forEach(function(pair) {
+    document.getElementById(pair[1]).textContent = parseFloat(document.getElementById(pair[0]).value).toFixed(2);
+  });
+  runForward();
+}
+
+function runForward() {
+  var inputs = getInputs();
+  var res = forward(inputs);
+  drawNetwork(res);
+  drawOutputBars(res);
+  drawDecision(res);
+  drawCalc(res);
+  updateTestPrompt(res);
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll(".tab").forEach(function(t) {
+    t.classList.toggle("active", t.dataset.mode === mode);
+  });
+  document.getElementById("panel-manual").style.display = mode === "manual" ? "" : "none";
+  document.getElementById("panel-train").style.display = mode === "train" ? "" : "none";
+  document.getElementById("panel-test").style.display = mode === "test" ? "" : "none";
+  updateEdu();
+  runForward();
+}
+
+function updateEdu() {
+  var el = document.getElementById("edu-panel");
+  if (currentMode === "manual") {
+    el.innerHTML = "<strong>How it works:</strong> Each connection has a weight (number). " +
+      "Multiply inputs &times; weights, add bias, pass through activation function (ReLU for hidden, Softmax for output). " +
+      "The output with the highest probability wins the decision.<br><br>" +
+      "<strong>Parameters:</strong> This network has <strong>17 parameters</strong> " +
+      "(6 input&rarr;hidden weights + 2 hidden biases + 6 hidden&rarr;output weights + 3 output biases).";
+  } else if (currentMode === "train") {
+    el.innerHTML = "<strong>Training = adjusting weights to reduce errors.</strong> " +
+      "Each epoch feeds all 8 examples through the network, computes the loss (cross-entropy), " +
+      "then uses backpropagation to nudge every weight in the direction that reduces the error. " +
+      "Watch the connection lines and weight numbers change as learning rate 0.1 gradient descent runs!<br><br>" +
+      "<strong>Parameters:</strong> 17 total &mdash; each one gets updated every epoch.";
+  } else {
+    el.innerHTML = "<strong>Test your intuition!</strong> Adjust the sliders and see if the network's prediction " +
+      "matches what you'd expect. A well-trained network should: Approve when ROI is high + Risk is low, " +
+      "Reject when Risk is high + ROI is low, and Delay for borderline cases.<br><br>" +
+      "<strong>Tip:</strong> Train the network first (Train tab), then come back here to test.";
+  }
+}
+
+function updateTestPrompt(res) {
+  if (currentMode !== "test") return;
+  var el = document.getElementById("test-prompt");
+  var inp = res.inputs;
+  var winner = res.oProb.indexOf(Math.max.apply(null, res.oProb));
+  var name = outputNames[winner];
+  var hints = [];
+  if (inp[0] > 0.7 && inp[2] < 0.3) hints.push("High ROI + Low Risk &rarr; should Approve");
+  if (inp[0] < 0.3 && inp[2] > 0.7) hints.push("Low ROI + High Risk &rarr; should Reject");
+  if (inp[0] > 0.4 && inp[0] < 0.7 && inp[2] > 0.4 && inp[2] < 0.7) hints.push("Medium ROI + Medium Risk &rarr; likely Delay");
+  if (inp[1] > 0.8) hints.push("Very high Alignment &rarr; leans toward Approve");
+  var hintText = hints.length ? hints.join("<br>") : "Try different combinations to see how the network responds.";
+  el.innerHTML = "<strong>Does this prediction make sense?</strong> Network says: <strong>" + name +
+    "</strong><br><br>" + hintText;
+}
+
+function drawOutputBars(res) {
+  var c = document.getElementById("output-bars");
+  c.innerHTML = "";
+  var colors = ["#065f46", "#92400e", "#991b1b"];
+  var bgs = ["#d1fae5", "#fef3c7", "#fee2e2"];
+  for (var k = 0; k < 3; k++) {
+    var pct = (res.oProb[k] * 100);
+    var d = document.createElement("div");
+    d.className = "output-bar";
+    d.innerHTML = '<div class="bar-label">' + outputNames[k] + '</div>' +
+      '<div class="bar-pct" style="color:' + colors[k] + '">' + pct.toFixed(1) + '%</div>' +
+      '<div style="width:100px;height:8px;background:' + bgs[k] + ';border-radius:4px;overflow:hidden">' +
+      '<div style="width:' + pct + '%;height:100%;background:' + colors[k] + ';border-radius:4px;transition:width .2s"></div></div>';
+    c.appendChild(d);
+  }
+}
+
+function drawDecision(res) {
+  var el = document.getElementById("decision-box");
+  var winner = res.oProb.indexOf(Math.max.apply(null, res.oProb));
+  var pct = (res.oProb[winner] * 100).toFixed(1);
+  var icons = ["\u{1F7E2}", "\u{1F7E1}", "\u{1F534}"];
+  var classes = ["approve", "delay", "reject"];
+  el.className = "decision " + classes[winner];
+  el.textContent = icons[winner] + " " + outputNames[winner].toUpperCase() + " (" + pct + "%)";
+}
+
+function drawCalc(res) {
+  var el = document.getElementById("calc-block");
+  var lines = [];
+  lines.push("--- Hidden Layer (ReLU) ---");
+  for (var j = 0; j < 2; j++) {
+    var parts = [];
+    for (var i = 0; i < 3; i++) {
+      parts.push(fmt(wIH[j][i]) + "×" + inputNames[i].substring(0,3) + "(" + fmt(res.inputs[i]) + ")");
+    }
+    lines.push(hiddenNames[j] + " = ReLU(" + parts.join(" + ") + " + " + fmt(bH[j]) + ")");
+    lines.push("     = ReLU(" + fmt(res.hRaw[j]) + ") = " + fmt(res.hAct[j]));
+  }
+  lines.push("");
+  lines.push("--- Output Layer (Softmax) ---");
+  for (var k = 0; k < 3; k++) {
+    var parts = [];
+    for (var j = 0; j < 2; j++) {
+      parts.push(fmt(wHO[k][j]) + "×" + hiddenNames[j] + "(" + fmt(res.hAct[j]) + ")");
+    }
+    lines.push(outputNames[k] + " raw = " + parts.join(" + ") + " + " + fmt(bO[k]) + " = " + fmt(res.oRaw[k]));
+  }
+  lines.push("");
+  lines.push("Softmax → Approve: " + (res.oProb[0]*100).toFixed(1) + "% | Delay: " + (res.oProb[1]*100).toFixed(1) + "% | Reject: " + (res.oProb[2]*100).toFixed(1) + "%");
+  el.textContent = lines.join("\n");
+}
+
+function fmt(v) { return v >= 0 ? v.toFixed(2) : "(" + v.toFixed(2) + ")"; }
+
+var nodePositions = {};
+function layoutNodes() {
+  var layers = [
+    {names: inputNames, x: 90, count: 3},
+    {names: hiddenNames, x: 350, count: 2},
+    {names: outputNames, x: 610, count: 3}
+  ];
+  layers.forEach(function(layer) {
+    var totalH = (layer.count - 1) * 90;
+    var startY = 180 - totalH / 2;
+    layer.names.forEach(function(name, idx) {
+      nodePositions[name] = {x: layer.x, y: startY + idx * 90};
+    });
+  });
+}
+
+function drawNetwork(res) {
+  var svg = document.getElementById("nn-svg");
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  var defs = document.createElementNS(SVG_NS, "defs");
+  svg.appendChild(defs);
+
+  var allWeights = [];
+  wIH.forEach(function(row) { row.forEach(function(w) { allWeights.push(Math.abs(w)); }); });
+  wHO.forEach(function(row) { row.forEach(function(w) { allWeights.push(Math.abs(w)); }); });
+  var maxW = Math.max.apply(null, allWeights) || 1;
+
+  for (var j = 0; j < 2; j++) {
+    for (var i = 0; i < 3; i++) {
+      drawEdge(svg, inputNames[i], hiddenNames[j], wIH[j][i], maxW);
+    }
+  }
+  for (var k = 0; k < 3; k++) {
+    for (var j = 0; j < 2; j++) {
+      drawEdge(svg, hiddenNames[j], outputNames[k], wHO[k][j], maxW);
+    }
+  }
+
+  for (var i = 0; i < 3; i++) drawNode(svg, inputNames[i], fmt(res.inputs[i]), "#4338ca");
+  for (var j = 0; j < 2; j++) drawNode(svg, hiddenNames[j], fmt(res.hAct[j]), "#27246f");
+  for (var k = 0; k < 3; k++) {
+    var pct = (res.oProb[k] * 100).toFixed(0) + "%";
+    var winner = res.oProb.indexOf(Math.max.apply(null, res.oProb));
+    var col = k === winner ? "#065f46" : "#27246f";
+    drawNode(svg, outputNames[k], pct, col, k === winner);
+  }
+
+  drawLabel(svg, 90, 30, "Inputs", "var(--ink-mid)");
+  drawLabel(svg, 350, 30, "Hidden (ReLU)", "var(--ink-mid)");
+  drawLabel(svg, 610, 30, "Outputs (Softmax)", "var(--ink-mid)");
+}
+
+function drawEdge(svg, fromName, toName, weight, maxW) {
+  var from = nodePositions[fromName];
+  var to = nodePositions[toName];
+  var thickness = Math.max(1, (Math.abs(weight) / maxW) * 5);
+  var color = weight >= 0 ? "#4338ca" : "#7d241f";
+  var opacity = 0.3 + (Math.abs(weight) / maxW) * 0.6;
+
+  var line = document.createElementNS(SVG_NS, "line");
+  line.setAttribute("x1", from.x);
+  line.setAttribute("y1", from.y);
+  line.setAttribute("x2", to.x);
+  line.setAttribute("y2", to.y);
+  line.setAttribute("stroke", color);
+  line.setAttribute("stroke-width", thickness);
+  line.setAttribute("stroke-opacity", opacity);
+  svg.appendChild(line);
+
+  var mx = (from.x + to.x) / 2;
+  var my = (from.y + to.y) / 2;
+  var dx = to.x - from.x;
+  var dy = to.y - from.y;
+  var len = Math.sqrt(dx*dx + dy*dy);
+  var nx = -dy / len * 10;
+  var ny = dx / len * 10;
+
+  var text = document.createElementNS(SVG_NS, "text");
+  text.setAttribute("x", mx + nx);
+  text.setAttribute("y", my + ny);
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("dominant-baseline", "middle");
+  text.setAttribute("font-size", "10");
+  text.setAttribute("fill", color);
+  text.setAttribute("font-family", "'IBM Plex Sans Thai', sans-serif");
+  text.setAttribute("font-weight", "600");
+  text.textContent = weight.toFixed(2);
+  svg.appendChild(text);
+}
+
+function drawNode(svg, name, value, color, highlight) {
+  var pos = nodePositions[name];
+  var r = highlight ? 30 : 26;
+
+  if (highlight) {
+    var glow = document.createElementNS(SVG_NS, "circle");
+    glow.setAttribute("cx", pos.x);
+    glow.setAttribute("cy", pos.y);
+    glow.setAttribute("r", r + 4);
+    glow.setAttribute("fill", "none");
+    glow.setAttribute("stroke", color);
+    glow.setAttribute("stroke-width", "2");
+    glow.setAttribute("stroke-opacity", "0.3");
+    svg.appendChild(glow);
+  }
+
+  var circle = document.createElementNS(SVG_NS, "circle");
+  circle.setAttribute("cx", pos.x);
+  circle.setAttribute("cy", pos.y);
+  circle.setAttribute("r", r);
+  circle.setAttribute("fill", "#fff");
+  circle.setAttribute("stroke", color);
+  circle.setAttribute("stroke-width", highlight ? 3 : 2);
+  svg.appendChild(circle);
+
+  var valText = document.createElementNS(SVG_NS, "text");
+  valText.setAttribute("x", pos.x);
+  valText.setAttribute("y", pos.y + 1);
+  valText.setAttribute("text-anchor", "middle");
+  valText.setAttribute("dominant-baseline", "middle");
+  valText.setAttribute("font-size", "12");
+  valText.setAttribute("font-weight", "600");
+  valText.setAttribute("fill", color);
+  valText.setAttribute("font-family", "'IBM Plex Sans Thai', sans-serif");
+  valText.textContent = value;
+  svg.appendChild(valText);
+
+  var labelText = document.createElementNS(SVG_NS, "text");
+  labelText.setAttribute("x", pos.x);
+  labelText.setAttribute("y", pos.y + r + 16);
+  labelText.setAttribute("text-anchor", "middle");
+  labelText.setAttribute("dominant-baseline", "middle");
+  labelText.setAttribute("font-size", "11");
+  labelText.setAttribute("fill", "var(--ink-mid)");
+  labelText.setAttribute("font-family", "'IBM Plex Sans Thai', sans-serif");
+  labelText.textContent = name;
+  svg.appendChild(labelText);
+}
+
+function drawLabel(svg, x, y, text, color) {
+  var el = document.createElementNS(SVG_NS, "text");
+  el.setAttribute("x", x);
+  el.setAttribute("y", y);
+  el.setAttribute("text-anchor", "middle");
+  el.setAttribute("font-size", "12");
+  el.setAttribute("fill", color);
+  el.setAttribute("font-weight", "600");
+  el.setAttribute("font-family", "'IBM Plex Sans Thai', sans-serif");
+  el.textContent = text;
+  svg.appendChild(el);
+}
+
+function buildTrainTable() {
+  var tb = document.getElementById("train-table-body");
+  var targetNames = ["Approve", "Delay", "Reject"];
+  trainingData.forEach(function(d) {
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + d.inputs[0] + "</td><td>" + d.inputs[1] + "</td><td>" + d.inputs[2] + "</td><td>" + targetNames[d.target] + "</td>";
+    tb.appendChild(tr);
+  });
+}
+
+layoutNodes();
+resetWeights();
+buildTrainTable();
+updateEdu();
+</script>
+
+</body>
+</html>
