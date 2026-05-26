@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AI Models as &mdash; สรุปคลาสจุฬาฯ: ML 3 ประเภท, Feature Extraction, Binary Classification, K-Means Clustering, ANN/DNN พร้อม Interactive Widgets">
+  <title>057 &mdash; AI Models (Chula Class) | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">057 &mdash; AI Models (Chula Class)</span>
+        <span class="topbar-date">2026-05-26</span>
+      </div>
+      <div class="content-shell">
+        <h1>AI Models as &mdash; คลาสจุฬาฯ 26 พ.ค. 2569</h1>
+        <div class="article-meta">
+          <span class="tag">machine-learning</span>
+          <span class="tag">supervised</span>
+          <span class="tag">unsupervised</span>
+          <span class="tag">reinforcement</span>
+          <span class="tag">classification</span>
+          <span class="tag">clustering</span>
+          <span class="tag">ann</span>
+          <span class="tag">dnn</span>
+          <span class="tag">chula-class</span>
+          <span class="maturity solid">&#10004; solid (class handout + interactive labs)</span>
+        </div>
+
+        <p><strong>Source:</strong> Handout โดย รศ.ดร.อติวงศ์ สุชาโต &mdash; คณะวิศวกรรมศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย (26 พ.ค. 2569)</p>
+        <p>บทความนี้สรุปเนื้อหาทั้งหมดจาก class handout + interactive widgets 3 ตัว &mdash; เขียนให้ Captain อ่านแล้วเข้าใจ ML ตั้งแต่ศูนย์</p>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 1: BIG PICTURE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>1 &mdash; AI = Machine Learning</h2>
+          <p>AI คือการสอนคอมพิวเตอร์ให้ <strong>เรียนรู้จากข้อมูล</strong> แทนการเขียนกฎตายตัว</p>
+
+          <pre><code>AI Input:
+  (Input1, Output1),
+  (Input2, Output2),
+  ...
+  (InputN, OutputN)
+
+ML Algorithm + Data &rarr; Model (สูตรคณิตศาสตร์)
+Model ที่ผ่านการฝึกแล้ว &rarr; ใส่ Input ใหม่ &rarr; ทำนาย Output</code></pre>
+
+          <p>หลักการ: เอา <strong>ข้อมูล</strong> + <strong>อัลกอริทึม</strong> &rarr; ได้ <strong>Model (แบบจำลอง/สูตร)</strong> &rarr; ใช้ Model ทำนายผลลัพธ์กับข้อมูลใหม่</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 2: FEATURE EXTRACTION -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>2 &mdash; Feature Extraction (สกัดลักษณะสำคัญ)</h2>
+          <p>ก่อนจะ train model ต้อง <strong>สกัด features</strong> จากข้อมูลดิบให้เป็นตัวเลข</p>
+
+          <h3>ตัวอย่าง: Spam Email Detector</h3>
+          <table>
+            <tr><th>Feature</th><th>ตัวย่อ</th><th>อธิบาย</th></tr>
+            <tr><td>ความน่าเชื่อถือผู้ส่ง</td><td>[REP]</td><td>0.0 &ndash; 1.0 (1 = น่าเชื่อถือมาก)</td></tr>
+            <tr><td>จำนวนผู้รับ</td><td>[#RCP]</td><td>ยิ่งมาก ยิ่งน่าสงสัย</td></tr>
+            <tr><td>จำนวนลิงก์</td><td>[#LINK]</td><td>ลิงก์เยอะ = spam สูง</td></tr>
+            <tr><td>จำนวน Urgent Words</td><td>[#URG]</td><td>"ด่วน!", "ทันที!", "สุดท้าย!"</td></tr>
+            <tr><td>จำนวน Spam Keywords</td><td>[#SPAM]</td><td>"Winner", "Crypto", "Free"</td></tr>
+          </table>
+
+          <h3>สูตรตัดสิน</h3>
+          <pre><code>Score = -4.0 + 6.0(1-[REP]) + 0.25[#RCP] + 0.7[#LINK] + 1.2[#URG] + 0.9[#SPAM]
+
+Score &gt; 0 &rarr; SPAM
+Score &le; 0 &rarr; NOT SPAM</code></pre>
+
+          <p><strong>สังเกต:</strong> ค่าคงที่ -4.0 คือ bias (ค่าเริ่มต้นเอนไปทาง NOT SPAM) &mdash; ถ้าอีเมลปกติทุกอย่าง score จะติดลบ = ไม่ใช่ spam</p>
+          <p><strong>ตัวคูณ 6.0 หน้า (1-REP)</strong> มากที่สุด &rarr; "ผู้ส่งไม่น่าเชื่อถือ" คือ signal แรงที่สุด</p>
+
+          <h3>ลองคิด: อีเมลจากเพื่อนสนิท</h3>
+          <pre><code>REP=0.95, #RCP=1, #LINK=0, #URG=0, #SPAM=0
+Score = -4.0 + 6.0(1-0.95) + 0.25(1) + 0.7(0) + 1.2(0) + 0.9(0)
+     = -4.0 + 0.3 + 0.25
+     = -3.45 &rarr; NOT SPAM &#10004;</code></pre>
+
+          <h3>ลองคิด: อีเมลหลอกลวง</h3>
+          <pre><code>REP=0.1, #RCP=50, #LINK=5, #URG=3, #SPAM=4
+Score = -4.0 + 6.0(1-0.1) + 0.25(50) + 0.7(5) + 1.2(3) + 0.9(4)
+     = -4.0 + 5.4 + 12.5 + 3.5 + 3.6 + 3.6
+     = 24.6 &rarr; SPAM &#10004;</code></pre>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 3: PREDICTIVE vs GENERATIVE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>3 &mdash; Predictive AI vs Generative AI</h2>
+          <table>
+            <tr><th></th><th>Predictive AI (Traditional)</th><th>Generative AI</th></tr>
+            <tr><td><strong>ทำอะไร</strong></td><td>แปะ Label / จัดกลุ่ม / ทำนายตัวเลข / เลือกทางเลือก</td><td>สร้างผลลัพธ์ใหม่ (input &rarr; output) ในรูปแบบที่เคยเห็น</td></tr>
+            <tr><td><strong>ตัวอย่าง</strong></td><td>Spam detector, แนะนำสินค้า, พยากรณ์หุ้น</td><td>ChatGPT, Claude, DALL-E, Midjourney</td></tr>
+            <tr><td><strong>Model ทำ</strong></td><td>เลือกจากตัวเลือกที่มี</td><td>สร้างใหม่จากศูนย์</td></tr>
+          </table>
+          <p>Predictive AI แบ่งงานเป็น <strong>3 กลุ่ม ML Tasks</strong> &darr;</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 4: 3 ML TYPES -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>4 &mdash; ML 3 ประเภท</h2>
+
+          <!-- SUPERVISED -->
+          <h3>4.1 &mdash; Supervised Learning (มีผู้สอน)</h3>
+          <p>เรียนรู้จากข้อมูลที่มี <strong>Label (ป้ายกำกับ)</strong> &mdash; คือมีคำตอบบอกไว้แล้ว</p>
+          <p>เหมือนครูให้โจทย์พร้อมเฉลย &rarr; นักเรียนเรียนรู้กฎ &rarr; แล้วทำข้อสอบใหม่ได้</p>
+
+          <h4>Classification (จำแนกประเภท)</h4>
+          <ul>
+            <li>Spam Detection &mdash; อีเมลนี้ spam หรือไม่</li>
+            <li>Medical Diagnosis &mdash; วินิจฉัยโรคจากภาพ X-ray</li>
+            <li>Sentiment Analysis &mdash; ความคิดเห็นลูกค้า (บวก/ลบ)</li>
+          </ul>
+
+          <h4>Regression (ทำนายค่าต่อเนื่อง)</h4>
+          <ul>
+            <li>Stock Market Forecasting &mdash; พยากรณ์ราคาหุ้น</li>
+            <li>Weather Prediction &mdash; คาดการณ์อุณหภูมิ</li>
+            <li>Sales Forecasting &mdash; ทำนายยอดขาย</li>
+            <li>Insurance Risk Prediction &mdash; คำนวณเบี้ยประกัน</li>
+          </ul>
+
+          <h4>NLP &amp; ASR (ภาษา + เสียง)</h4>
+          <ul>
+            <li>Speech-to-Text &mdash; ถอดเสียงเป็นข้อความ</li>
+            <li>Machine Translation &mdash; แปลภาษา</li>
+            <li>Conversational AI &mdash; Chatbot ตอบคำถาม</li>
+          </ul>
+
+          <h4>ตัวอย่าง: ทำนายผ่าน/ไม่ผ่านจากคะแนน Quiz</h4>
+          <p>สมมติมี data: คะแนน Quiz 1 (x) กับ Quiz 2 (y) + label ผ่าน/ไม่ผ่าน</p>
+          <p>Model = เส้นตรง <code>y = mx + c</code> (2 parameters: m, c)</p>
+          <p>Train = หาค่า m,c ที่แบ่งกลุ่มผ่าน/ไม่ผ่านได้ดีที่สุด</p>
+          <p>Inference = นักศึกษาใหม่มาพร้อมคะแนน quiz &rarr; model ทำนาย</p>
+
+          <!-- UNSUPERVISED -->
+          <h3>4.2 &mdash; Unsupervised Learning (ไม่มีผู้สอน)</h3>
+          <p>เรียนรู้จากข้อมูลที่ <strong>ไม่มี Label</strong> &mdash; model ต้องหารูปแบบเอง โดยไม่รู้คำตอบล่วงหน้า</p>
+
+          <h4>Clustering (จัดกลุ่ม)</h4>
+          <ul>
+            <li>Customer Segmentation &mdash; แบ่งกลุ่มลูกค้าตามพฤติกรรม</li>
+            <li>Genetic Clustering &mdash; วิเคราะห์กลุ่มพันธุกรรม</li>
+            <li>News Categorization &mdash; จัดกลุ่มข่าวออนไลน์</li>
+          </ul>
+
+          <h4>Anomaly Detection (ตรวจจับความผิดปกติ)</h4>
+          <ul>
+            <li>Fraud Detection &mdash; ตรวจจับการโกงบัตรเครดิต</li>
+            <li>Cybersecurity &mdash; ตรวจจับความผิดปกติในเครือข่าย</li>
+            <li>Predictive Maintenance &mdash; ตรวจจับเครื่องจักรที่อาจเสียหาย</li>
+          </ul>
+
+          <h4>Dimensionality Reduction (ลดมิติข้อมูล)</h4>
+          <p>ข้อมูลมีหลายมิติ (features) &rarr; ถ้าใช้ทุกมิติ: ประมวลผลมาก, บางมิติไม่สำคัญ, เกิด Overfitting</p>
+          <ul>
+            <li>Content Recommendation &mdash; แนะนำเนื้อหาบน Netflix/YouTube</li>
+            <li>Violation Detection &mdash; ตรวจจับโพสต์ละเมิดนโยบาย</li>
+            <li>Computer Vision &mdash; ประมวลผลภาพ (ลด pixel dimensions)</li>
+          </ul>
+
+          <h4>ตัวอย่าง: Customer Segmentation</h4>
+          <p>ข้อมูลลูกค้า 2 มิติ: (จำนวนครั้งใช้งาน/เดือน) กับ (ยอดสั่งซื้อเฉลี่ย)</p>
+          <p>K-Means Clustering แบ่งออกเป็น 3 กลุ่ม &rarr; เห็นพฤติกรรมลูกค้าชัด &darr;</p>
+
+          <!-- REINFORCEMENT -->
+          <h3>4.3 &mdash; Reinforcement Learning (เรียนรู้จากรางวัล/ลงโทษ)</h3>
+          <p>ทำถูก &rarr; ได้รางวัล, ทำผิด &rarr; ถูกลงโทษ &rarr; ปรับปรุงการตัดสินใจ</p>
+          <p><strong>ตัวอย่างชื่อดัง: AlphaGo</strong> (DeepMind) &mdash; เรียนรู้กฎการเล่น Go ด้วย Supervised Learning + แข่งกับตัวเอง ด้วย Reinforcement Learning &rarr; ชนะแชมป์โลก</p>
+          <ul>
+            <li>Robot Locomotion &mdash; ฝึกหุ่นยนต์เดิน</li>
+            <li>Industrial Robot Control &mdash; ควบคุมแขนกลในโรงงาน</li>
+            <li>Self-Driving Cars &mdash; รถยนต์ขับอัตโนมัติ</li>
+            <li>AI Traffic Management &mdash; บริหารจราจร</li>
+            <li>Superhuman Gamer AI &mdash; AI เล่นเกมเก่งกว่ามนุษย์</li>
+            <li>Dynamic Pricing &amp; Recommendations &mdash; ปรับราคา E-Commerce</li>
+            <li>Smart Grid Energy Optimization &mdash; จัดการพลังงาน</li>
+          </ul>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 5: BINARY CLASSIFICATION DEEP DIVE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>5 &mdash; Binary Classification (Deep Dive)</h2>
+          <p>ปัญหา Classification ง่ายที่สุดคือ <strong>Binary</strong> &mdash; แบ่ง 2 กลุ่ม (Class A / Class B)</p>
+
+          <h3>5.1 &mdash; Decision Boundary</h3>
+          <p>Model สร้าง <strong>"เส้นแบ่ง" (Decision Boundary)</strong> ระหว่าง 2 กลุ่ม</p>
+          <ul>
+            <li><strong>เส้นตรง (Linear)</strong>: <code>y = mx + c</code> &mdash; 2 parameters &mdash; แบ่งง่ายแต่ไม่ยืดหยุ่น</li>
+            <li><strong>พาราโบลา (Quadratic)</strong>: <code>(y-k)&sup2; = c(x-h)</code> &mdash; 3 parameters &mdash; โค้งได้</li>
+            <li><strong>Polynomial สูง</strong>: parameters เยอะขึ้น &rarr; แบ่งซับซ้อนขึ้น แต่เสี่ยง overfitting</li>
+          </ul>
+
+          <h3>5.2 &mdash; &#127891; Interactive Widget: Polynomial Degree Visualizer</h3>
+          <p><a href="https://nicenathapong.github.io/ai-interactive-widget/binaryClassificationPolynomialDegree.html" target="_blank" rel="noopener">&#128279; เปิด Widget &rarr;</a></p>
+          <p>Widget นี้ให้ลองปรับ <strong>degree ของ polynomial</strong> (1=เส้นตรง, 2=quadratic, ..., 5=quintic) แล้วดูว่า decision boundary เปลี่ยนยังไง</p>
+
+          <h4>วิธีใช้</h4>
+          <ol>
+            <li>เปิด <strong>Classifier Mode</strong> เพื่อเห็น Class A (สีฟ้า) / Class B (สีแดง)</li>
+            <li>ปรับ <strong>Polynomial Degree</strong> slider: 1 &rarr; 5</li>
+            <li>สังเกต decision boundary &mdash; degree สูงขึ้น เส้นโค้งมากขึ้น</li>
+            <li>ดู <strong>Error metrics</strong> &mdash; degree สูงไป = overfitting (จำ training data แต่ทำนายแย่)</li>
+          </ol>
+
+          <h4>สิ่งที่ควรสังเกต</h4>
+          <table>
+            <tr><th>Degree</th><th>เส้น</th><th>Parameters</th><th>ข้อดี</th><th>ข้อเสีย</th></tr>
+            <tr><td>1 (Linear)</td><td>เส้นตรง</td><td>2</td><td>ง่าย, ไม่ overfit</td><td>อาจแบ่งไม่ได้ถ้าข้อมูลไม่เป็นเส้นตรง</td></tr>
+            <tr><td>2 (Quadratic)</td><td>โค้ง 1 ที</td><td>3</td><td>ยืดหยุ่นพอดี</td><td>ยังไม่พอถ้าข้อมูลซับซ้อน</td></tr>
+            <tr><td>3-5 (Higher)</td><td>โค้งหลายที</td><td>4-6</td><td>แบ่งข้อมูลได้แม่นในชุด train</td><td>เสี่ยง overfitting มาก</td></tr>
+          </table>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 6: K-MEANS CLUSTERING DEEP DIVE -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>6 &mdash; K-Means Clustering (Deep Dive)</h2>
+          <p>K-Means เป็น algorithm สำหรับ Unsupervised Learning &mdash; แบ่งข้อมูลเป็น K กลุ่ม โดยไม่ต้องมี label</p>
+
+          <h3>6.1 &mdash; Algorithm ทีละขั้น</h3>
+          <ol>
+            <li><strong>เลือก K</strong> &mdash; กำหนดจำนวนกลุ่มที่ต้องการ (เช่น K=3)</li>
+            <li><strong>สุ่ม Centroids</strong> &mdash; วางจุดศูนย์กลาง K จุดแบบสุ่ม</li>
+            <li><strong>Assign</strong> &mdash; แต่ละ data point ถูก assign ไปกลุ่มที่ centroid ใกล้สุด (ใช้ Euclidean distance)</li>
+            <li><strong>Update</strong> &mdash; คำนวณ centroid ใหม่ = ค่าเฉลี่ยของ data points ในกลุ่ม</li>
+            <li><strong>Repeat</strong> &mdash; ทำซ้ำขั้น 3-4 จน centroids ไม่เปลี่ยน (converge)</li>
+          </ol>
+
+          <h3>6.2 &mdash; SSE / Inertia</h3>
+          <p><strong>Sum of Squared Errors (SSE)</strong> &mdash; วัดว่า data points อยู่ใกล้ centroid แค่ไหน</p>
+          <pre><code>SSE = &sum; &sum; ||x - &mu;_k||&sup2;
+        k  x&isin;C_k
+
+SSE ต่ำ = กลุ่มแน่น (ดี)
+SSE สูง = กลุ่มกระจาย (ไม่ดี)</code></pre>
+
+          <h3>6.3 &mdash; &#127891; Interactive Widget: K-Means Step-by-Step Lab</h3>
+          <p><a href="https://nicenathapong.github.io/ai-interactive-widget/kMeansClustering.html" target="_blank" rel="noopener">&#128279; เปิด Widget &rarr;</a></p>
+
+          <h4>วิธีใช้</h4>
+          <ol>
+            <li>ตั้ง <strong>K</strong> (จำนวนกลุ่ม) เช่น 3</li>
+            <li>กด <strong>Initialize</strong> &mdash; สุ่มวาง centroids</li>
+            <li>กด <strong>Step</strong> ทีละขั้น &mdash; ดู assign + update สลับกัน</li>
+            <li>สังเกต <strong>SSE</strong> ลดลงทุก iteration</li>
+            <li>กด <strong>Run to Convergence</strong> เพื่อดูผลสุดท้าย</li>
+          </ol>
+
+          <h4>สิ่งที่ควรทดลอง</h4>
+          <ul>
+            <li>ลอง K=2 vs K=3 vs K=5 &mdash; ดูว่ากลุ่มไหน "พอดี"</li>
+            <li>กด Initialize หลายครั้ง &mdash; สังเกตว่าจุดเริ่มต้นต่างกัน ผลลัพธ์อาจต่างกัน (local minimum)</li>
+            <li>ดู distance calculation &mdash; เข้าใจว่าแต่ละ point เลือกกลุ่มอย่างไร</li>
+          </ul>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 7: ANN/DNN -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>7 &mdash; ANN &rarr; DNN (โครงข่ายประสาทเทียม)</h2>
+
+          <h3>7.1 &mdash; จาก Linear Regression สู่ Neuron</h3>
+          <p>Linear Regression: <code>y = mx + c</code> &mdash; 2 parameters</p>
+          <p>Neuron 1 ตัว ทำเหมือนกัน: รับ input, คูณ weight, บวก bias, ผ่าน activation function</p>
+          <pre><code>Linear Regression:  y = mx + c     (m=weight, c=bias)
+Single Neuron:      y = f(w&middot;x + b)  (f=activation function)
+
+ถ้า f(a) = a (identity function) &rarr; neuron = linear regression</code></pre>
+
+          <h3>7.2 &mdash; Artificial Neural Network (ANN)</h3>
+          <p>Neuron หลายตัว &rarr; หลาย layer &rarr; ANN</p>
+          <pre><code>Multi-input single layer:
+y = b + w1&middot;x1 + w2&middot;x2 + ... + wn&middot;xn
+
+Matrix form (5 inputs &rarr; 3 outputs):
+y1 = w1,1&middot;x1 + w1,2&middot;x2 + w1,3&middot;x3 + w1,4&middot;x4 + w1,5&middot;x5
+y2 = w2,1&middot;x1 + w2,2&middot;x2 + w2,3&middot;x3 + w2,4&middot;x4 + w2,5&middot;x5
+y3 = w3,1&middot;x1 + w3,2&middot;x2 + w3,3&middot;x3 + w3,4&middot;x4 + w3,5&middot;x5</code></pre>
+
+          <h3>7.3 &mdash; Deep Neural Network (DNN)</h3>
+          <p>ANN + หลาย hidden layers = <strong>DNN (Deep Learning)</strong></p>
+          <pre><code>Input &rarr; [W1] &rarr; [W2] &rarr; [W3] &rarr; [W4] &rarr; [W5] &rarr; Output
+   x1-xn                Layers                        y1-y3
+
+แต่ละ [Wi] คือ Weight Matrix
+AI ปัจจุบัน: มี Billions (พันล้าน) parameters</code></pre>
+
+          <p><strong>Training</strong>: ให้ดูตัวอย่างเยอะๆ &rarr; ปรับ Weight ทุก matrix &rarr; หาค่าที่ดีที่สุด</p>
+          <p><strong>ข้อดี</strong>: ไม่ว่าจะมี parameters กี่ตัว ใช้ algorithm เดียวกันในการฝึก (backpropagation)</p>
+
+          <h3>7.4 &mdash; &#127891; Interactive Widget: Board Room ANN</h3>
+          <p><a href="https://nicenathapong.github.io/ai-interactive-widget/boardRoomANN.html" target="_blank" rel="noopener">&#128279; เปิด Widget &rarr;</a></p>
+          <p>จำลอง ANN ขนาดเล็ก สำหรับตัดสินใจอนุมัติโครงการในห้องประชุม</p>
+
+          <h4>โครงสร้าง</h4>
+          <pre><code>3 Inputs          2 Hidden       3 Outputs
+---------         --------       ---------
+ROI (0-1)    &rarr;   Neuron H1  &rarr;  Approve
+Alignment (0-1) &rarr; Neuron H2  &rarr; Delay
+Risk (0-1)   &rarr;              &rarr;  Reject
+
+Weight-only network (no activation function for simplicity)</code></pre>
+
+          <h4>วิธีใช้</h4>
+          <ol>
+            <li><strong>Manual Mode</strong>: ปรับ ROI, Alignment, Risk slider &rarr; ดูว่า output (Approve/Delay/Reject) เปลี่ยนยังไง</li>
+            <li><strong>Train Mode</strong>: ให้ตัวอย่าง (input + label ที่ถูกต้อง) &rarr; ANN ปรับ weights</li>
+            <li><strong>Test Mode</strong>: ใส่ input ใหม่ &rarr; ดู ANN ทำนาย</li>
+          </ol>
+
+          <h4>สิ่งที่ควรสังเกต</h4>
+          <ul>
+            <li>ปรับ weights ด้วยมือ &rarr; เห็นว่า weight คืออะไร (ตัวคูณที่ส่งผลต่อ output)</li>
+            <li>Train แล้วดู weights เปลี่ยน &rarr; เข้าใจ "การเรียนรู้" = ปรับ weights</li>
+            <li>ROI สูง + Risk ต่ำ + Alignment สูง &rarr; Approve (make sense)</li>
+            <li>ROI ต่ำ + Risk สูง &rarr; Reject (make sense)</li>
+          </ul>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PART 8: SUMMARY -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>8 &mdash; สรุป: AI Landscape</h2>
+          <pre><code>AI
+├── Predictive AI (Traditional)
+│   ├── Supervised Learning (มี Label)
+│   │   ├── Classification &mdash; แบ่งกลุ่ม (spam/not spam, cat/dog)
+│   │   ├── Regression &mdash; ทำนายตัวเลข (ราคา, อุณหภูมิ)
+│   │   └── NLP/ASR &mdash; ภาษา + เสียง
+│   ├── Unsupervised Learning (ไม่มี Label)
+│   │   ├── Clustering &mdash; จัดกลุ่ม (K-Means)
+│   │   ├── Anomaly Detection &mdash; ตรวจจับผิดปกติ
+│   │   └── Dimensionality Reduction &mdash; ลดมิติ
+│   └── Reinforcement Learning (รางวัล/ลงโทษ)
+│       └── AlphaGo, Self-driving, Robot control
+│
+└── Generative AI
+    └── สร้างเนื้อหาใหม่ (ChatGPT, Claude, DALL-E)
+
+เทคโนโลยีหลัก: Artificial Neural Network &rarr; Deep Learning</code></pre>
+
+          <h3>Key Takeaways</h3>
+          <table>
+            <tr><th>#</th><th>บทเรียน</th></tr>
+            <tr><td>1</td><td><strong>ML = Data + Algorithm &rarr; Model</strong> ไม่ใช่เขียนกฎตายตัว แต่ให้คอมเรียนรู้จากข้อมูล</td></tr>
+            <tr><td>2</td><td><strong>Feature Extraction สำคัญที่สุด</strong> &mdash; garbage in = garbage out ต้องเลือก features ที่ดี</td></tr>
+            <tr><td>3</td><td><strong>Supervised ต้องมี Label</strong> &mdash; แพงเพราะต้องให้คนติด label ทุกจุด</td></tr>
+            <tr><td>4</td><td><strong>Unsupervised หา pattern เอง</strong> &mdash; ไม่ต้อง label แต่ผลลัพธ์ต้องตีความ</td></tr>
+            <tr><td>5</td><td><strong>Polynomial degree สูง = overfitting</strong> &mdash; จำ training data เก่ง แต่ทำนาย data ใหม่แย่</td></tr>
+            <tr><td>6</td><td><strong>K-Means ขึ้นกับจุดเริ่มต้น</strong> &mdash; สุ่ม centroid ต่าง ผลลัพธ์ต่าง (local minimum)</td></tr>
+            <tr><td>7</td><td><strong>ANN = weights + layers</strong> &mdash; "การเรียนรู้" คือการปรับ weights จนดีที่สุด</td></tr>
+            <tr><td>8</td><td><strong>Deep Learning = ANN หลาย layer</strong> &mdash; AI ปัจจุบันมี parameters เป็นพันล้าน</td></tr>
+          </table>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- INTERACTIVE LABS -->
+        <!-- ═══════════════════════════════════════ -->
+        <section>
+          <h2>&#127891; Interactive Labs &mdash; ลองเล่นด้วยตัวเอง</h2>
+          <table>
+            <tr><th>#</th><th>Lab</th><th>เรียนรู้อะไร</th><th>Link</th></tr>
+            <tr><td>1</td><td>Binary Classification</td><td>Polynomial degree &amp; overfitting</td><td><a href="https://nicenathapong.github.io/ai-interactive-widget/binaryClassificationPolynomialDegree.html" target="_blank" rel="noopener">Open &rarr;</a></td></tr>
+            <tr><td>2</td><td>K-Means Clustering</td><td>Centroid assignment &amp; SSE</td><td><a href="https://nicenathapong.github.io/ai-interactive-widget/kMeansClustering.html" target="_blank" rel="noopener">Open &rarr;</a></td></tr>
+            <tr><td>3</td><td>Board Room ANN</td><td>Weights, layers, training</td><td><a href="https://nicenathapong.github.io/ai-interactive-widget/boardRoomANN.html" target="_blank" rel="noopener">Open &rarr;</a></td></tr>
+          </table>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: &ldquo;AI Models as&rdquo; handout &mdash; รศ.ดร.อติวงศ์ สุชาโต, คณะวิศวกรรมศาสตร์, จุฬาลงกรณ์มหาวิทยาลัย (26 พ.ค. 2569) + Interactive Widgets by nicenathapong</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

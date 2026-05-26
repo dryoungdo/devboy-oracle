@@ -81,6 +81,9 @@ var DEVBOY_NAV = [
       ['054-anthropic-academy-skilljar.html', '054 Anthropic Academy'],
       ['055-anthropic-advanced-guide.html', '055 Advanced Guide'],
       ['056-glueboy-codex-coding-hands-goal-arc.html', '056 GLUEBOY /goal arc']
+    ]],
+    ['Chula AI Class', [
+      ['057-ai-models-chula-class.html', '057 AI Models (Chula Class)']
     ]]
 ];
 
