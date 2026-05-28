@@ -22,6 +22,7 @@ import json
 import os
 import re
 import shlex
+import subprocess
 
 MODE = os.environ.get("SOP_QA_RULE6_MODE", "")
 TOOL = os.environ.get("SOP_QA_RULE6_TOOL", "")
@@ -44,13 +45,128 @@ def base(token):
     return token.rsplit("/", 1)[-1]
 
 
+def repo_name(repo):
+    return repo.rsplit("/", 1)[-1] if repo else ""
+
+
+def normalize_repo(repo):
+    if not repo or not isinstance(repo, str):
+        return ""
+    value = repo.strip().strip("'\"")
+    if not value:
+        return ""
+    value = value.rstrip("/")
+    value = re.sub(r"\.git$", "", value)
+    for pattern in (
+        r"github\.com[:/]([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)$",
+        r"^git@github\.com:([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)$",
+        r"^https?://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)$",
+        r"^ssh://git@github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)$",
+    ):
+        match = re.search(pattern, value, re.I)
+        if match:
+            return match.group(1).lower()
+    match = re.match(r"^([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)$", value)
+    if match:
+        return match.group(1).lower()
+    match = re.match(r"^[A-Za-z0-9_.-]+$", value)
+    return value.lower() if match else ""
+
+
+def repos_match(left, right):
+    left = normalize_repo(left)
+    right = normalize_repo(right)
+    if not left or not right:
+        return False
+    if "/" in left and "/" in right:
+        return left == right
+    return repo_name(left) == repo_name(right)
+
+
+def repo_from_github_url(text):
+    if not isinstance(text, str):
+        return ""
+    match = re.search(
+        r"github\.com[:/]([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)/(?:issues|pull)/[1-9][0-9]*\b",
+        text,
+        re.I,
+    )
+    return normalize_repo("%s/%s" % match.groups()) if match else ""
+
+
+def repos_from_github_urls(text, ref=""):
+    if not isinstance(text, str):
+        return set()
+    ref_pattern = re.escape(ref) if ref else r"[1-9][0-9]*"
+    repos = set()
+    for match in re.finditer(
+        r"github\.com[:/]([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)/(?:issues|pull)/(" + ref_pattern + r")\b",
+        text,
+        re.I,
+    ):
+        repos.add(normalize_repo("%s/%s" % (match.group(1), match.group(2))))
+    return {repo for repo in repos if repo}
+
+
+def repo_from_git_dir(path):
+    if not path:
+        return ""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", path, "remote", "get-url", "origin"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+    except Exception:
+        return ""
+    if completed.returncode != 0:
+        return ""
+    return normalize_repo(completed.stdout.strip())
+
+
+def hook_cwd(tool_input=None):
+    try:
+        payload = json.loads(RAW_INPUT)
+    except Exception:
+        payload = {}
+    if isinstance(tool_input, dict):
+        candidate = tool_input.get("cwd")
+        if isinstance(candidate, str) and candidate:
+            return candidate
+    candidate = payload.get("cwd") if isinstance(payload, dict) else ""
+    if isinstance(candidate, str) and candidate:
+        return candidate
+    return os.getcwd()
+
+
+def resolve_path(path, cwd):
+    if not path:
+        return cwd
+    return path if os.path.isabs(path) else os.path.abspath(os.path.join(cwd, path))
+
+
 def hash_refs(text):
-    return set(re.findall(r"(?<![A-Za-z0-9_/<])#([1-9][0-9]*)\b", text))
+    return set(re.findall(r"(?<![A-Za-z0-9_/<])#[ \t]*([1-9][0-9]*)\b", text))
 
 
 def closing_refs(text):
     keywords = r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)"
-    return set(re.findall(r"\b" + keywords + r"\s+#([1-9][0-9]*)\b", text, re.I))
+    return set(re.findall(r"\b" + keywords + r"\s+#[ \t]*([1-9][0-9]*)\b", text, re.I))
+
+
+def repo_qualified_refs(text):
+    refs = []
+    for match in re.finditer(
+        r"\b((?:[A-Za-z0-9_.-]+/)?[A-Za-z0-9_.-]+)#[ \t]*([1-9][0-9]*)\b",
+        text,
+    ):
+        repo = normalize_repo(match.group(1))
+        if repo:
+            refs.append((match.group(2), repo))
+    return refs
 
 
 def load_tool_input():
@@ -152,6 +268,67 @@ def issue_selector_refs(tail, start):
     return refs
 
 
+def issue_selector_repo(tail, start):
+    skip_next = False
+    for token in tail[start:]:
+        if token in BREAKS:
+            break
+        if skip_next:
+            skip_next = False
+            continue
+        if token in GH_FLAGS_WITH_VALUE:
+            skip_next = True
+            continue
+        if token.startswith("-") and token != "-":
+            continue
+        repo = repo_from_github_url(token)
+        if repo:
+            return repo
+    return ""
+
+
+def gh_repo_from_tail(tail):
+    for index, token in enumerate(tail):
+        if token in BREAKS:
+            break
+        if token in {"--repo", "-R"} and index + 1 < len(tail):
+            return normalize_repo(tail[index + 1])
+        if token.startswith("--repo="):
+            return normalize_repo(token.split("=", 1)[1])
+        if token.startswith("-R="):
+            return normalize_repo(token.split("=", 1)[1])
+    return ""
+
+
+def git_repo_from_tail(tail, cwd):
+    workdir = cwd
+    index = 0
+    while index < len(tail) and tail[index] not in BREAKS:
+        token = tail[index]
+        if token == "commit":
+            break
+        if token == "-C" and index + 1 < len(tail):
+            workdir = resolve_path(tail[index + 1], cwd)
+            index += 2
+            continue
+        if token.startswith("-C") and token != "-C":
+            workdir = resolve_path(token[2:], cwd)
+            index += 1
+            continue
+        if token in GIT_FLAGS_WITH_VALUE:
+            index += 2
+            continue
+        if token.startswith("-") and token != "-":
+            index += 1
+            continue
+        break
+    return repo_from_git_dir(workdir) or repo_from_git_dir(cwd)
+
+
+def current_repo(tool_input=None):
+    return repo_from_git_dir(hook_cwd(tool_input))
+
+
 def refs_from_file(path):
     refs = set()
     try:
@@ -203,40 +380,70 @@ def shell_inner_command(items, start):
     return ""
 
 
-def command_refs(command, depth=0):
+def add_context(contexts, ref, repo):
+    if ref:
+        contexts.append({"ref": str(ref), "repo": normalize_repo(repo)})
+
+
+def unique_contexts(contexts):
+    seen = set()
+    unique = []
+    for context in contexts:
+        key = (context.get("ref", ""), context.get("repo", ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(context)
+    return unique
+
+
+def command_ref_contexts(command, tool_input=None, depth=0):
     if depth > 2:
-        return set()
-    refs = set()
+        return []
+    contexts = []
     items = tokens(command)
+    cwd = hook_cwd(tool_input)
+    fallback_repo = current_repo(tool_input)
     for index in command_indices(items):
         token = items[index]
         if base(token) in SHELLS:
             inner = shell_inner_command(items, index)
             if inner:
-                refs.update(command_refs(inner, depth + 1))
+                contexts.extend(command_ref_contexts(inner, tool_input, depth + 1))
         if base(token) == "git" and git_has_subcommand(items[index + 1:], "commit"):
-            refs.update(closing_refs(command))
-            refs.update(commit_file_refs(items[index + 1:]))
+            repo = git_repo_from_tail(items[index + 1:], cwd)
+            for ref in closing_refs(command) | commit_file_refs(items[index + 1:]):
+                add_context(contexts, ref, repo)
         if base(token) != "gh":
             continue
         tail = items[index + 1:]
+        gh_repo = gh_repo_from_tail(tail) or fallback_repo
         for offset in range(len(tail) - 1):
             pair = (tail[offset], tail[offset + 1])
             if pair == ("pr", "create"):
-                refs.update(closing_refs(command))
-                refs.update(body_file_refs(tail))
+                for ref in closing_refs(command) | body_file_refs(tail):
+                    add_context(contexts, ref, gh_repo)
             if pair in {("issue", "close"), ("issue", "comment")}:
-                refs.update(hash_refs(command))
-                refs.update(issue_selector_refs(tail, offset + 2))
+                repo = issue_selector_repo(tail, offset + 2) or gh_repo
+                for ref in hash_refs(command) | issue_selector_refs(tail, offset + 2):
+                    add_context(contexts, ref, repo)
                 if pair == ("issue", "comment"):
-                    refs.update(body_file_refs(tail))
-    return refs
+                    for ref in body_file_refs(tail):
+                        add_context(contexts, ref, repo)
+    return unique_contexts(contexts)
 
 
-def current_refs():
+def current_ref_contexts():
     tool_input = load_tool_input()
     if TOOL == "mcp__plugin_discord_discord__reply":
-        return sorted(hash_refs(json.dumps(tool_input, ensure_ascii=False)), key=int)
+        text = json.dumps(tool_input, ensure_ascii=False)
+        contexts = []
+        for ref, repo in repo_qualified_refs(text):
+            add_context(contexts, ref, repo)
+        repo = current_repo(tool_input)
+        for ref in hash_refs(text):
+            add_context(contexts, ref, repo)
+        return sorted(unique_contexts(contexts), key=lambda item: int(item["ref"]))
     if TOOL != "Bash":
         return []
 
@@ -244,7 +451,7 @@ def current_refs():
     if not isinstance(command, str):
         return []
 
-    return sorted(command_refs(command), key=int)
+    return sorted(command_ref_contexts(command, tool_input), key=lambda item: int(item["ref"]))
 
 
 def gh_evidence_command(command, depth=0):
@@ -273,6 +480,25 @@ def gh_evidence_command(command, depth=0):
     return False
 
 
+def gh_evidence_repos(command, depth=0):
+    if depth > 2:
+        return set()
+    repos = repos_from_github_urls(command)
+    items = tokens(command)
+    for index in command_indices(items):
+        token = items[index]
+        if base(token) in SHELLS:
+            inner = shell_inner_command(items, index)
+            if inner:
+                repos.update(gh_evidence_repos(inner, depth + 1))
+        if base(token) != "gh":
+            continue
+        repo = gh_repo_from_tail(items[index + 1:])
+        if repo:
+            repos.add(repo)
+    return {repo for repo in repos if repo}
+
+
 def result_text(value):
     if isinstance(value, str):
         return value
@@ -292,7 +518,7 @@ def result_text(value):
 def mentions_ref(output, ref):
     escaped = re.escape(ref)
     patterns = [
-        r"(?<![A-Za-z0-9_/])#" + escaped + r"\b",
+        r"(?<![A-Za-z0-9_/])#\s*" + escaped + r"\b",
         r"/issues/" + escaped + r"\b",
         r"/pull/" + escaped + r"\b",
         r"\bnumber:\s*" + escaped + r"\b",
@@ -302,12 +528,47 @@ def mentions_ref(output, ref):
     return any(re.search(pattern, output, re.I | re.M) for pattern in patterns)
 
 
-refs = current_refs()
+def evidence_repos_for_ref(evidence, ref):
+    repos = repos_from_github_urls(evidence.get("output", ""), ref)
+    if repos:
+        return repos
+    return evidence.get("command_repos", set())
+
+
+def check_ref_context(context, evidences):
+    ref = context.get("ref", "")
+    target_repo = context.get("repo", "")
+    if not target_repo:
+        return ("PASS", ref, "", "")
+    candidates = [evidence for evidence in evidences if mentions_ref(evidence.get("output", ""), ref)]
+    if not candidates:
+        return ("MISSING", ref, "", "")
+
+    mismatched_repos = set()
+    saw_unknown_repo = False
+    for evidence in candidates:
+        repos = evidence_repos_for_ref(evidence, ref)
+        if not repos:
+            saw_unknown_repo = True
+            continue
+        if any(repos_match(target_repo, repo) for repo in repos):
+            return ("PASS", ref, "", "")
+        mismatched_repos.update(repos)
+
+    if saw_unknown_repo:
+        return ("PASS", ref, "", "")
+    if mismatched_repos:
+        return ("MISMATCH", ref, target_repo, ",".join(sorted(mismatched_repos)))
+    return ("PASS", ref, "", "")
+
+
+contexts = current_ref_contexts()
+refs = sorted({context["ref"] for context in contexts}, key=int)
 if MODE == "refs":
     print("\n".join(refs))
     raise SystemExit(0)
 
-if not refs or not JSONL:
+if not contexts or not JSONL:
     print("PASS")
     raise SystemExit(0)
 
@@ -334,8 +595,8 @@ for index in range(len(messages) - 1, -1, -1):
             start = index
             break
 
-tool_ids = set()
-outputs = []
+tool_repos = {}
+evidences = []
 for message in messages[start:]:
     content = message.get("message", {}).get("content", [])
     if message.get("type") == "assistant" and isinstance(content, list):
@@ -348,14 +609,26 @@ for message in messages[start:]:
             if isinstance(command, str) and gh_evidence_command(command):
                 tool_id = item.get("id")
                 if tool_id:
-                    tool_ids.add(tool_id)
+                    tool_repos[tool_id] = gh_evidence_repos(command)
     if message.get("type") == "user" and isinstance(content, list):
         for item in content:
-            if isinstance(item, dict) and item.get("type") == "tool_result" and item.get("tool_use_id") in tool_ids:
-                outputs.append(result_text(item.get("content", "")))
+            if isinstance(item, dict) and item.get("type") == "tool_result" and item.get("tool_use_id") in tool_repos:
+                evidences.append(
+                    {
+                        "output": result_text(item.get("content", "")),
+                        "command_repos": tool_repos.get(item.get("tool_use_id"), set()),
+                    }
+                )
 
-missing = [ref for ref in refs if not any(mentions_ref(output, ref) for output in outputs)]
-print("MISSING " + " ".join(missing) if missing else "PASS")
+for context in contexts:
+    status, ref, target_repo, evidence_repos = check_ref_context(context, evidences)
+    if status == "MISSING":
+        print("MISSING " + ref)
+        raise SystemExit(0)
+    if status == "MISMATCH":
+        print("MISMATCH " + ref + " " + target_repo + " " + evidence_repos)
+        raise SystemExit(0)
+print("PASS")
 PY
 }
 
@@ -398,6 +671,25 @@ sop_qa_rule_capture_before_reference_check() {
    Fix: capture URL→title mapping from gh response BEFORE referencing #${missing} anywhere
    downstream (PR body, Discord, commit message). Use sequential filing OR
    parse all responses before referencing.
+
+   Override: include \`GLUEBOY_GATE_BYPASS=<reason>\` in tool input."
+      return 1
+      ;;
+    MISMATCH*)
+      local missing
+      local target
+      local evidence
+      missing="$(printf '%s' "${status}" | awk '{print $2}')"
+      target="$(printf '%s' "${status}" | awk '{print $3}')"
+      evidence="$(printf '%s' "${status}" | awk '{print $4}')"
+      sop_qa_emit_hint "capture-before-reference" "reference to #${missing} has recent gh capture only from a different repo.
+
+   Target repo: ${target:-unknown}
+   Captured repo: ${evidence:-unknown}
+
+   Fix: capture the issue/PR from the same repo before referencing #${missing}
+   downstream, or use an explicit repo-qualified reference after same-repo
+   evidence is visible in the recent gh output.
 
    Override: include \`GLUEBOY_GATE_BYPASS=<reason>\` in tool input."
       return 1
