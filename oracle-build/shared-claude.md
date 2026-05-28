@@ -257,9 +257,9 @@ After ANY codex work completes (tile OR swarm), you MUST clean up BEFORE moving 
 > - `maw team close` was aspirational. The real verb is `maw team shutdown <name>` (alias: `maw team down <name>`).
 > - `maw cleanup --zombie-agents` and `maw cleanup --zombies` are CODED in the plugin (`~/.maw/plugins/cleanup/index.ts`) but the CLI dispatcher currently returns "unknown subcommand: cleanup" — separate routing bug to file at maw upstream. Until then, use the manual flow above.
 
-### SOP-QA Gate (Top-5 Doctrine Compliance — mechanical enforcement)
+### SOP-QA Gate (Top-6 Doctrine Compliance — mechanical enforcement)
 
-`scripts/hooks/sop-qa-gate.sh` enforces the top-5 doctrine rules whose violations have surfaced repeatedly in session-metrics. Each rule lives in `scripts/hooks/sop-qa-rules/NN-<slug>.sh` as a sourced bash file. The dispatcher iterates them, calls `_applies()` then `_check()` per rule.
+`scripts/hooks/sop-qa-gate.sh` enforces the top-6 doctrine rules whose violations have surfaced repeatedly in session-metrics. Each rule lives in `scripts/hooks/sop-qa-rules/NN-<slug>.sh` as a sourced bash file. The dispatcher iterates them, calls `_applies()` then `_check()` per rule.
 
 | # | Rule | Triggers | Block hint |
 |---|---|---|---|
@@ -268,10 +268,11 @@ After ANY codex work completes (tile OR swarm), you MUST clean up BEFORE moving 
 | 3 | Bypass-flag | Bash with `maw tile` + `codex` | Require `--dangerously-bypass-approvals-and-sandbox` in command |
 | 4 | Pane re-check | Bash with `maw hey <session>:<window>.<pane>` | After most recent `maw kill`/`tile clean`, require `maw panes` before this brief |
 | 5 | bg-task wakeup | Bash with `run_in_background: true` | Require paired `ScheduleWakeup` (or Monitor) in same assistant turn |
+| 6 | capture-before-reference | Bash with `Closes #N` / Discord reply with `#N` / `gh issue close` | Require recent `gh issue create`/`gh pr view`/`gh issue view` output containing `#N` in last 10 turns |
 
 Each block exits 2 with a structured hint to stderr explaining the rule + the override path. Pass exits 0 silently.
 
-**Override** (logged): include `GLUEBOY_GATE_BYPASS=<reason>` anywhere in the tool input. Reason text required, reason captured in `~/.claude/.sop-qa-gate/gate.log`.
+**Override** (logged): include `GLUEBOY_GATE_BYPASS=<reason>` anywhere in the tool input. Reason text required, reason captured in `~/.claude/.sop-qa-gate/gate.log`. For rule 6, use this only when the issue/PR reference was verified outside the recent `gh` evidence window, e.g. `GLUEBOY_GATE_BYPASS=external-gh-reference-verified`.
 
 **Fail-open**: any internal error (missing JSONL, parse failure, unknown tool) → exit 0. The gate never breaks a tool call due to a gate bug.
 
@@ -281,8 +282,9 @@ Caught violation history this gate would have prevented (and inspired):
 - Instance 9b (2026-05-24): bg-task without paired ScheduleWakeup → rule 5
 - Multiple earlier: pane reindex confusion after kill → rule 4
 - Multiple earlier: edit before filing GH issue → rule 2
+- Instance 14 variant (2026-05-28): mental issue-number sequencing before reading `gh` response → rule 6
 
-Tests: `scripts/hooks/test-sop-qa-gate.sh` (17 cases, all pass).
+Tests: `scripts/hooks/test-sop-qa-gate.sh` (focused SOP-QA gate suite; count lives in the test output).
 
 Shipped 2026-05-25 (issue #57, parent #50 L3.5 decision).
 
