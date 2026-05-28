@@ -342,20 +342,20 @@ build_prompt_file() {
 CMD=()
 case "$MODE" in
   review-uncommitted)
-    CMD=(codex "${CODEX_GLOBAL_ARGS[@]}" review --uncommitted)
+    CMD=(codex ${CODEX_GLOBAL_ARGS[@]+"${CODEX_GLOBAL_ARGS[@]}"} review --uncommitted)
     ;;
   review-base)
     [ -n "$BASE_REF" ] || die "--base requires REF"
-    CMD=(codex "${CODEX_GLOBAL_ARGS[@]}" review --base "$BASE_REF")
+    CMD=(codex ${CODEX_GLOBAL_ARGS[@]+"${CODEX_GLOBAL_ARGS[@]}"} review --base "$BASE_REF")
     ;;
   review-commit)
     [ -n "$COMMIT_SHA" ] || die "--commit requires SHA"
-    CMD=(codex "${CODEX_GLOBAL_ARGS[@]}" review --commit "$COMMIT_SHA")
+    CMD=(codex ${CODEX_GLOBAL_ARGS[@]+"${CODEX_GLOBAL_ARGS[@]}"} review --commit "$COMMIT_SHA")
     ;;
   exec-prompt|exec-template)
     build_prompt_file
     PROMPT_TEXT="$(cat "$TEMP_PROMPT")"
-    CMD=(codex "${CODEX_GLOBAL_ARGS[@]}" exec --ephemeral --skip-git-repo-check -s read-only -C "$REPO_ABS" "$PROMPT_TEXT")
+    CMD=(codex ${CODEX_GLOBAL_ARGS[@]+"${CODEX_GLOBAL_ARGS[@]}"} exec --ephemeral --skip-git-repo-check -s read-only -C "$REPO_ABS" "$PROMPT_TEXT")
     ;;
   *)
     die "internal error: unknown mode $MODE"
