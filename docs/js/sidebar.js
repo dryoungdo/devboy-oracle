@@ -82,7 +82,8 @@ var DEVBOY_NAV = [
       ['055-anthropic-advanced-guide.html', '055 Advanced Guide'],
       ['056-glueboy-codex-coding-hands-goal-arc.html', '056 GLUEBOY /goal arc'],
       ['066-claude-code-v2-1-154-opus-4-8.html', '066 Claude Code v2.1.154 (Opus 4.8)'],
-      ['067-claude-md-token-mechanics-lean.html', '067 Lean CLAUDE.md (tokens/skills/hooks)']
+      ['067-claude-md-token-mechanics-lean.html', '067 Lean CLAUDE.md (tokens/skills/hooks)'],
+      ['068-lean-claude-md-keep-cut.html', '068 Lean CLAUDE.md II (keep/cut + rules)']
     ]],
     ['Chula AI Class', [
       ['057-ai-models-chula-class.html', '057 AI Models (Overview)'],
