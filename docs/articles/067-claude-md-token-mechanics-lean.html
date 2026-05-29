@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Lean CLAUDE.md — กลไกการโหลด context, อะไรลด token อะไรไม่ลด (@import vs skills vs hooks), CLAUDE.md vs AGENTS.md, และวิธี slim doctrine โดยไม่ทำให้ workflow พัง">
+  <title>067 &mdash; Lean CLAUDE.md (tokens, skills, hooks) | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">067 &mdash; Lean CLAUDE.md (tokens, skills, hooks)</span>
+        <span class="topbar-date">2026-05-30</span>
+      </div>
+      <div class="content-shell">
+        <h1>Lean CLAUDE.md &mdash; ลด token โดยไม่ทำให้ workflow พัง</h1>
+        <div class="article-meta">
+          <span class="tag">claude-md</span>
+          <span class="tag">agents-md</span>
+          <span class="tag">skills</span>
+          <span class="tag">hooks</span>
+          <span class="tag">context-engineering</span>
+          <span class="tag">codex</span>
+          &middot; deep-research verified (3-vote adversarial)
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <p>
+          GLUEBOY <code>CLAUDE.md</code> ยาว <strong>810 บรรทัด</strong> &mdash; ประมาณ 4 เท่าของที่ Anthropic แนะนำ (~200 บรรทัด).
+          คำถามคือ: จะ <em>slim</em> ยังไงให้ลด token ได้จริง <strong>โดยไม่ทำให้ workflow ที่ทำงานดีอยู่แล้วพัง</strong>?
+          บทนี้คือคำตอบที่ verify จากเอกสารทางการ (deep-research: 19 sources, 92 claims &rarr; ยืนยัน 13 ข้อด้วยการโหวตแบบ adversarial 3 เสียง).
+        </p>
+
+        <div class="callout">
+          <strong>TL;DR &mdash; สถาปัตยกรรม lean-but-safe:</strong><br>
+          <strong>lean core (always-loaded)</strong> + <strong>Skills (on-demand)</strong> + <strong>HOOKS (must-fire)</strong>.
+          การย้าย prose ไปไฟล์อื่นแล้ว <code>@</code>-import <em>ไม่ลด token เลย</em>. กฎที่ "ต้องเกิดทุกครั้ง" ต้องอยู่ใน hook ไม่ใช่ prose ที่ตัด/ย้ายได้.
+        </div>
+
+        <!-- A -->
+        <section>
+          <h2>A &mdash; ทำไม CLAUDE.md ยาวเกินถึงเป็นปัญหาจริง</h2>
+          <p>
+            เอกสาร Anthropic เขียนตรง ๆ: <em>"target under 200 lines per CLAUDE.md file. Longer files consume more context and reduce adherence"</em>
+            และ <em>"Bloated CLAUDE.md files cause Claude to ignore your actual instructions."</em>
+          </p>
+          <p>
+            แปลไทย: ยิ่งไฟล์ยาว &rarr; กิน context มากขึ้น <strong>และ Claude เริ่ม "ไม่ทำตาม" กฎที่สำคัญ</strong> เพราะมันจมอยู่ในกองข้อความ.
+            <code>CLAUDE.md</code> ถูกโหลด <strong>เต็มทุก session ไม่ว่าจะยาวแค่ไหน</strong> &mdash; ไม่มีการตัดอัตโนมัติ.
+          </p>
+          <p class="src">ที่มา: code.claude.com/docs/memory, /best-practices</p>
+        </section>
+
+        <!-- B -->
+        <section>
+          <h2>B &mdash; กลไกการโหลด: อะไรลด token อะไรไม่ลด</h2>
+          <p>นี่คือจุดที่คนเข้าใจผิดบ่อยที่สุด (ผมเองก็เคยเข้าใจผิด):</p>
+          <table class="cmp">
+            <thead><tr><th>กลไก</th><th>โหลดเมื่อไหร่</th><th>ลด token?</th></tr></thead>
+            <tbody>
+              <tr><td><code>CLAUDE.md</code> เนื้อหา</td><td>เต็ม ทุก session</td><td>&mdash; (ฐาน)</td></tr>
+              <tr><td><code>@path</code> import</td><td><strong>ตอน launch</strong> (พร้อม CLAUDE.md)</td><td>❌ <strong>ไม่ลดเลย</strong></td></tr>
+              <tr><td>prose pointer (<em>"ดู ψ/reference/X.md"</em>)</td><td>on-demand (Claude เปิดอ่านเอง)</td><td>✅ ลด</td></tr>
+              <tr><td><strong>Skill</strong></td><td>name+description ตอนแรก, body ตอนใช้</td><td>✅ ลด</td></tr>
+              <tr><td><code>.claude/rules/</code> (path-scoped)</td><td>ตอนแตะไฟล์ที่ glob match</td><td>✅ ลด (เฉพาะ file-scoped)</td></tr>
+            </tbody>
+          </table>
+          <p>
+            <strong>บทเรียนสำคัญ:</strong> การ "ย้าย section ไปไฟล์ reference แล้ว <code>@</code>-import" <em>ไม่ช่วยลด token</em> เพราะ import โหลดตอน launch อยู่ดี.
+            ของที่ลดจริงมีแค่ <strong>Skills</strong>, <strong><code>.claude/rules/</code></strong>, หรือ <strong>prose pointer</strong> (ที่ไม่ใช่ <code>@</code>-import &mdash; Claude เลือกเปิดอ่านเองตอนต้องใช้).
+          </p>
+          <div class="callout ok">
+            <strong>เช็คกับ GLUEBOY แล้ว:</strong> CLAUDE.md ของเรา <em>ไม่ได้</em> <code>@</code>-import ไฟล์ <code>ψ/reference/</code> &mdash; มันชี้ด้วย prose path เฉย ๆ.
+            แปลว่า pattern <code>ψ/reference</code> ของเรา <strong>ลด token จริงอยู่แล้ว</strong> และการ slim cluster ที่ซ้ำเหลือ pointer = ประหยัด token ของจริง.
+          </div>
+          <p class="src">ที่มา: code.claude.com/docs/memory (verbatim 3 ท่อน, โหวต 3-0)</p>
+        </section>
+
+        <!-- C -->
+        <section>
+          <h2>C &mdash; CLAUDE.md vs AGENTS.md: ใครอ่านอะไร</h2>
+          <p>
+            <strong>Claude Code อ่าน <code>CLAUDE.md</code> เท่านั้น ไม่อ่าน <code>AGENTS.md</code></strong> โดยตรง (ยังเป็น feature request อยู่).
+            ส่วน <strong>Codex อ่าน <code>AGENTS.md</code></strong> เอง (เดินไฟล์จาก git root ลงมา, ตัวใกล้ที่สุดชนะ, จำกัด 32 KiB ไม่งั้นตัดทิ้งเงียบ ๆ).
+          </p>
+          <p>
+            Pattern ที่ทางการแนะนำสำหรับใช้ทั้งคู่: ให้ <code>CLAUDE.md</code> <code>@AGENTS.md</code>-import contract ที่แชร์กัน + เขียนกฎเฉพาะ Claude ไว้ข้างล่าง &mdash; ทั้งสอง tool อ่าน source เดียวกัน ไม่ต้องเขียนซ้ำ.
+          </p>
+          <p>
+            <strong>คำถาม orchestrator (สำคัญ):</strong> Claude เป็น orchestrator &mdash; ต้อง "รู้ว่า Codex ทำอะไร" แค่ไหน?
+            คำตอบ: รู้แบบ <em>lean model ของ worker</em> &mdash; Codex เก่งอะไร, ใช้เมื่อไหร่, dispatch ยังไง (กลไกพวกนี้ hook บังคับ), verify output ยังไง.
+            <strong>ไม่ต้อง</strong> เก็บ contract พฤติกรรมเต็มของ Codex ไว้ใน context. contract เต็มอยู่ที่ <code>AGENTS.md</code> ที่ Codex อ่านเอง.
+          </p>
+          <p class="src">ที่มา: code.claude.com/docs/memory, developers.openai.com/codex/guides/agents-md</p>
+        </section>
+
+        <!-- D -->
+        <section>
+          <h2>D &mdash; Skills โหลด on-demand</h2>
+          <p>
+            ตอนเริ่ม session โหลดแค่ <strong>name + description</strong> ของทุก skill เข้า system prompt. ตัว <code>SKILL.md</code> เต็ม ๆ จะโหลด <em>เฉพาะตอนที่ skill เกี่ยวข้อง</em>.
+            Anthropic แนะนำตรง ๆ: เปลี่ยน section ใน CLAUDE.md เป็น skill <em>"when it has grown into a procedure rather than a fact"</em> &mdash; เมื่อมันกลายเป็น "ขั้นตอน" มากกว่า "ข้อเท็จจริง".
+          </p>
+          <p class="src">ที่มา: code.claude.com/docs/skills, /agent-skills/best-practices</p>
+        </section>
+
+        <!-- E -->
+        <section>
+          <h2>E &mdash; ⚠️ over-trim พังยังไง (ความกังวลที่ถูกต้อง)</h2>
+          <p>
+            "ถ้าตัดเยอะเกินจะพังไหม?" &mdash; <strong>พังได้จริง</strong>, และเอกสารยืนยัน failure mode นี้:
+            ถ้าย้าย procedure ไปเป็น skill ที่ <strong>description อ่อนเกินจน Claude ไม่ trigger</strong> &rarr; skill นั้นไม่เข้า context เลย &rarr; <strong>behavior หายเงียบ ๆ</strong>.
+          </p>
+          <p>"Claude จะลืมไหม?" &rarr; <strong>ลืมจริง</strong> สำหรับ skill ที่ไม่เคยถูกเรียก. ตัวกัน:</p>
+          <ul>
+            <li>เขียน description ให้แรง + มี keyword ที่ผู้ใช้พูดจริง</li>
+            <li>ใช้คำสั่งเข้ม (<code>MUST</code> ดีกว่า <code>always</code>)</li>
+            <li>จัดโครงสร้างให้กฎเด่น</li>
+            <li>กฎที่ห้ามพลาด &rarr; <strong>ใช้ hook</strong> (ข้อ F)</li>
+          </ul>
+          <p class="src">ที่มา: code.claude.com/docs/skills (Troubleshooting), /best-practices</p>
+        </section>
+
+        <!-- F -->
+        <section>
+          <h2>F &mdash; HOOKS คือตัวบังคับกฎ must-fire</h2>
+          <p>
+            <code>CLAUDE.md</code> เป็นแค่ <strong>"context แนะนำ"</strong> &mdash; ไม่มีการรับประกันว่าจะทำตาม.
+            เอกสารบอกเอง: <em>"To block an action regardless of what Claude decides, use a PreToolUse hook instead."</em>
+          </p>
+          <p>
+            แปลว่ากฎที่ <strong>ต้องเกิดทุกครั้ง</strong> (เช่น Codex <code>--force</code>, dispatcher bypass-flag, issue-first) ไม่ควรเป็น prose ใน CLAUDE.md
+            &mdash; ควรเป็น <strong>hook</strong>. ของ GLUEBOY กฎพวกนี้ <strong>มี SOP-QA gate hook บังคับอยู่แล้ว</strong> &rarr;
+            ใน CLAUDE.md จึงเหลือแค่ pointer 1 บรรทัดได้ เพราะ <em>hook</em> เป็นตัวการันตี behavior ไม่ใช่ตัวหนังสือ.
+          </p>
+          <p class="src">ที่มา: code.claude.com/docs/memory, /skills</p>
+        </section>
+
+        <!-- G -->
+        <section>
+          <h2>G &mdash; สรุป: สถาปัตยกรรม lean-but-safe + ใช้กับ GLUEBOY</h2>
+          <p>3 ชั้น แบ่งตาม "ต้องอยู่ทุก session ไหม" และ "ต้องเกิดทุกครั้งไหม":</p>
+          <ol>
+            <li><strong>Lean core (always-loaded):</strong> identity, principles, กฎที่ใช้ทุก session จริง ๆ &mdash; สั้น คม</li>
+            <li><strong>Skills (on-demand):</strong> ขั้นตอน/รายละเอียด/ตัวอย่างที่ใช้ "บางที" &mdash; โหลดตอนเกี่ยว ไม่กิน token ตอนไม่ใช้</li>
+            <li><strong>Hooks (deterministic):</strong> กฎ "ห้ามพลาด" &mdash; บังคับด้วยโค้ด ไม่ใช่ prose</li>
+          </ol>
+          <p>การ apply กับ GLUEBOY (ทั้งหมด gated รอ Captain เคาะ):</p>
+          <ul>
+            <li><strong>Codex cluster (149 บรรทัด):</strong> must-fire &rarr; pointer 1 บรรทัด (hook คุม); explanatory &rarr; ไฟล์ reference เดิม (prose-pointer) หรือ <code>/codex</code> skill; worker-facing &rarr; <code>AGENTS.md</code></li>
+            <li><strong>BOY-fleet/Mycelium doctrine (เลิกใช้แล้ว):</strong> ย้ายไป reference &mdash; fleet table ปัจจุบัน stale (ลิสต์ตัวที่เลิกใช้ ไม่มีตัวที่ใช้จริง)</li>
+            <li><strong>ก่อน migrate ไป skill:</strong> เช็ค <code>/context</code> บน build จริงก่อน &mdash; อย่าเดาว่าลด token, วัดจริง</li>
+          </ul>
+        </section>
+
+        <!-- Caveats -->
+        <section>
+          <h2>Caveats (ความซื่อสัตย์ของงานวิจัย)</h2>
+          <ul>
+            <li>ไม่มี source หน้าไหนถูก stamp version เป๊ะ ๆ ว่า v2.1.156 &mdash; แต่กลไกการโหลดเป็น doctrine ที่เสถียร ไม่เปลี่ยนตาม version. (<code>model: opus</code> alias ต้อง &ge;2.1.154)</li>
+            <li>"ลด adherence" เป็น <em>guidance</em> ของ Anthropic ไม่ใช่ benchmark ที่ตีพิมพ์ &mdash; ตัวเลข (~150-200 instruction slots) มาจาก practitioner ภายนอก</li>
+            <li>⚠️ มี GitHub issue 1 อัน (ยังไม่ยืนยัน, 0 โหวต) อ้างว่า <code>/context</code> โชว์ skill กิน token เต็มตอน startup (ขัดกับ progressive disclosure). <strong>ไม่ได้ใช้อ้างอิง</strong> &mdash; แต่ควรเช็ค <code>/context</code> เองก่อน migrate ใหญ่</li>
+          </ul>
+          <p class="src">deep-research run <code>wf_3c4cc366-722</code> &middot; 101 agents &middot; ~4M tokens &middot; glueboy-oracle #138/#139/#141 (epic #140)</p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
