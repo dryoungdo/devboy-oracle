@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ภาค 2 ของ Lean CLAUDE.md — เก็บบรรทัดไหน ตัดบรรทัดไหน (per-line test), ทำไม .claude/rules/ ไม่ฟิต behavioral doctrine, persona/orchestration ควร slim แค่ไหน — research-verified">
+  <title>068 &mdash; Lean CLAUDE.md ภาค 2: เก็บอะไร ตัดอะไร | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">068 &mdash; Lean CLAUDE.md ภาค 2: เก็บอะไร ตัดอะไร</span>
+        <span class="topbar-date">2026-05-30</span>
+      </div>
+      <div class="content-shell">
+        <h1>Lean CLAUDE.md ภาค 2 &mdash; เก็บบรรทัดไหน ตัดบรรทัดไหน (และทำไม `.claude/rules/` ไม่ใช่คำตอบ)</h1>
+        <div class="article-meta">
+          <span class="tag">claude-md</span>
+          <span class="tag">claude-rules</span>
+          <span class="tag">persona</span>
+          <span class="tag">orchestration</span>
+          <span class="tag">hooks</span>
+          <span class="tag">context-engineering</span>
+          &middot; deep-research ×2, 33 confirmed findings (3-vote adversarial)
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <p>
+          ภาค 1 (<strong>067</strong>) ตอบเรื่อง <em>กลไก</em> &mdash; อะไรลด token อะไรไม่ลด, lean core + skills + hooks.
+          ภาคนี้ตอบเรื่อง <em>การตัดสินใจ</em>: เมื่อมี CLAUDE.md 810 บรรทัด จะ <strong>เก็บบรรทัดไหน ตัดบรรทัดไหน</strong> โดยมีหลักการ &mdash; และเครื่องมือ <code>.claude/rules/</code> ที่หลายคนคิดว่าใช่ <strong>จริง ๆ ไม่ฟิต</strong>.
+          (verify จาก deep-research 2 รอบ: <code>wf_1c27e0f1-0e4</code> + <code>wf_04e60576-a3c</code>)
+        </p>
+
+        <!-- A -->
+        <section>
+          <h2>A &mdash; ⚠️ `.claude/rules/` ไม่ฟิตกับ behavioral doctrine</h2>
+          <p><code>.claude/rules/</code> มี frontmatter key เดียว = <code>paths</code> (glob). มี 2 โหมด:</p>
+          <ul>
+            <li><strong>ไม่มี `paths`</strong> → โหลด <em>ทุก session</em> priority เท่า CLAUDE.md (= cost เท่ากัน ไม่ประหยัด token เลย แค่แยกไฟล์)</li>
+            <li><strong>มี `paths`</strong> → โหลด <em>เฉพาะตอน Claude อ่านไฟล์ที่ตรง glob</em> &mdash; ไม่ใช่ตอน Write/Edit, ไม่ใช่ behavioral trigger</li>
+          </ul>
+          <p>
+            ⇒ doctrine เรื่อง <strong>delegation / codex-dispatch / identity</strong> มัน <strong>ไม่ผูกกับการเปิดไฟล์</strong> → ไม่มี read event มา fire → มัน <strong>หายเงียบ ๆ</strong>.
+            สรุป: <code>.claude/rules/</code> เหมาะกับกฎ <em>เฉพาะไฟล์</em> (เช่น "ไฟล์ใน src/api ต้อง validate input") ไม่ใช่กฎ <em>พฤติกรรม</em>.
+            behavioral doctrine ต้องอยู่ใน <strong>CLAUDE.md ที่ lean</strong> หรือ <strong>Skill</strong> (+ hook ถ้า must-fire).
+          </p>
+          <p>เสริม: ไม่ทำให้ PreToolUse hook พัง (hook fire ตาม tool-name อิสระจาก prose). risk หลัก = <strong>version-fragility</strong> (หลาย bug ข้าม version) → pin + test ด้วย <code>/context</code> บน build จริงก่อน.</p>
+          <p class="src">ที่มา: code.claude.com/docs/memory + claude-code issues 23478/38487/16299/21858/17204</p>
+        </section>
+
+        <!-- B -->
+        <section>
+          <h2>B &mdash; กฎ keep/cut: per-line necessity test</h2>
+          <p>หลักทางการสำหรับ "เก็บอะไร":</p>
+          <div class="callout">
+            <strong>Per-line test:</strong> <em>"ถ้าลบบรรทัดนี้ Claude จะทำพลาดไหม? ถ้าไม่ → ตัด"</em>
+          </div>
+          <ul>
+            <li><strong>เก็บ:</strong> คำสั่งที่เดาไม่ได้, style ที่<em>ต่าง</em>จาก default, architectural decision, env quirk, gotcha ที่ไม่ชัด, กฎ "always do X" ที่ใช้กว้าง</li>
+            <li><strong>ย้ายออก (skills/rules):</strong> ขั้นตอนหลายสเต็ป, ความรู้ที่ใช้บางที, workflow เฉพาะพื้นที่</li>
+            <li><strong>ตัดทิ้ง:</strong> อะไรที่ Claude เดาจากโค้ดได้, convention มาตรฐานที่มันรู้แล้ว, คำอธิบายไฟล์ทีละไฟล์, สิ่งที่รู้กันอยู่แล้ว ("เขียนโค้ดสะอาด")</li>
+          </ul>
+          <p>
+            ⚠️ <strong>การแก้ความเข้าใจผิด:</strong> ตัวเลข "<strong>~200 บรรทัด</strong>" เป็น <em>soft guideline ไม่ใช่ hard threshold ที่วัดมา</em> (refuted 0-3 ในการ verify). อย่าเล็งที่จำนวนบรรทัด &mdash; ใช้ per-line test.
+            และ "ไฟล์ยาวเกิน" คือ<em>สาเหตุที่ถูกวินิจฉัย</em>เวล Claude ไม่ทำตามกฎที่<em>มีอยู่</em> → prune หรือเปลี่ยนเป็น hook อย่า restate.
+          </p>
+          <p class="src">ที่มา: anthropic.com/engineering/claude-code-best-practices, code.claude.com/docs/best-practices</p>
+        </section>
+
+        <!-- C -->
+        <section>
+          <h2>C &mdash; Persona: slim ไม่ใช่ลบ</h2>
+          <p>
+            งานวิจัย (Zheng EMNLP-2024, Wharton, PRISM): persona แบบ <strong>verbose ไม่ช่วย</strong> ความแม่นเชิงข้อเท็จจริง (อาจ<em>ทำให้แย่ลง</em>ด้วยซ้ำ).
+            <strong>แต่</strong> นั่นคือเรื่อง <em>accuracy</em> ไม่ใช่ <em>tone/voice/role</em>. เอกสาร Claude 4 บอก: "ตั้ง role แค่ประโยคเดียวก็ทำให้ต่างได้" (ด้าน tone).
+          </p>
+          <div class="callout ok"><strong>⇒ slim identity ให้เหลือไม่กี่บรรทัดที่ signal สูง</strong> &mdash; อย่าขยายเพื่อหวัง accuracy, แต่ก็อย่าลบทิ้ง (มันช่วยจัด tone/voice). <em>(หมายเหตุ: null-result นี้มีงานแย้ง 1 ชิ้นว่า baseline เองก็มี persona)</em></div>
+        </section>
+
+        <!-- D -->
+        <section>
+          <h2>D &mdash; Orchestration: ตัด prose ทั่วไป เก็บ "ข้อเท็จจริง"</h2>
+          <p>
+            Frontier model "delegate ให้ subagent <strong>เองโดยไม่ต้องสั่ง</strong>" → prose ทั่วไปแบบ "delegate เมื่อเหมาะสม" <strong>ตัดได้</strong>. ความต้องการจริงคือ<em>คุมไม่ให้ over-delegate</em> ไม่ใช่สั่งให้ delegate.
+          </p>
+          <p>
+            ⚠️ <strong>version-fragile + เกี่ยวกับเราตรง ๆ:</strong> Opus 4.6 spawn เยอะเกิน; <strong>Opus 4.8 (runtime เรา) spawn น้อยลง</strong> → bias อาจกลับด้าน. คำถามเปิด: บน 4.8 เราอาจต้อง<em>เก็บ/กระตุ้น</em> delegation มากกว่าจะตัด &mdash; ต้องดูจากพฤติกรรมจริง ไม่ใช่เดาจาก doc.
+          </p>
+          <p>
+            <strong>เก็บ:</strong> ข้อเท็จจริงเฉพาะ GLUEBOY (BOY ไหนทำอะไร, รูปคำสั่ง <code>maw</code> เป๊ะ ๆ, codex <code>--force</code>/bypass gotcha) &mdash; เฉพาะโปรเจกต์ + เดาไม่ได้. <strong>ตัด:</strong> ปรัชญา delegation ทั่วไป.
+          </p>
+          <p class="src">ที่มา: docs.claude.com/.../claude-4-best-practices, claude-code issue 27645</p>
+        </section>
+
+        <!-- E -->
+        <section>
+          <h2>E &mdash; Must-fire → hooks; emphasis ใช้ได้</h2>
+          <p>
+            กฎที่<strong>ต้องเกิดทุกครั้ง</strong> → <strong>PreToolUse hook</strong> (CLAUDE.md เป็น context ไม่ใช่ config บังคับ). กฎที่ hook คุมอยู่แล้ว เหลือ pointer 1 บรรทัดได้.
+          </p>
+          <p>
+            ✅ <strong>"CRITICAL / You MUST" ไม่ใช่ anti-pattern</strong> (refuted 0-3) &mdash; emphasis ยังเป็น lever เพิ่ม adherence ที่ถูกต้อง. ตัวแก้ "กฎโดนเมิน" คือ prune ความยาว / ย้ายไป hook ไม่ใช่ทำให้คำสั่งอ่อนลง.
+          </p>
+        </section>
+
+        <!-- F -->
+        <section>
+          <h2>F &mdash; วิธี "101": minimal-set</h2>
+          <p>
+            เริ่มจาก prompt <strong>minimal</strong> บนโมเดล<strong>ดีที่สุด</strong> → ดูผล → เพิ่ม<em>เฉพาะ</em>คำสั่งที่แก้ failure ที่<strong>เห็นจริง</strong> (ไม่ใช่ที่กลัวว่าจะเกิด). "Minimal ≠ สั้น" &mdash; มันคือชุดที่เล็กที่สุดที่ครอบคลุมพฤติกรรมที่ต้องการ.
+          </p>
+          <p class="src">ที่มา: anthropic.com/engineering/effective-context-engineering-for-ai-agents</p>
+        </section>
+
+        <!-- G -->
+        <section>
+          <h2>G &mdash; สรุป + ใช้กับ GLUEBOY</h2>
+          <p>การพิสูจน์จริงคือ <strong>A/B prune-and-observe กับ CLAUDE.md 810 บรรทัดของเราเอง</strong> (รัน per-line test กับไฟล์จริง ไม่ใช่เดา):</p>
+          <ul>
+            <li>เก็บ: ข้อเท็จจริงเฉพาะโปรเจกต์ + must-fire (hook คุม) + identity สั้น ๆ</li>
+            <li>ย้าย: ขั้นตอน/รายละเอียด → skills (โหลด on-demand)</li>
+            <li>ตัด: prose ที่ restate default ของโมเดล</li>
+            <li><strong>ไม่</strong> ไล่ตาม <code>.claude/rules/</code> สำหรับ behavioral doctrine</li>
+            <li>ดูพฤติกรรม Opus 4.8 จริงเรื่อง delegation ก่อนตัด orchestration doctrine</li>
+          </ul>
+        </section>
+
+        <!-- Caveats -->
+        <section>
+          <h2>Caveats</h2>
+          <ul>
+            <li>verify vs Claude Code v2.1.156; subagent-bias เป็น version-fragile (re-check บน 4.8)</li>
+            <li>persona null-result scope เฉพาะ accuracy + มีงานแย้ง 1 ชิ้น</li>
+            <li>ไม่มีงานวิจัยไหนวัดการ slim agent ที่เป็น persona+orchestrator พร้อมกันโดยตรง → A/B บนไฟล์เราเองคือคำตอบสุดท้าย</li>
+          </ul>
+          <p class="src">deep-research runs wf_1c27e0f1-0e4 (#137) + wf_04e60576-a3c (#138) &middot; glueboy-oracle #137/#138/#139/#141 (epic #140)</p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
