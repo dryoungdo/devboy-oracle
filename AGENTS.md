@@ -4,7 +4,7 @@
 
 | Agent | Role | Model | Node | Tmux |
 |-------|------|-------|------|------|
-| **DEVBOY** | R&D Incubator + Continuous Learner | Claude Opus 4.6 | clinic-drdo | 01-devboy |
+| **DEVBOY** | R&D Incubator + Continuous Learner | Claude Opus 4.8 (xhigh) | clinic-drdo | 01-devboy |
 
 ## Fleet Context (v3)
 
