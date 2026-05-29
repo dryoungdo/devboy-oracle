@@ -148,7 +148,7 @@ patch_discord_plugin_env
 # manual launches behave like before. `maw wake devboy` exports CLAUDE_CONTINUE=1
 # via commands.devboy in ~/.config/maw/maw.config.json.
 CLAUDE_ARGS=(
-  --model claude-opus-4-6
+  --model claude-opus-4-8
   --dangerously-skip-permissions
   --channels plugin:discord@claude-plugins-official
 )
