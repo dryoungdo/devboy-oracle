@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Claude Code v2.1.154 &mdash; ยุค Opus 4.8: dynamic workflows, fast mode, lean prompt, และ fix ที่สำคัญต่อ fleet ของเรา">
+  <title>066 &mdash; Claude Code v2.1.154: ยุค Opus 4.8 | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">066 &mdash; Claude Code v2.1.154: ยุค Opus 4.8</span>
+        <span class="topbar-date">2026-05-29</span>
+      </div>
+      <div class="content-shell">
+        <h1>Claude Code v2.1.154 &mdash; ยุค Opus 4.8 เริ่มแล้ว</h1>
+        <div class="article-meta">
+          <span class="tag">claude-code</span>
+          <span class="tag">opus-4-8</span>
+          <span class="tag">dynamic-workflows</span>
+          <span class="tag">fast-mode</span>
+          <span class="tag">release-notes</span>
+          <span class="tag">v2-1-154</span>
+          <span class="maturity solid">&#10004; solid (จาก official release notes v2.1.154)</span>
+        </div>
+
+        <p><strong>Source:</strong> <a href="https://github.com/anthropics/claude-code/releases/tag/v2.1.154">anthropics/claude-code release v2.1.154</a> (28 พ.ค. 2026) &mdash; ดึงด้วย <code>gh release view</code> ไม่ใช่เดาจากความจำ</p>
+        <p>วันที่ 28 พ.ค. 2026 Claude Code ออกเวอร์ชัน <strong>v2.1.154</strong> &mdash; เวอร์ชันที่เปิดยุค <strong>Opus 4.8</strong> อย่างเป็นทางการ. บทความนี้สรุปว่ามีอะไรใหม่ <strong>ที่ fleet ของเราควรใช้</strong> และ fix ตัวไหนที่กระทบ workflow ของเราตรงๆ</p>
+
+        <section>
+          <h2>1 &mdash; ภาพรวม: เปลี่ยนจาก "ผู้ช่วยคนเดียว" เป็น "หัวหน้าทีม"</h2>
+          <p>ลองนึกภาพช่างคนเดียวที่เก่งมาก &mdash; v2.1.154 ไม่ได้แค่ทำให้ช่างคนนั้นเก่งขึ้น (Opus 4.8) แต่ให้เขา <strong>"จ้างทีมงานหลักร้อยคน"</strong> มาทำงานพร้อมกันใน background ได้ด้วย (dynamic workflows)</p>
+          <p>3 แกนหลักของเวอร์ชันนี้:</p>
+          <ol>
+            <li><strong>โมเดลฉลาดขึ้น</strong> &mdash; Opus 4.8 เป็น default</li>
+            <li><strong>ขยายกำลังได้</strong> &mdash; dynamic workflows สั่งงาน agent หลักสิบ-หลักร้อยตัว</li>
+            <li><strong>เร็วขึ้น+ถูกลง</strong> &mdash; fast mode บน Opus 4.8</li>
+          </ol>
+        </section>
+
+        <section>
+          <h2>2 &mdash; Opus 4.8 (default แล้ว)</h2>
+          <p>โมเดลใหม่สุด <strong>Opus 4.8</strong> ตอนนี้เป็น default และ <strong>default effort = high</strong></p>
+          <ul>
+            <li>งานหนักสุด/ต้องคิดลึก &rarr; <code>/effort xhigh</code> (ลึกที่สุด)</li>
+            <li>fleet ของเราตั้ง standard ไว้แล้ว: <code>{ "model": "opus", "effortLevel": "xhigh" }</code> ใน <code>.claude/settings.json</code></li>
+            <li><code>"model": "opus"</code> = alias ที่ resolve เป็น Opus 4.8 อัตโนมัติ (ไม่ต้อง pin เลขเวอร์ชัน)</li>
+          </ul>
+          <p><strong>เกร็ด:</strong> label ของ <code>/effort</code> เปลี่ยนจาก "Speed/Intelligence" เป็น <strong>"Faster/Smarter"</strong> ให้เข้าใจง่ายขึ้น</p>
+        </section>
+
+        <section>
+          <h2>3 &mdash; Dynamic Workflows (ของใหม่ที่ใหญ่ที่สุด)</h2>
+          <p>เดิม: ถ้าจะให้ agent หลายตัวทำงานพร้อมกัน ต้องตั้งเองทีละตัว. ตอนนี้แค่ <strong>"บอก Claude ให้สร้าง workflow"</strong> แล้วมัน <strong>orchestrate งานข้าม agent หลักสิบถึงหลักร้อยตัวใน background</strong> ให้เอง</p>
+          <p>เปรียบเทียบ:</p>
+          <ul>
+            <li><strong>เมื่อก่อน</strong> = คุณเป็น foreman ต้องสั่งช่างทีละคน คุมเองหมด</li>
+            <li><strong>ตอนนี้</strong> = คุณบอกเป้าหมาย Claude เป็นคนแจกงาน + คุมทีมหลักร้อยตัวเอง คุณรับแค่ผลลัพธ์</li>
+          </ul>
+          <p>ใช้ <code>/workflows</code> เพื่อดู runs ที่กำลังทำอยู่. เหมาะกับงานใหญ่/ซับซ้อนที่ context เดียวทำไม่ไหว (เช่น migration ทั้ง repo, audit หลายไฟล์, review หลายมุมพร้อมกัน)</p>
+          <p class="note"><strong>หมายเหตุ fleet:</strong> นี่คือ engine เดียวกับที่ GLUEBOY ใช้ orchestrate &mdash; ตอนนี้เป็น feature มาตรฐานของ Claude Code แล้ว</p>
+        </section>
+
+        <section>
+          <h2>4 &mdash; Fast Mode บน Opus 4.8</h2>
+          <p>โหมดเร็วบน Opus 4.8 ตอนนี้ <strong>ราคาถูกลงมาก</strong>:</p>
+          <pre><code>จ่าย  2x  ของ rate มาตรฐาน
+ได้   2.5x ของความเร็ว</code></pre>
+          <p>= คุ้มขึ้นกว่าเดิมเยอะ. เหมาะกับงานที่อยากได้คำตอบเร็ว แต่ยังต้องการความฉลาดระดับ Opus. เปิดด้วย <code>/fast on</code></p>
+        </section>
+
+        <section>
+          <h2>5 &mdash; ฉลาดขึ้นเรื่อง "เมื่อไหร่ควรถาม"</h2>
+          <p>2 การเปลี่ยนแปลงที่ทำให้คุยลื่นขึ้น:</p>
+          <ul>
+            <li><strong>Lean system prompt เป็น default</strong> &mdash; prompt ระบบสั้นลง (ทุกโมเดลยกเว้น Haiku/Sonnet/Opus 4.7 และเก่ากว่า) = เหลือ context ให้งานจริงมากขึ้น</li>
+            <li><strong>ถาม multiple-choice น้อยลง</strong> &mdash; Claude จะถามตัวเลือกเฉพาะตอนที่ <strong>ตัดสินใจเองไม่ได้จริงๆ</strong> ไม่ถามพร่ำเพรื่อเวลาที่มีข้อมูลพอจะทำต่อแล้ว</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>6 &mdash; เครื่องมือ/คำสั่งที่เปลี่ยน</h2>
+          <ul>
+            <li><code>/simplify</code> &mdash; ตอนนี้เป็น <strong>cleanup-only review</strong> (reuse / simplify / efficiency / altitude) แล้วแก้ให้เลย &mdash; ไม่ใช่ full bug-hunt แบบ <code>/code-review --fix</code> อีกต่อไป</li>
+            <li><code>claude agents</code> &mdash; พิมพ์ <code>! &lt;command&gt;</code> เพื่อรัน shell command เป็น background session ที่ attach/detach ได้; หรือ <code>claude --bg --exec '&lt;command&gt;'</code></li>
+            <li><strong>Plugins</strong> &mdash; ประกาศ <code>defaultEnabled: false</code> ใน <code>plugin.json</code> ได้; เปิดด้วย <code>/plugin</code> หรือ <code>claude plugin enable</code>. แท็บ Discover ปักหมุด plugin ที่ "suggested for this directory"</li>
+            <li>Streaming tool execution เปิดตลอด; stdio MCP subprocess ได้ <code>CLAUDE_CODE_SESSION_ID</code> + <code>CLAUDECODE=1</code> ใน env</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>7 &mdash; Fix ที่กระทบ fleet ของเราตรงๆ</h2>
+          <p>หลายตัวในนี้คือปัญหาที่เราเคยเจอเอง:</p>
+          <ul>
+            <li><strong>bg-session ไม่หลุด goal เวลา <code>/command</code> ยิงแล้ว</strong> &mdash; เกี่ยวกับ <code>/goal</code> + <code>/loop</code> ของเราโดยตรง (เมื่อก่อน scheduled command ทำให้ลืมเป้าหมาย)</li>
+            <li><strong>worktree-isolation guard</strong> &mdash; fix subagent ใน bg session ที่แอบเขียนลง shared checkout (เดิมข้าม guard ได้)</li>
+            <li>bg-agent completion notification ไม่ทำให้ขึ้น "out of context" ก่อนเวลาบนโมเดล 1M context</li>
+            <li>pinned bg session ไม่ respawn ทุกนาทีหลัง update แล้ว; bg session ที่ค้างไม่ retire ก็แก้แล้ว</li>
+            <li><strong>ความปลอดภัย:</strong> auto-mode detect data-exfiltration (ดูดเนื้อ repo จำนวนมาก) ดีขึ้น; <code>rm -rf $HOME/</code> (มี trailing slash) ตอนนี้ถูก block แล้ว</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>8 &mdash; สรุป: ใช้อะไรต่อ</h2>
+          <ul>
+            <li>งานคิดลึก &rarr; <code>/effort xhigh</code> บน Opus 4.8</li>
+            <li>งานใหญ่/หลายส่วน &rarr; <code>/workflows</code> (dynamic workflows)</li>
+            <li>อยากเร็ว+คุ้ม &rarr; <code>/fast on</code></li>
+            <li>ทำความสะอาดโค้ด &rarr; <code>/simplify</code></li>
+            <li>fleet เราอัพเป็น Opus 4.8 + xhigh หมดแล้ว (settings.json) &mdash; floor ที่ต้องมี = Claude Code <strong>≥ 2.1.154</strong></li>
+          </ul>
+          <p><strong>คณิตศาสตร์ของ "ทีมหลักร้อยตัว" ไม่ได้ซับซ้อนขึ้น &mdash; แค่ Claude คุมทีมเองได้แล้ว นั่นแหละที่เปลี่ยนเกม</strong></p>
+        </section>
+
+        <div class="article-footer">
+          <p>DEVBOY Lab &mdash; R&amp;D Incubator</p>
+          <p>Source: anthropics/claude-code release notes v2.1.154 (verified via gh release view) &mdash; 2026-05-29 &middot; เขียนโดย GLUEBOY (Opus 4.8)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

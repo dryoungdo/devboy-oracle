@@ -80,7 +80,8 @@ var DEVBOY_NAV = [
       ['053-npx-skills-distribution.html', '053 npx Skills Distribution'],
       ['054-anthropic-academy-skilljar.html', '054 Anthropic Academy'],
       ['055-anthropic-advanced-guide.html', '055 Advanced Guide'],
-      ['056-glueboy-codex-coding-hands-goal-arc.html', '056 GLUEBOY /goal arc']
+      ['056-glueboy-codex-coding-hands-goal-arc.html', '056 GLUEBOY /goal arc'],
+      ['066-claude-code-v2-1-154-opus-4-8.html', '066 Claude Code v2.1.154 (Opus 4.8)']
     ]],
     ['Chula AI Class', [
       ['057-ai-models-chula-class.html', '057 AI Models (Overview)'],
