@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="รีวิวลึก 9arm-skills ของ thananon (9arm) — Claude plugin 4 skills สาย engineering discipline: debug-mantra, post-mortem, scrutinize, management-talk พร้อม verdict ว่าควร install ไหม ใช้ตอนไหน">
+  <title>070 &mdash; 9arm-skills: วินัย engineering 4 ตัว | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">070 &mdash; 9arm-skills: วินัย engineering 4 ตัว</span>
+        <span class="topbar-date">2026-05-30</span>
+      </div>
+      <div class="content-shell">
+        <h1>9arm-skills &mdash; Claude plugin ที่ไม่ได้ให้ &ldquo;ความรู้&rdquo; แต่ให้ &ldquo;วินัย&rdquo;</h1>
+        <div class="article-meta">
+          <span class="tag">claude-skills</span>
+          <span class="tag">9arm</span>
+          <span class="tag">post-mortem</span>
+          <span class="tag">debug-mantra</span>
+          <span class="tag">scrutinize</span>
+          <span class="tag">skill-review</span>
+          &middot; /learn --deep + /trace --deep (Explore agent อ่านครบ 13 ไฟล์)
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <p>
+          <strong>Repo:</strong> <a href="https://github.com/thananon/9arm-skills">thananon/9arm-skills</a>
+          (pushed 2026-05-26 &middot; 3 commits &middot; Shell) โดย <strong>9arm (ธนานนท์)</strong> &mdash; dev/สตรีมเมอร์ไทย.
+          ต่อจากบท <strong>069</strong> (ที่ 9arm โผล่เป็น persona ใน /consult) บทนี้รีวิว skill ที่ 9arm <em>เขียนเอง</em>.
+        </p>
+
+        <!-- A -->
+        <section>
+          <h2>A &mdash; มันคืออะไร: protocol ไม่ใช่ knowledge</h2>
+          <p>
+            069 (/consult) ให้ &ldquo;เสียงที่ปรึกษา&rdquo;. 9arm-skills ตรงข้าม &mdash; ให้ <strong>วินัย</strong> (discipline-first).
+            แต่ละ skill คือ <em>protocol บังคับ</em> ที่ Claude แบกไว้ทั้ง session: ทำเป็นสเต็ป, ห้ามข้าม, มีกฎที่ load-bearing ไม่ใช่คำแนะนำ.
+            เนื้อหา<strong>อังกฤษล้วน</strong> (แม้ผู้เขียนเป็นคนไทย) &mdash; เขียนสำหรับ engineering org ที่อ่าน technical writing อังกฤษ.
+          </p>
+          <div class="callout">
+            <strong>4 skills, 2 หมวด:</strong> <code>debug-mantra</code>, <code>post-mortem</code>, <code>scrutinize</code> (engineering) + <code>management-talk</code> (productivity). ทุกตัวเป็น SKILL.md ล้วน ไม่มี script แนบ.
+          </div>
+        </section>
+
+        <!-- B -->
+        <section>
+          <h2>B &mdash; เจาะ 4 skills</h2>
+
+          <h3>1. debug-mantra &mdash; วินัย debug 4 ขั้น</h3>
+          <p>บังคับ &ldquo;ท่อง mantra&rdquo; verbatim ก่อนเริ่ม debug ทุกครั้ง แล้วทำตามลำดับเป๊ะ:</p>
+          <ul>
+            <li><strong>1. Reproducibility</strong> &mdash; ทำซ้ำได้ก่อนค่อยตั้งสมมติฐาน (flaky → ดันให้ถึง 50% determinism ก่อน)</li>
+            <li><strong>2. Fail path</strong> &mdash; debugger ก่อน → source trace + knob enumeration → in-code probe (tag <code>[DBG-id]</code>)</li>
+            <li><strong>3. Falsify</strong> &mdash; ตั้ง 3&ndash;5 สมมติฐาน, ทดสอบ &ldquo;ตัวหักล้าง&rdquo; ก่อน &ldquo;ตัวยืนยัน&rdquo;</li>
+            <li><strong>4. Breadcrumb ledger</strong> &mdash; จด log ทุก run, ถ้า run เก่าขัดกับสมมติฐานใหม่ = สมมติฐานยังไม่ครบ</li>
+          </ul>
+          <div class="callout"><em>&ldquo;Do not propose a fix before #1 is satisfied. A post-mortem of a hypothesis is misleading.&rdquo;</em></div>
+
+          <h3>2. post-mortem &mdash; บันทึก RCA ฉบับ canonical</h3>
+          <p>
+            เขียน root cause / mechanism / fix / validation หลัง fix ลงแล้ว <em>ก่อนปิด ticket</em>. บังคับเช็ค 4 input ก่อนเขียน (repro มี, root cause รู้, fix ระบุได้, fix ผ่าน validate).
+            จุดเด่น: <strong>code identifier เป็น first-class</strong> &mdash; ใส่ชื่อ function/file/commit SHA ได้เต็มที่, เขียน blameless, มี worked example จริง (Tada GPU sync bug, JIRA-12345).
+          </p>
+          <div class="callout"><em>&ldquo;Code identifiers are first-class. The whole point is that future engineers can grep their way back to the change.&rdquo;</em></div>
+
+          <h3>3. scrutinize &mdash; review แบบคนนอก</h3>
+          <p>
+            ลืมว่าใครเขียน อ่าน cold. 4 สเต็ป: (1) บอก intent ใน 1 ประโยค + ถามว่ามีทางที่<em>ง่ายกว่า</em>ไหม → (2) เดินตาม code path จริง <strong>ไม่ใช่แค่ diff</strong> → (3) verify ทุก claim (edge case, concurrent, error path) → (4) report เรียงตาม severity ปิดด้วย verdict (ship / fix-then-ship / rework / reject). ห้าม &ldquo;LGTM&rdquo;.
+          </p>
+          <div class="callout"><em>&ldquo;The diff is the entry point, not the scope. Bugs hide at the seams.&rdquo;</em></div>
+
+          <h3>4. management-talk &mdash; แปล eng → ผู้บริหาร</h3>
+          <p>
+            เขียนใหม่จากภาษา engineer ให้ leadership (VP/director/PM). กฎ: <strong>เก็บ</strong>ชื่อ product + JIRA key + PR, <strong>ตัด</strong> function/file/SHA/struct field, <strong>แปล</strong> mechanism เป็นเหตุ-ผลภาษาคน (race ยังเป็น race ไม่โกหก).
+            มี 5 รูปแบบช่อง: JIRA / Slack / standup / email / meeting &mdash; แต่ละช่องมี template + worked example.
+          </p>
+          <div class="callout ok"><em>&ldquo;Post-mortem owns the engineering truth; management-talk reframes it for leadership.&rdquo;</em> &mdash; 2 skill นี้ออกแบบให้ทำงานต่อกัน</div>
+        </section>
+
+        <!-- C -->
+        <section>
+          <h2>C &mdash; ติดตั้ง: 2 ทาง (copy vs symlink)</h2>
+          <p><strong>ทางหลัก (แนะนำ):</strong> ผ่าน plugin marketplace</p>
+          <pre><code>npx skills add thananon/9arm-skills</code></pre>
+          <p><strong>ทาง dev loop:</strong> <code>./scripts/link-skills.sh</code> &mdash; น่าสนใจตรงดีไซน์:</p>
+          <ul>
+            <li>สร้าง <code>~/.claude/skills</code> เป็น <strong>directory จริง</strong> (ไม่ใช่ symlink เข้า repo) &mdash; มี safety check ป้องกัน <code>$DEST</code> เป็น symlink เข้า repo (exit พร้อม error สอนวิธีแก้)</li>
+            <li>แต่ละ skill เป็น <strong>symlink</strong> กลับเข้า repo → แก้ใน repo แล้ว live ทันที ไม่ต้อง reinstall</li>
+            <li>exclude <code>deprecated/ in-progress/ personal/</code> อัตโนมัติ</li>
+          </ul>
+          <div class="callout warn">
+            <strong>ข้อควรระวัง cross-machine:</strong> วิธี symlink เหมาะ dev เครื่องเดียว. ถ้า rsync <code>~/.claude/skills/</code> ข้ามเครื่อง symlink จะพัง &mdash;
+            ตรงกับหลัก fleet เราเป๊ะ: <a href="049-token-security.html">&ldquo;copy files, not symlinks&rdquo;</a>. ข้ามเครื่องให้ใช้ <code>npx skills add</code>.
+          </div>
+        </section>
+
+        <!-- D -->
+        <section>
+          <h2>D &mdash; convention: plugin.json + CLAUDE.md บังคับ sync</h2>
+          <p>เป็น Claude plugin จริง (มี <code>.claude-plugin/plugin.json</code>) แต่ <em>minimal</em>:</p>
+          <pre><code>{
+  "name": "9arm-skills",
+  "skills": [
+    "./skills/engineering/debug-mantra",
+    "./skills/engineering/post-mortem",
+    "./skills/engineering/scrutinize",
+    "./skills/productivity/management-talk"
+  ]
+}</code></pre>
+          <p>
+            CLAUDE.md บังคับว่า skill ใหม่ทุกตัวต้องโผล่ทั้งใน README + bucket README + plugin.json; ส่วน <code>personal/ in-progress/ deprecated/</code> ต้อง<em>ไม่</em>โผล่. = วินัย repo ที่ดี.
+          </p>
+        </section>
+
+        <!-- E -->
+        <section>
+          <h2>E &mdash; ⚠️ จุดเสี่ยง</h2>
+          <ul>
+            <li><strong>ไม่มี LICENSE file</strong> &mdash; ไม่มีทั้งใน repo, plugin.json, README. default = all-rights-reserved → <em>blocker สำหรับใช้ในองค์กร / fork</em>. ต้องถามผู้เขียน</li>
+            <li><strong>plugin.json ไม่มี version/description/author</strong> &mdash; marketplace listing จะโชว์แค่ path. ถ้า publish จริงควร pin version</li>
+            <li><strong>ยังเด็กมาก</strong> &mdash; 3 commits, ไม่มี release/tag, maintainer คนเดียว, ไม่มี CI เช็ค sync plugin.json ↔ README</li>
+            <li><strong>bucket ว่าง</strong> (misc/personal/in-progress/deprecated) &mdash; framework ยัง aspirational</li>
+          </ul>
+        </section>
+
+        <!-- VERDICT -->
+        <section>
+          <h2>F &mdash; Verdict: ควร install ไหม?</h2>
+          <div class="verdict caution">
+            <div class="verdict-head">&#128993; ควร install สำหรับใช้เอง/ทีม &mdash; แต่รอ LICENSE ถ้าเป็นองค์กร</div>
+            <p>
+              คุณภาพ skill <strong>สูงจริง</strong>: prescriptive, มี worked example บน bug จริง, honest เรื่อง validation scope.
+              สำหรับ dev เดี่ยว/ทีมเล็ก install ผ่าน <code>npx skills add</code> ได้เลย &mdash; ความเสี่ยง license มีผลแค่ตอน<em>redistribute ในองค์กร</em>.
+              ตัวที่คุ้มที่สุด: <code>post-mortem</code> + <code>scrutinize</code> (เสริม <code>/code-review</code> ของเราตรงมุม &ldquo;ควรมี change นี้ไหม&rdquo;).
+            </p>
+            <table>
+              <thead><tr><th>&#9989; ใช้ตอนไหน</th><th>&#10060; ไม่ควรใช้ตอนไหน</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>ทีมที่อยากมีวัฒนธรรม post-mortem จริงจัง (RCA, blameless, code-heavy)</td>
+                  <td>ทีม informal &ldquo;fix แล้วโพสต์ Slack จบ&rdquo; &mdash; skill นี้เพิ่ม overhead</td>
+                </tr>
+                <tr>
+                  <td>review refactor/infra ใหญ่ ที่อยากได้มุมคนนอก + ทางที่ง่ายกว่า (scrutinize)</td>
+                  <td>องค์กรที่ต้องการ license ชัดเพื่อ compliance &mdash; รอผู้เขียนเพิ่ม LICENSE ก่อน</td>
+                </tr>
+                <tr>
+                  <td>ต้องแปลงานวิศวกรรมส่งผู้บริหารบ่อย (management-talk 5 ช่อง)</td>
+                  <td>งาน customer/marketing-facing &mdash; management-talk เล็งเฉพาะ eng-org leadership</td>
+                </tr>
+                <tr>
+                  <td>junior อยากได้โครง debug ที่ทำซ้ำได้ (debug-mantra)</td>
+                  <td>ต้องการ install เดียวกันหลายเครื่องแบบ rsync &mdash; symlink พัง, ใช้ marketplace แทน</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- G -->
+        <section>
+          <h2>G &mdash; เทียบกับ doctrine ของเรา</h2>
+          <p>
+            น่าทึ่งที่ skill ของ 9arm ทับกับ doctrine fleet เราหลายจุด: <code>debug-mantra</code> = หลัก <a href="019-cite-then-claim.html">cite-then-claim / falsify</a>,
+            <code>scrutinize</code> = standing order Codex co-review, <code>management-talk</code> blameless = แนวเดียวกับ retro เรา.
+            ต่างกันตรงเรา enforce ด้วย <strong>hook + gate</strong> (sop-qa-gate), เขา enforce ด้วย <strong>prose ใน SKILL.md</strong> &mdash; สอดคล้องบท <a href="068-lean-claude-md-keep-cut.html">068</a>: must-fire ควรเป็น hook ไม่ใช่ข้อความ.
+          </p>
+          <p class="src">/learn --deep + /trace --deep บน thananon/9arm-skills (clone 2026-05-30) &middot; ไม่มี prior coverage ใน arra</p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

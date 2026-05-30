@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="รีวิวลึก /consult — Claude skill ที่จำลอง boardroom ให้ที่ปรึกษาระดับโลก 36 คน (Linus, Carmack, Buffett, ตัน, ท็อป, 9arm) ดีเบตกันสด ๆ พร้อม verdict ว่าควร install ไหม ใช้ตอนไหน">
+  <title>069 &mdash; /consult: ห้องประชุมที่ปรึกษาระดับโลก | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">069 &mdash; /consult: ห้องประชุมที่ปรึกษาระดับโลก</span>
+        <span class="topbar-date">2026-05-30</span>
+      </div>
+      <div class="content-shell">
+        <h1>/consult &mdash; Claude skill ที่จับที่ปรึกษาระดับโลก 36 คนมา &ldquo;ดีเบต&rdquo; ให้คุณฟัง</h1>
+        <div class="article-meta">
+          <span class="tag">claude-skills</span>
+          <span class="tag">consult</span>
+          <span class="tag">boardroom</span>
+          <span class="tag">personas</span>
+          <span class="tag">thai-business</span>
+          <span class="tag">skill-review</span>
+          &middot; /learn --deep + /trace --deep (Explore agent อ่านครบ 39 ไฟล์)
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <p>
+          <strong>Repo:</strong> <a href="https://github.com/Moysed/claud-consultants-skill">Moysed/claud-consultants-skill</a>
+          (MIT &middot; pushed 2026-04-22 &middot; v2.0.0) &mdash; clone จริงด้วย <code>ghq get</code> แล้วอ่านทุกไฟล์ ไม่ใช่เดาจาก README.
+          เป็นบทความ <strong>รีวิว skill ชุมชน</strong> ตัวแรกของ Lab &mdash; มี verdict ชัดท้ายบทว่า <em>ควร install ไหม / ใช้ตอนไหน</em>.
+        </p>
+
+        <!-- A -->
+        <section>
+          <h2>A &mdash; มันคืออะไร: ไม่ใช่ &ldquo;ถาม AI&rdquo; แต่เป็น &ldquo;นั่งหัวโต๊ะประชุม&rdquo;</h2>
+          <p>
+            ปกติถาม AI เราได้คำตอบเดียว เกลี่ย ๆ ปลอดภัย. <code>/consult</code> เปลี่ยนเกม &mdash; มันจำลอง <strong>boardroom</strong>
+            ที่ <em>คุณคือประธาน</em> แล้วเรียกที่ปรึกษา 2&ndash;4 คนมา<strong>เถียงกันต่อหน้า</strong>: พูดกับคุณตรง ๆ ("you"),
+            ตอบโต้กันเอง <em>เรียกชื่อกัน</em>, ขัดจังหวะ, ท้าทาย, มี stage direction (<em>*leans forward*</em>, <em>*shakes head*</em>) แล้วปิดด้วยสรุปว่า<strong>ตรงไหนเห็นตรงกัน ตรงไหนแตก</strong>.
+          </p>
+          <div class="callout">
+            <strong>Mental model:</strong> การตัดสินใจเชิงกลยุทธ์ไม่ได้ต้องการ &ldquo;ความเห็นผู้เชี่ยวชาญ&rdquo; เดี่ยว ๆ &mdash;
+            มันต้องการ <em>ความตึง</em> (tension) ระหว่างมุมที่ขัดกัน. skill นี้ขาย tension เป็นฟีเจอร์ ไม่ใช่ bug.
+          </div>
+          <p>
+            <strong>Bilingual จริง</strong> (ไม่ใช่แค่แปล): ถามไทยตอบไทย ถามอังกฤษตอบอังกฤษ &mdash; แต่ signature quote คงภาษาอังกฤษเดิมเสมอ.
+            trigger ทั้งสองภาษา เช่น <code>/consult ควรเขียน auth ใหม่ทั้งหมดไหม?</code>
+          </p>
+          <p class="src">ที่มา: SKILL.md (frontmatter L1-9), README.md &mdash; Moysed/claud-consultants-skill</p>
+        </section>
+
+        <!-- B -->
+        <section>
+          <h2>B &mdash; กลไกลับ: lazy-load + &ldquo;tension injection table&rdquo;</h2>
+          <p>2 อย่างที่ทำให้ skill นี้ฉลากกว่าที่คิด:</p>
+          <ul>
+            <li>
+              <strong>Lazy-load:</strong> ไม่ได้โหลด persona ทั้ง 36 ไฟล์ (= 80K+ tokens). SKILL.md เก็บแค่ <em>ตารางดัชนี</em> เล็ก ๆ (36 แถว keyword)
+              → เลือก 2&ndash;4 คนที่ match → อ่าน<em>เฉพาะ</em>ไฟล์ที่เลือกจาก disk. budget เหลือ ~9K&ndash;23K tokens ต่อ session.
+            </li>
+            <li>
+              <strong>Tension injection:</strong> มีตารางความขัดแย้งที่ตั้งใจ &mdash; ถ้าคำถามแตะหัวข้อที่รู้ว่ามีศึก จะโหลด<em>ทั้งสองฝั่ง</em>เข้ามาบังคับให้เถียง.
+              ตัวอย่างคลาสสิก &mdash; "ควร rewrite ไหม?":
+            </li>
+          </ul>
+          <div class="callout">
+            <strong>Rewrites tension:</strong> Torvalds (อย่า rewrite เด็ดขาด) &harr; Hotz (rewrite เลย ลบทิ้ง) &harr; Carmack (profile ก่อน วัดก่อนค่อยตัดสิน) &mdash; โหลดมาครบ 3 คนเพื่อกัน &ldquo;เออออเห็นด้วยหมด&rdquo;.
+          </div>
+          <p>
+            ⇒ มันไม่ปล่อยให้ความขัดแย้งเกิด<em>เอง</em> (emergent) แต่ <strong>ออกแบบ</strong>ความขัดแย้งไว้ล่วงหน้า. นี่คือเหตุผลที่ debate มันคม ไม่ใช่ AI ตีกินปลอม ๆ.
+          </p>
+          <p class="src">ที่มา: SKILL.md (selection algorithm L50-142, tension table L114-139, voice rules L214-253)</p>
+        </section>
+
+        <!-- C -->
+        <section>
+          <h2>C &mdash; persona 1 ไฟล์ลึกแค่ไหน</h2>
+          <p>
+            แต่ละ persona ยาว <strong>~140 บรรทัด</strong> (102&ndash;195), อ้างคำพูดจริง ~30 quote/ไฟล์, มี framework 3&ndash;7 ชุดที่<em>ผูกกับงานจริง</em>:
+          </p>
+          <ul>
+            <li><strong>Carmack:</strong> VR latency 5-layer mitigation ระดับ millisecond, ออกจาก Meta เพราะ &ldquo;5% GPU utilization in production&rdquo; &mdash; voice ระบุชัด "ตอบยาวที่สุดในห้อง" (load-bearing)</li>
+            <li><strong>Buffett:</strong> สูตร Owner Earnings = OCF &minus; Maintenance CapEx, moat จริง (Coca-Cola 1988, Apple 2016)</li>
+            <li><strong>ท็อป จิรายุส:</strong> 5-Layer Cake (Energy → Chips → Cloud → AI Models → AI Apps), Bitkub ปี 1 ขาดทุน 37M บาท, ดีล SCBX 1.785 หมื่นล้านล่ม &mdash; voice เป็น <em>dual-register</em> (Davos polish ↔ Bangkok grit)</li>
+          </ul>
+          <p>
+            ทุกไฟล์มี section <strong>&ldquo;Blind Spots&rdquo;</strong> เขียนจุดอ่อนตรง ๆ (เช่น Carmack: &ldquo;self-admittedly terrible at man management&rdquo;) &mdash;
+            นี่คือสัญญาณว่า persona ทำมาเพื่อ<em>ดีเบต</em>จริง ไม่ใช่ fanboy.
+          </p>
+          <p class="src">ที่มา: consultants/{John Carmack,Warren Buffett,Top Jirayut}.md</p>
+        </section>
+
+        <!-- D -->
+        <section>
+          <h2>D &mdash; roster 36 คน (มี &ldquo;9arm&rdquo; ด้วย!)</h2>
+          <table>
+            <thead><tr><th>หมวด</th><th>คน</th></tr></thead>
+            <tbody>
+              <tr><td>Business</td><td>Musk, Jobs, Bezos, Munger</td></tr>
+              <tr><td>Engineering</td><td>Torvalds, Carmack, Karpathy, Hotz</td></tr>
+              <tr><td>Design</td><td>Rams, Vignelli, Miyazaki</td></tr>
+              <tr><td>Finance</td><td>Buffett, Dalio, Taleb, Marks, Housel</td></tr>
+              <tr><td><strong>Thai Business</strong></td><td>ตัน ภาสกรนที, ท็อป จิรายุส, กระทิง พูนพล, ธนินท์, เศรษฐา, <strong>9arm</strong></td></tr>
+              <tr><td>Construction PM (v2.0.0 ใหม่)</td><td>Bechtel, Flyvbjerg, Crowe, Goethals, Khan, Rice ...</td></tr>
+              <tr><td>Safety / Quality</td><td>Conklin, Dekker, Deming, Juran</td></tr>
+              <tr><td>Project Controls</td><td>Dysert, Barnes, Merrow, Somervell</td></tr>
+            </tbody>
+          </table>
+          <p>
+            น่าสนใจ: <a href="https://github.com/Moysed/claud-consultants-skill/blob/main/consultants/9arm.md">มี persona &ldquo;9arm&rdquo;</a> (นายอาร์ม)
+            &mdash; signature &ldquo;ไม่มีใครเอาอะไรไปจากเราได้&rdquo; (lens: tech democratization). โลก skill มันเล็ก: บทถัดไป (<strong>070</strong>) รีวิว skill ของ 9arm เองพอดี.
+          </p>
+        </section>
+
+        <!-- E -->
+        <section>
+          <h2>E &mdash; ติดตั้ง &amp; ของที่ต้องมี</h2>
+          <p>ง่ายที่สุดในบรรดา skill ที่เคยเจอ &mdash; clone ลง skills dir ตรง ๆ:</p>
+          <pre><code>git clone https://github.com/Moysed/claud-consultants-skill.git ~/.claude/skills/consult</code></pre>
+          <ul>
+            <li><strong>Dependencies:</strong> ไม่มี. ไม่มี script, ไม่มี MCP, ไม่มี config &mdash; แค่ <code>/consult</code></li>
+            <li><strong>License:</strong> MIT (ระบุใน README L159)</li>
+            <li><strong>ขนาด:</strong> 39 ไฟล์ md (3 core + 36 persona), ~6KB index + ~15&ndash;25KB ต่อ session</li>
+          </ul>
+        </section>
+
+        <!-- F -->
+        <section>
+          <h2>F &mdash; ⚠️ freshness: README บอก 22 แต่จริง 36</h2>
+          <div class="callout warn">
+            <strong>เจอตอน /learn:</strong> README เขียน &ldquo;22 deep-research personas&rdquo; แต่ใน repo จริงมี <strong>36 ไฟล์</strong>
+            (v2.0.0 เพิ่ม construction 14 คนแล้วลืมอัป README). = ตัวอย่างคลาสสิกของ doc drift &mdash; <em>verify จากไฟล์จริงเสมอ อย่าเชื่อ README</em>.
+          </div>
+          <p>ข้อจำกัดอื่นที่ต้องรู้ก่อนใช้:</p>
+          <ul>
+            <li><strong>persona ถูก freeze:</strong> เป็นไฟล์ static &mdash; คนจริงที่ยังมีชีวิต (เศรษฐาพ้น PM แล้ว, จุดยืน crypto ท็อปเปลี่ยนได้) profile ไม่อัปเอง. maintainer คนเดียว (Moysed) = sustainability risk</li>
+            <li><strong>prompt-injection surface:</strong> คำถาม user เข้า selection algorithm ตรง ๆ &mdash; practical risk ต่ำ (instruction แข็ง) แต่มีอยู่</li>
+            <li><strong>สอน voice ไม่สอน method:</strong> โหลด Flyvbjerg มาพูดเรื่อง reference-class forecasting แต่ไม่มี tutorial ทีละสเต็ป</li>
+          </ul>
+        </section>
+
+        <!-- VERDICT -->
+        <section>
+          <h2>G &mdash; Verdict: ควร install ไหม?</h2>
+          <div class="verdict go">
+            <div class="verdict-head">&#9989; ควร install &mdash; skill เฉพาะทางคุณภาพสูง, ติดตั้ง 0 ต้นทุน</div>
+            <p>
+              install ฟรี ไม่มี dependency ลบทิ้งได้ทุกเมื่อ &mdash; <strong>downside แทบเป็นศูนย์</strong>. upside สูงถ้าคำถามตรงกับจุดแข็งของมัน.
+              สำหรับคนไทยยิ่งคุ้ม: roster ที่ปรึกษาไทย (ตัน/ท็อป/กระทิง/ธนินท์) ลึกและ research จริง &mdash; น่าจะเป็น skill ที่ปรึกษากลยุทธ์ไทยที่ดีที่สุดเท่าที่มี.
+            </p>
+            <table>
+              <thead><tr><th>&#9989; ใช้ตอนไหน</th><th>&#10060; ไม่ควรใช้ตอนไหน</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>คำถามกลยุทธ์ที่มี &ldquo;ศึก&rdquo; ชัด (rewrite vs ไม่, ระดมทุน vs bootstrap, concentrate vs diversify)</td>
+                  <td>งาน 1 คำตอบถูก (fix TypeScript error, ถาม return type) &mdash; skill skip เองอยู่แล้ว</td>
+                </tr>
+                <tr>
+                  <td>คำถามตลาด/ธุรกิจไทย (สร้างแบรนด์, startup ไทย vs ต่างประเทศ)</td>
+                  <td>ต้องการคำตอบใน 10 วินาที &mdash; มัน verbose by design</td>
+                </tr>
+                <tr>
+                  <td>สถาปัตยกรรม engineering (abstract เพิ่ม vs keep simple)</td>
+                  <td>อยากได้ consensus/ความกลมเกลียว &mdash; มันจงใจ inject ความขัดแย้ง</td>
+                </tr>
+                <tr>
+                  <td>เบื่อ AI ที่ตอบปลอดภัยเกลี่ย ๆ อยากได้ Taleb เถียง Buffett จริง ๆ</td>
+                  <td>หัวข้อนอก 11 โดเมนที่ครอบคลุม (HR, วัฒนธรรม, soft-skill ล้วน)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- H -->
+        <section>
+          <h2>H &mdash; เทียบกับของเรา</h2>
+          <p>
+            Lab เราเคยใช้ boardroom format มาก่อนใน <a href="062-ann-deep-dive-board-room.html">บทความ 062 (ANN Deep Dive)</a> &mdash;
+            แต่นั่นเขียนมือ ครั้งเดียว. <code>/consult</code> ทำให้รูปแบบนั้นเป็น skill ที่ <em>เรียกซ้ำได้</em> + เลือก persona อัตโนมัติ.
+            ส่วน <code>/codex-review</code> / <code>/code-review</code> ของเราหา bug; <code>/consult</code> ตอบ &ldquo;<em>ควรทำสิ่งนี้ไหม</em>&rdquo; ระดับสถาปัตยกรรม &mdash; คนละชั้นกัน เสริมกันได้.
+          </p>
+          <p class="src">/learn --deep + /trace --deep บน Moysed/claud-consultants-skill (clone 2026-05-30) &middot; ไม่มี prior coverage ใน arra (ใกล้สุด = บทความ 036 Claude-for-Legal, pattern เดียวกัน)</p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

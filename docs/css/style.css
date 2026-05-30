@@ -430,6 +430,47 @@ body {
 .maturity-badge.emerging { background: #fef9c3; color: #854d0e; }
 .maturity-badge.solid { background: #d1fae5; color: #065f46; }
 
+/* legacy alias — articles 066+ use bare `maturity solid` */
+.maturity { display:inline-flex; align-items:center; gap:.3rem; padding:.15rem .5rem; border-radius:var(--radius-sm); font-size:.75rem; font-weight:600; }
+.maturity.raw { background:#fef3c7; color:#92400e; }
+.maturity.emerging { background:#fef9c3; color:#854d0e; }
+.maturity.solid { background:#d1fae5; color:#065f46; }
+
+/* source-citation line (cite-then-claim) */
+.src {
+  font-size:.78rem; color:var(--ink-light);
+  border-left:2px solid var(--card-border); padding-left:.6rem;
+  margin:.5rem 0 0; line-height:1.5;
+}
+
+/* callout boxes */
+.callout {
+  background:var(--bg-alt); border:1px solid var(--card-border);
+  border-left:3px solid var(--accent); border-radius:var(--radius-sm);
+  padding:.8rem 1rem; margin:1rem 0;
+}
+.callout.ok   { border-left-color:#065f46; background:#ecfdf5; }
+.callout.warn { border-left-color:var(--warm-red); background:#fdf2f0; }
+
+/* prominent verdict box */
+.verdict {
+  border:2px solid var(--accent); border-radius:var(--radius);
+  padding:1.1rem 1.3rem; margin:1.75rem 0; background:var(--bg);
+  box-shadow:var(--shadow-hover);
+}
+.verdict.go      { border-color:#065f46; background:#ecfdf5; }
+.verdict.caution { border-color:var(--gold); background:#fffbeb; }
+.verdict.skip    { border-color:var(--warm-red); background:#fdf2f0; }
+.verdict-head {
+  font-size:1.05rem; font-weight:700; margin:0 0 .5rem;
+  display:flex; align-items:center; gap:.4rem;
+}
+.verdict.go .verdict-head      { color:#065f46; }
+.verdict.caution .verdict-head { color:var(--gold); }
+.verdict.skip .verdict-head    { color:var(--warm-red); }
+.verdict p { margin:.4rem 0; }
+.verdict table { margin:.7rem 0 .2rem; width:100%; border-collapse:collapse; }
+
 .nav-footer {
   display: flex;
   justify-content: space-between;
