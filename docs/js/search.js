@@ -43,7 +43,10 @@
     ['038-omnivoice-thai.html', '038', 'OmniVoice-Thai', ['voice', 'thai', 'omnivoice', 'tts', 'huggingface'], 'OmniVoice-Thai voice model'],
     ['039-maw-rs.html', '039', 'maw-rs (Rust Port)', ['maw', 'rust', 'cli', 'port'], 'maw Rust port CLI'],
     ['040-arra-safety-hooks.html', '040', 'ARRA Safety Hooks', ['safety', 'hooks', 'claude-code', 'arra'], 'ARRA safety hooks enforcement'],
-    ['041-discord-plugin-wiring.html', '041', 'Discord Plugin Wiring', ['discord', 'plugin', 'wiring', 'bot', 'dmpolicy'], 'Discord plugin wiring guide for Oracles']
+    ['041-discord-plugin-wiring.html', '041', 'Discord Plugin Wiring', ['discord', 'plugin', 'wiring', 'bot', 'dmpolicy'], 'Discord plugin wiring guide for Oracles'],
+    // NOTE: 042-068 not yet in this search index (pre-existing gap — followup issue #22)
+    ['069-consult-boardroom-skill.html', '069', '/consult Boardroom Skill', ['claude-skills', 'consult', 'boardroom', 'personas', 'thai-business', 'skill-review'], 'consult boardroom skill review 36 personas install verdict'],
+    ['070-9arm-skills-engineering-discipline.html', '070', '9arm-skills', ['claude-skills', '9arm', 'post-mortem', 'debug-mantra', 'scrutinize', 'skill-review'], '9arm thananon engineering discipline skills review install verdict']
   ];
 
   // --- Recent articles ---

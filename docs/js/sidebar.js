@@ -95,6 +95,10 @@ var DEVBOY_NAV = [
       ['064-reinforcement-learning-alphago.html', '064 Reinforcement Learning'],
       ['062-ann-deep-dive-board-room.html', '062 ANN Deep Dive'],
       ['065-dnn-training-how-ai-learns.html', '065 DNN Training']
+    ]],
+    ['Community Skills (รีวิว)', [
+      ['069-consult-boardroom-skill.html', '069 /consult Boardroom'],
+      ['070-9arm-skills-engineering-discipline.html', '070 9arm-skills']
     ]]
 ];
 
