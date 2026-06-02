@@ -1,0 +1,10 @@
+{
+  "_comment": "DEVBOY engine map [E] — committed, cross-engine. Lead = Claude Opus 4.8; coders = codex (oh-my-codex/omx NOT installed on clinic-drdo, so codex is the implementer engine). FRESH keys omit --continue; *-resume variants are respawn-only. NO restricted keys here (federationToken/peers/port live in base/.local per weighted-config rule).",
+  "commands": {
+    "default": "ANTHROPIC_MODEL=claude-opus-4-8 command claude --dangerously-skip-permissions",
+    "claude48": "ANTHROPIC_MODEL=claude-opus-4-8 command claude --dangerously-skip-permissions",
+    "claude48-resume": "ANTHROPIC_MODEL=claude-opus-4-8 command claude --dangerously-skip-permissions --continue",
+    "codex": "codex --dangerously-bypass-approvals-and-sandbox",
+    "codex-resume": "codex resume --last"
+  }
+}

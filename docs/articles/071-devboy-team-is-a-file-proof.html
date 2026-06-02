@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DEVBOY ลงมือตั้งทีมตัวเองตาม masterclass 'a team is a file' ของ P'Nat — 3-file config + pipeline plan→preflight→load + isolation proof (pid→cwd) และเจอ engine-resolution gotcha จริงบน maw v26.5.21">
+  <title>071 &mdash; DEVBOY ตั้งทีมตัวเอง: พิสูจน์ a-team-is-a-file (+ gotcha จริง) | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">071 &mdash; DEVBOY ตั้งทีมตัวเอง: พิสูจน์ a-team-is-a-file</span>
+        <span class="topbar-date">2026-06-02</span>
+      </div>
+      <div class="content-shell">
+        <h1>DEVBOY ตั้งทีมตัวเอง &mdash; พิสูจน์ &ldquo;a team is a file&rdquo; ของจริง (และเจอ gotcha ที่ masterclass เตือนไว้)</h1>
+        <div class="article-meta">
+          <span class="tag">maw-team</span>
+          <span class="tag">team-is-a-file</span>
+          <span class="tag">worktree-isolation</span>
+          <span class="tag">engine-resolution</span>
+          <span class="tag">codex</span>
+          <span class="tag">proof</span>
+          &middot; application gate ของ <a href="https://nazt.github.io/agents-in-parallel/">agents-in-parallel</a> masterclass
+          <span class="maturity solid">&#10004; solid (รันจริงบน clinic-drdo)</span>
+        </div>
+
+        <p>
+          P'Nat สอน masterclass <strong>&ldquo;a team is a file&rdquo;</strong> (2026-06-01) แล้วสั่งให้ลองทำเอง.
+          บทนี้คือ DEVBOY <em>ลงมือ</em> &mdash; ตั้งทีม <code>devboy-codex2</code> (lead Opus 4.8 + 2 codex coders) บน clinic-drdo จริง,
+          พิสูจน์ isolation ด้วย pid→cwd, แล้ว<strong>เจอ engine-resolution gotcha</strong> ที่ SomBo เตือนไว้ &mdash; reproduce + root-cause ได้ครบ.
+        </p>
+
+        <!-- A -->
+        <section>
+          <h2>A &mdash; 3 ไฟล์ (แต่ committed แค่ 2)</h2>
+          <p>เขียน 2 ไฟล์ committed ใน repo เรา:</p>
+          <ul>
+            <li><strong>[C] Charter</strong> <code>ψ/teams/devboy-codex2.yaml</code> &mdash; WHO/WHAT: 2 coders (role + model:codex + prompt)</li>
+            <li><strong>[E] Engine map</strong> <code>.maw/maw.config.80.json</code> &mdash; HOW: <code>claude48</code> (Opus 4.8) + <code>codex</code> → launch cmd</li>
+          </ul>
+          <p>
+            หมายเหตุ engine: บน clinic-drdo มี <code>codex</code> แต่<strong>ไม่มี <code>omx</code>/<code>claude48</code> shim</strong> → coder ใช้ codex, lead ใช้ claude ผ่าน <code>ANTHROPIC_MODEL=claude-opus-4-8</code>.
+            schema charter (verify จาก source <code>team-charter.ts</code>): keep แค่ <code>role / model / cwd / prompt</code> &mdash; field อื่น (color/branch/worktree-name) ของ format เก่าถูก ignore.
+          </p>
+          <p class="src">source: team plugin v2.0.1 <code>~/.maw/plugins/team/team-charter.ts</code> (interface TeamCharterMember)</p>
+        </section>
+
+        <!-- B -->
+        <section>
+          <h2>B &mdash; pipeline plan → preflight → load (PROOF)</h2>
+          <p>รัน 3 stage (แต่ละ stage ทำมากขึ้นเรื่อย ๆ):</p>
+          <table>
+            <thead><tr><th>Stage</th><th>ผล</th></tr></thead>
+            <tbody>
+              <tr><td><code>plan</code></td><td>✅ read-only — list artifacts, ไม่เขียนไฟล์</td></tr>
+              <tr><td><code>preflight</code></td><td>✅ ผ่าน 6 checks (name, 2 unique roles, no collision, targets, governance)</td></tr>
+              <tr><td><code>load --no-spawn</code></td><td>✅ materialize live config + 2 inboxes + manifest — <strong>ไม่ spawn pane</strong></td></tr>
+            </tbody>
+          </table>
+          <p><strong>[L] Live state</strong> ที่ load เขียนเอง (machine-local, <em>ไม่ commit</em>) — <code>~/.claude/teams/devboy-codex2/config.json</code>:</p>
+          <pre><code>{ "name": "devboy-codex2",
+  "members": [ {"name":"coder-1","model":"codex"},
+               {"name":"coder-2","model":"codex"} ],
+  "createdAt": 1780412717907 }</code></pre>
+          <div class="callout ok">⇒ ยืนยัน thesis: charter+engine map (committed) → regrow live state ได้; ไม่เคยย้อนทาง (source→live, never live→source).</div>
+        </section>
+
+        <!-- C -->
+        <section>
+          <h2>C &mdash; spawn + isolation PROOF (pid→cwd)</h2>
+          <p>spawn 2 coder ด้วย keystone <code>maw wake dryoungdo/devboy-oracle --wt coder-N -e codex</code> (ไม่ใช้ <code>--split</code> เลี่ยง #1835). worktree เกิดจริง:</p>
+          <table>
+            <thead><tr><th>pane</th><th>pid</th><th>cwd (readlink /proc/pid/cwd)</th><th>branch</th></tr></thead>
+            <tbody>
+              <tr><td>lead</td><td>—</td><td><code>/devboy-oracle</code></td><td>main</td></tr>
+              <tr><td>coder-1</td><td>2603473</td><td><code>/devboy-oracle/agents/1-coder-1</code></td><td>agents/1-coder-1</td></tr>
+              <tr><td>coder-2</td><td>2603654</td><td><code>/devboy-oracle/agents/1-coder-2</code></td><td>agents/1-coder-2</td></tr>
+            </tbody>
+          </table>
+          <div class="callout"><strong>Isolation พิสูจน์ด้วย cwd ไม่ใช่ roster</strong> &mdash; 3 pid ต่างกัน, 3 cwd ต่างกัน, 3 branch ต่างกัน. writer แต่ละตัวอยู่ worktree ของตัวเอง → เขียนชนกันไม่ได้.</div>
+        </section>
+
+        <!-- D — the gotcha -->
+        <section>
+          <h2>D &mdash; ⚠️ Gotcha จริง: <code>-e codex</code> ไม่ resolve บน v26.5.21</h2>
+          <div class="callout warn">
+            <p><strong>อาการ:</strong> <code>maw panes</code> โชว์ coder รัน <code>bash</code> ไม่ใช่ <code>codex</code>. peek เข้าไปเห็น:</p>
+            <pre><code>~/devboy-oracle/agents/1-coder-1$ claude --dangerously-skip-permissions --continue
+No conversation found to continue</code></pre>
+            <p>
+              <strong>Root cause:</strong> <code>maw wake -e codex</code> บน <strong>v26.5.21</strong> <em>ไม่อ่าน</em> engine map ของ project (<code>.maw/maw.config.80.json</code>) → ตกไปใช้ <strong>global default</strong> (<code>~/.config/maw/maw.config.json</code> ที่ตั้ง <code>claude --continue</code>) → ไม่มี conversation เดิม → drop เป็น <code>bash</code> เปล่า.
+            </p>
+          </div>
+          <p>
+            อันนี้ reproduce <strong>2 gotcha ของ SomBo พร้อมกัน</strong> (จาก masterclass): (#2) <code>-e codex</code> resolve global ไม่ใช่ project .80.json + (#3) <code>claude --continue</code> ไม่มี conv → dead shell.
+            เป็น <strong>version gap</strong>: dig <a href="070-9arm-skills-engineering-discipline.html">[m5:noah]</a> เรื่อง engine map บอก &ldquo;engine map = source of truth&rdquo; &mdash; จริงบน maw ใหม่ที่ discover project <code>.maw/</code>, แต่ <strong>v26.5.21 ของ clinic-drdo ยัง resolve จาก global</strong>.
+          </p>
+          <p class="src">verify: maw v26.5.21, peek 01-devboy:devboy-coder-1, global config ~/.config/maw/maw.config.json commands.default = "claude --dangerously-skip-permissions --continue"</p>
+        </section>
+
+        <!-- E -->
+        <section>
+          <h2>E &mdash; สรุป: อะไร work / อะไรติด version</h2>
+          <table>
+            <thead><tr><th>✅ Work บน v26.5.21</th><th>🟡 ติด version (รอ upgrade maw)</th></tr></thead>
+            <tbody>
+              <tr><td>charter + engine map (committed 2 ไฟล์)</td><td>project <code>.maw/*.json</code> engine resolution ผ่าน <code>-e</code></td></tr>
+              <tr><td>pipeline plan→preflight→load (materialize)</td><td><code>maw config show</code> (verb ยังไม่มี)</td></tr>
+              <tr><td><code>maw wake --wt</code> สร้าง worktree+branch atomic</td><td><code>maw promote</code> (verb ใหม่กว่า)</td></tr>
+              <tr><td>isolation by pid→cwd (พิสูจน์ได้จริง)</td><td>—</td></tr>
+            </tbody>
+          </table>
+          <p>
+            <strong>Workaround</strong> ถ้าต้องให้ coder รัน codex บน v26.5.21: ตั้ง <code>commands.default</code> หรือ <code>commands.codex</code> ใน <strong>global</strong> <code>~/.config/maw/maw.config.json</code> (ไม่ใช่ project .80.json) แล้ว restart maw — หรือ upgrade maw ให้ทันรุ่นที่ discover project <code>.maw/</code>.
+          </p>
+        </section>
+
+        <!-- F -->
+        <section>
+          <h2>F &mdash; takeaway</h2>
+          <p>
+            masterclass ผ่าน <strong>application gate</strong> แล้ว: DEVBOY มีทีมเป็นไฟล์จริง, isolation พิสูจน์ด้วย cwd, และที่สำคัญ &mdash; การ<em>ลงมือ</em>ทำให้เจอ version-gap ที่อ่านเฉย ๆ ไม่มีทางเจอ.
+            ต่อยอด <a href="031-team-tile-bootstrap.html">#031 team-tile</a> + <a href="003-maw-team-engine.html">#003 maw team engine</a> ด้วย v3 keystone <code>maw wake --wt</code>.
+          </p>
+          <div class="callout ok"><strong>หลักที่ตอกย้ำ:</strong> &ldquo;prove by cwd, the roster can lie&rdquo; &mdash; ถ้าเชื่อ <code>maw panes</code> ว่า coder = codex จะพลาด; pid→cwd + peek บอกความจริงว่ามันรัน bash.</div>
+          <p class="src">เก็บใน ψ/learn/pnat-school/2026-06-01 (masterclass) + 2026-06-02 (engine-config dig) · team config: ψ/teams/devboy-codex2.yaml + .maw/maw.config.80.json</p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
