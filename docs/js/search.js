@@ -46,7 +46,8 @@
     ['041-discord-plugin-wiring.html', '041', 'Discord Plugin Wiring', ['discord', 'plugin', 'wiring', 'bot', 'dmpolicy'], 'Discord plugin wiring guide for Oracles'],
     // NOTE: 042-068 not yet in this search index (pre-existing gap — followup issue #22)
     ['069-consult-boardroom-skill.html', '069', '/consult Boardroom Skill', ['claude-skills', 'consult', 'boardroom', 'personas', 'thai-business', 'skill-review'], 'consult boardroom skill review 36 personas install verdict'],
-    ['070-9arm-skills-engineering-discipline.html', '070', '9arm-skills', ['claude-skills', '9arm', 'post-mortem', 'debug-mantra', 'scrutinize', 'skill-review'], '9arm thananon engineering discipline skills review install verdict']
+    ['070-9arm-skills-engineering-discipline.html', '070', '9arm-skills', ['claude-skills', '9arm', 'post-mortem', 'debug-mantra', 'scrutinize', 'skill-review'], '9arm thananon engineering discipline skills review install verdict'],
+    ['071-devboy-team-is-a-file-proof.html', '071', 'a-team-is-a-file (PROOF)', ['maw-team', 'team-is-a-file', 'worktree-isolation', 'engine-resolution', 'codex', 'proof'], 'DEVBOY local team charter engine-map pipeline isolation pid cwd proof engine gotcha maw wake wt']
   ];
 
   // --- Recent articles ---

@@ -56,7 +56,8 @@ var DEVBOY_NAV = [
       ['030-gemma4.html', '030 Gemma 4']
     ]],
     ['Multi-Agent', [
-      ['031-team-tile-bootstrap.html', '031 Team-Tile Bootstrap']
+      ['031-team-tile-bootstrap.html', '031 Team-Tile Bootstrap'],
+      ['071-devboy-team-is-a-file-proof.html', '071 a-team-is-a-file (PROOF)']
     ]],
     ['Google I/O 2026', [
       ['032-gemini-spark.html', '032 Gemini Spark'],
