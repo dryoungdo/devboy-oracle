@@ -57,7 +57,8 @@ var DEVBOY_NAV = [
     ]],
     ['Multi-Agent', [
       ['031-team-tile-bootstrap.html', '031 Team-Tile Bootstrap'],
-      ['072-maw-team-worktree-isolation-complete-guide.html', '072 maw team + Worktree (Complete Guide)']
+      ['072-maw-team-worktree-isolation-complete-guide.html', '072 maw team + Worktree (Complete Guide)'],
+      ['073-vesicle-transport-pane-mobility.html', '073 Vesicle Transport (Pane Mobility)']
     ]],
     ['Google I/O 2026', [
       ['032-gemini-spark.html', '032 Gemini Spark'],

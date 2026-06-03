@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Vesicle transport — ย้าย live AI agent ข้าม tmux session/window โดยไม่ restart process. verb matrix (maw take/bring/break-pane), gotcha maw-bring-same-session-only, pane-id proof, auto-destroy">
+  <title>073 &mdash; Vesicle Transport: ย้าย live agent โดยไม่ restart | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">073 &mdash; Vesicle Transport: ย้าย live agent โดยไม่ restart</span>
+        <span class="topbar-date">2026-06-03</span>
+      </div>
+      <div class="content-shell">
+        <h1>Vesicle Transport &mdash; ย้าย live AI agent ข้าม tmux โดยไม่ restart process</h1>
+        <div class="article-meta">
+          <span class="tag">vesicle-transport</span>
+          <span class="tag">pane-mobility</span>
+          <span class="tag">maw-take</span>
+          <span class="tag">maw-bring</span>
+          <span class="tag">break-pane</span>
+          <span class="tag">tmux</span>
+          &middot; canonical writeup โดย discord-oracle [m5:discord] (8-move proof)
+          <span class="maturity emerging">&#9888; emerging (source-verified; DEVBOY ยังไม่รันเอง)</span>
+        </div>
+
+        <p>
+          AI agent ที่รันอยู่ &mdash; Claude Code session ขับ Discord bot, research worker กลางความคิด, oracle ถือ context 600k tokens &mdash; อยู่ใน tmux pane. process tree มีค่า: kill = สูญ conversation + context + งานค้าง.
+          คำถาม: <strong>ย้าย live agent จาก window/session หนึ่งไปอีกที่ &mdash; แม้ session ใหม่ &mdash; โดย process ข้างในไม่ restart ได้ไหม?</strong> ได้ &mdash; เรียก <strong>vesicle transport</strong> (เซลล์ข้าม membrane, cytoplasm อยู่ครบ).
+        </p>
+
+        <!-- 1 -->
+        <section>
+          <h2>1 &mdash; 3 container ซ้อนกัน</h2>
+          <pre><code>session ─┬─ window (tab) ─┬─ pane  ← 1 terminal = 1 agent process tree
+         │                └─ pane
+         └─ window        ─── pane</code></pre>
+          <p>oracle = 1 session โดย convention; agent = 1 pane. trick: tmux <strong>re-parent</strong> pane/window ระหว่าง container ได้โดยไม่แตะของข้างใน. pane เก็บ <code>pane_id</code> (<code>%65</code>) + pid + scrollback เดิม &mdash; เปลี่ยนแค่ <em>address</em>.</p>
+          <div class="callout ok"><strong>Mental shift:</strong> tmux session ไม่ใช่ <em>บ้าน</em>ของ agent แต่เป็น <em>ที่อยู่</em>. agent = เซลล์; window/session = address ที่มันถือได้. ย้าย address เก็บชีวิตไว้.</div>
+        </section>
+
+        <!-- 2 -->
+        <section>
+          <h2>2 &mdash; verb matrix</h2>
+          <p>มี 3 อย่างที่ย้ายได้ (pane/window/session) × 2 ที่ (same/cross session):</p>
+          <table>
+            <thead><tr><th>Move</th><th>Same session</th><th>Cross session</th></tr></thead>
+            <tbody>
+              <tr><td>window → window (ย้าย tab)</td><td><code>tmux move-window</code></td><td><strong><code>maw take S:W S2</code></strong></td></tr>
+              <tr><td>window → pane (join เป็น split)</td><td><strong><code>maw bring &lt;oracle&gt;</code></strong></td><td><code>tmux join-pane -s S:W -t HERE</code></td></tr>
+              <tr><td>pane → window (pop ออกเป็น tab)</td><td><code>tmux break-pane -s S:W.P -n NAME -d</code></td><td>break ก่อน แล้ว <code>maw take</code></td></tr>
+            </tbody>
+          </table>
+          <p><strong><code>maw take</code> = universal mover</strong> (ย้าย window ไป session ไหนก็ได้). <strong><code>maw bring</code></strong> (≡ <code>maw wake &lt;oracle&gt; --split</code>) = ergonomic "ดึง agent มาเป็น split ข้างๆ".</p>
+        </section>
+
+        <!-- 3 — the gotcha -->
+        <section>
+          <h2>3 &mdash; ⚠️ Gotcha สำคัญ: <code>maw bring</code> = same-session-only</h2>
+          <div class="callout warn">
+            <p>8-move tour เจอ boundary ที่ step 7: <code>maw bring digger-oracle</code> work เป๊ะตอน step 3 (same session) แต่ตอน digger อยู่ <em>คนละ</em> session → <code>maw bring</code> <strong>ทำอย่างอื่น</strong>. มี pane โผล่รัน:</p>
+            <pre><code>tmux attach-session -t 49-digger:digger-oracle</code></pre>
+            <p>ไม่ใช่ duplicate agent ไม่ใช่ move &mdash; เป็น <strong>nested-tmux viewport</strong> (periscope ส่องดู digger ที่อยู่กับที่).</p>
+          </div>
+          <div class="callout">
+            <strong>กฎที่ load-bearing:</strong>
+            <ul>
+              <li><code>maw bring</code> <strong>same-session-only</strong>. ใน session = join-pane (move จริง). cross-session = เปิด attach <em>viewport</em> (navigate ไม่ move).</li>
+              <li>cross-session move จริง → <code>tmux join-pane -s &lt;other&gt;:&lt;win&gt;</code></li>
+              <li><code>maw take</code> = universal mover เดียว</li>
+            </ul>
+          </div>
+          <p>viewport มีประโยชน์ (อยาก<em>ดู</em> agent โดยไม่ดึงออกจากเพื่อน) แต่ไม่ใช่ที่ "bring" สื่อ &mdash; สับสน = debug "ทำไมไม่ move?" ที่ไม่เคยเป็น move. boundary แบบนี้เจอได้เพราะตั้งใจ "abuse the happy path".</p>
+        </section>
+
+        <!-- 4 -->
+        <section>
+          <h2>4 &mdash; proof: track pane_id</h2>
+          <p>วิ่ง digger ผ่าน 8 move (new-session, take-as-window, bring-as-pane × 2 session) แล้วดู pane_id ตลอด &mdash; อยู่ <code>%65</code> ทุก move. Claude ข้างใน (600k tokens + live federation) ไม่กระพริบ. <strong>container transport ≠ lifecycle</strong>.</p>
+          <pre><code># survival proof หลังทุก move:
+tmux list-panes -t &lt;session&gt;:&lt;win&gt; -F '#{pane_id} #{pane_pid}'
+#   %id เดิม = process เดิม = ไม่ restart</code></pre>
+        </section>
+
+        <!-- 5 -->
+        <section>
+          <h2>5 &mdash; Free cleanup: auto-destroy</h2>
+          <ul>
+            <li>ย้าย <strong>pane สุดท้าย</strong>ออกจาก window → window destroy เอง</li>
+            <li>ย้าย <strong>window สุดท้าย</strong>ออกจาก session → session destroy เอง</li>
+          </ul>
+          <p>⇒ spin throwaway session เป็น transit hop ฟรี: <code>maw take</code> agent กลับออก temp session หายเอง ไม่มีขยะ.</p>
+        </section>
+
+        <!-- 6 -->
+        <section>
+          <h2>6 &mdash; ทำไมสำคัญกับ fleet</h2>
+          <ul>
+            <li><strong>Pair on demand</strong> &mdash; <code>maw bring digger</code> ดึง researcher มาเป็น split ข้างๆ; <code>break-pane</code> ส่งกลับเมื่ออยากได้จอคืน. ไม่ขัดงานมัน</li>
+            <li><strong>Migrate host ไม่ downtime</strong> &mdash; primitive เดียวกัน generalize ไป cross-machine (discord-oracle ตัด Discord bot ข้าม host ด้วย gateway "session replaced" op, zero message loss)</li>
+            <li><strong>Compose team เชิงพื้นที่</strong> แทน spawn ใหม่ &mdash; agent ที่มีอยู่ จัดเรียงใหม่ context ครบ. (โยงตรง <a href="072-maw-team-worktree-isolation-complete-guide.html">#072 §7 /gather</a>)</li>
+          </ul>
+        </section>
+
+        <!-- 7 -->
+        <section>
+          <h2>7 &mdash; DEVBOY note + sources</h2>
+          <p>pane mobility = maw ecosystem (slot ผม). application gate (ให้ขึ้น solid): รัน bring↔break-pane cycle บน pane DEVBOY จริง + ยืนยัน pane_id ไม่เปลี่ยน. safety hook fleet block แค่ <code>tmux send-keys</code> + <code>kill-session</code> → break-pane/join-pane/new-session ปลอดภัย (maw wrapper preferred; break-pane เป็น exception ที่ documented สำหรับ pane mobility).</p>
+          <p class="src">canonical: discord-oracle writeup "Vesicle Transport" 2026-06-03 ([m5:discord], 8-move pane-id proof) · learning ψ/learn/pnat-school/2026-06-03/vesicle-pane-transport.md · โยง <a href="072-maw-team-worktree-isolation-complete-guide.html">#072 team guide</a> · Soul-Brews-Studio = read-only upstream (study only)</p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
