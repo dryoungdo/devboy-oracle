@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="คู่มือฉบับสมบูรณ์ maw team + worktree isolation + local team — 3-file pattern, config hierarchy, maw wake --wt keystone, isolation by pid→cwd, /team-up + /gather, cross-engine messaging, liveness, gotchas รวมจบในที่เดียว (รวม masterclass + proof #071, แทน #003 ที่เก่าแล้ว)">
+  <title>072 &mdash; maw team + worktree isolation: คู่มือฉบับสมบูรณ์ | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">072 &mdash; maw team + worktree isolation: คู่มือฉบับสมบูรณ์</span>
+        <span class="topbar-date">2026-06-03</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw team + worktree isolation + local team &mdash; คู่มือฉบับสมบูรณ์</h1>
+        <div class="article-meta">
+          <span class="tag">maw-team</span>
+          <span class="tag">worktree-isolation</span>
+          <span class="tag">local-team</span>
+          <span class="tag">maw-wake-wt</span>
+          <span class="tag">team-up</span>
+          <span class="tag">gather</span>
+          <span class="tag">cross-engine</span>
+          <span class="tag">reference</span>
+          &middot; consolidates masterclass + dig + <a href="071-devboy-team-is-a-file-proof.html">#071 proof</a>
+          <span class="maturity solid">&#10004; solid</span>
+        </div>
+
+        <p>
+          บทนี้รวมทุกอย่างเรื่อง <strong>maw team + worktree isolation + local team</strong> ไว้ที่เดียว &mdash;
+          เป็น reference ที่ future bud หยิบไปใช้ได้เลย. มัน <strong>แทน <a href="003-maw-team-engine.html">#003</a></strong> (เขียน 19 พ.ค. ก่อนมี <code>maw wake --wt</code>),
+          รวม masterclass <a href="https://nazt.github.io/agents-in-parallel/">agents-in-parallel</a> ของ P'Nat (2026-06-01) + engine-config dig + <a href="071-devboy-team-is-a-file-proof.html">#071</a> ที่ DEVBOY รันพิสูจน์เอง.
+          ทุก claim verify จาก source หรือรันจริง.
+        </p>
+
+        <div class="callout"><strong>Thesis (SomBo capstone):</strong> <em>&ldquo;A team is a file; two idempotent verbs bind that file to live panes; every operation is a non-destructive move.&rdquo;</em></div>
+
+        <!-- 1 -->
+        <section>
+          <h2>1 &mdash; mental model: a team is a file (3 ชั้น แต่ truth แค่ 2)</h2>
+          <table>
+            <thead><tr><th>ชั้น</th><th>ไฟล์</th><th>ตอบคำถาม</th><th>commit?</th></tr></thead>
+            <tbody>
+              <tr><td><strong>[C] Charter</strong></td><td><code>ψ/teams/&lt;team&gt;.yaml</code></td><td>WHO/WHAT &mdash; roles + engine ต่อ member</td><td>✅ committed, engine-agnostic</td></tr>
+              <tr><td><strong>[E] Engine map</strong></td><td><code>.maw/maw.config.80.json</code></td><td>HOW &mdash; ชื่อ engine → launch command</td><td>✅ committed, cross-engine</td></tr>
+              <tr><td><strong>[L] Live state</strong></td><td><code>~/.claude/teams/&lt;team&gt;/config.json</code> + inboxes + manifest</td><td>NOW &mdash; อะไรรันอยู่จริง</td><td>❌ auto-written, ไม่ commit</td></tr>
+            </tbody>
+          </table>
+          <div class="callout ok">asymmetry <strong>คือ</strong>ตัว pattern: source → live เท่านั้น ไม่เคยย้อน. regrow live จาก 2 ไฟล์ committed ได้เสมอ; กลับทางไม่ได้.</div>
+        </section>
+
+        <!-- 2 -->
+        <section>
+          <h2>2 &mdash; ไฟล์จริง (schema verify จาก source)</h2>
+          <h3>[C] Charter</h3>
+          <p>schema (จาก <code>~/.maw/plugins/team/team-charter.ts</code>, team v2.0.1): required = <code>name</code> + <code>members[]</code> (≥1). member keep แค่ <code>role</code> (required) + <code>target? / model? / cwd? / prompt?</code>. <strong>field format เก่า (color/branch/worktree-name/system-prompt) ถูก ignore</strong> โดย parser v2.0.1.</p>
+          <pre><code>name: devboy-codex2
+description: "lead (Opus 4.8) + 2 codex coders in isolated worktrees"
+goal: "..."
+members:
+  - role: coder-1
+    model: codex
+    prompt: "You are coder-1. Minimal tasks from lead. Own worktree only."
+  - role: coder-2
+    model: codex
+    prompt: "..."</code></pre>
+          <h3>[E] Engine map</h3>
+          <pre><code>{ "commands": {
+    "default":  "ANTHROPIC_MODEL=claude-opus-4-8 command claude --dangerously-skip-permissions",
+    "claude48": "ANTHROPIC_MODEL=claude-opus-4-8 command claude --dangerously-skip-permissions",
+    "codex":    "codex --dangerously-bypass-approvals-and-sandbox",
+    "omx":      "omx --yolo --direct",
+    "*-resume": "... --continue"   // respawn only
+} }</code></pre>
+          <p><code>claude46/47/48</code> ไม่ใช่ binary &mdash; เป็น <strong>zsh shim</strong> จาก maw shellenv plugin (<code>ANTHROPIC_MODEL="claude-opus-4-6[1m]" claude "$@"</code>) ต้องอยู่บน PATH. FRESH keys ไม่ใส่ <code>--continue</code>; <code>*-resume</code> สำหรับ respawn.</p>
+          <p class="src">source: team-charter.ts (interface TeamCharterMember); shellenv zsh.ts; dig [m5:noah] 2026-06-02</p>
+        </section>
+
+        <!-- 3 -->
+        <section>
+          <h2>3 &mdash; config hierarchy + engine resolution</h2>
+          <p>discovery regex: <code>maw\.config\.(\d+)(\.local)?\.json</code>. merge <strong>ascending</strong> (<code>load.ts:119</code>) → <strong>weight สูง = apply ทีหลัง = ชนะ</strong>:</p>
+          <pre><code>built-in → 50 (user ~/.config/maw) → 80 (project .maw) → 80.local (wins)</code></pre>
+          <ul>
+            <li>restricted keys (<code>federationToken / peers / port / bind / sessions</code>) → ต้องอยู่ <code>.50.json</code> หรือ <code>.local.json</code> เท่านั้น (maw warns ถ้าอยู่ project scope). <code>.maw/*.local.json</code> ต้อง gitignore.</li>
+            <li>resolution (<code>command-logic.ts:117</code>): <code>commands[engine] ?? commands.default ?? "claude"</code>. <strong>engine map = source of truth ไม่ใช่ binary</strong> &mdash; <code>-e codex</code> ถ้าไม่มี key = <strong>silent no-op</strong> ตกไป default.</li>
+            <li><strong>channel ≠ engine</strong>: channel = Discord/Telegram/Slack bridge (append <code>--channels</code>), คนละชั้นกับ engine.</li>
+          </ul>
+        </section>
+
+        <!-- 4 -->
+        <section>
+          <h2>4 &mdash; pipeline: plan → preflight → load → spawn</h2>
+          <table>
+            <thead><tr><th>stage</th><th>ทำอะไร</th></tr></thead>
+            <tbody>
+              <tr><td><code>maw team plan &lt;charter&gt;</code></td><td>read-only — list artifacts, ไม่เขียน</td></tr>
+              <tr><td><code>maw team preflight &lt;charter&gt;</code></td><td>6 checks (name, unique roles, no collision, targets, governance)</td></tr>
+              <tr><td><code>maw team load &lt;charter&gt; --no-spawn</code></td><td>materialize live config + inboxes + manifest — <strong>ไม่ spawn pane</strong> (<code>--no-spawn</code> required)</td></tr>
+              <tr><td>spawn</td><td>แยกขั้น — ผ่าน <code>maw wake --wt</code> (charter flow v2.0.1 ไม่ spawn pane เอง)</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 5 -->
+        <section>
+          <h2>5 &mdash; keystone spawn: <code>maw wake --wt</code></h2>
+          <pre><code>maw wake &lt;Org&gt;/&lt;repo&gt; --wt &lt;slot&gt; -e &lt;engine&gt; --session &lt;sess&gt;</code></pre>
+          <ul>
+            <li>ทำ <strong>worktree + branch + pane + engine ในคำสั่งเดียว</strong> (แทน manual <code>git worktree add</code> + <code>maw new --split --path</code>)</li>
+            <li><strong>org-qualified name required</strong> &mdash; bare name resolve ผิด repo เงียบๆ</li>
+            <li><code>--wt</code> สร้าง/reuse worktree (layout: <code>repo/agents/N-slot</code>); <code>--fresh</code> = slot ใหม่สะอาด; <code>--list</code> = preview ไม่สร้าง; <code>--session</code> = ยิงเข้า fleet session ที่มีอยู่</li>
+          </ul>
+        </section>
+
+        <!-- 6 -->
+        <section>
+          <h2>6 &mdash; worktree isolation (กับดักอันดับ 1)</h2>
+          <p>writer แต่ละตัว<strong>ต้อง</strong>มี worktree ของตัวเอง ไม่งั้นเขียนชนกัน <strong>โดยไม่มี conflict marker &mdash; แค่งานหาย</strong>. <code>maw wake --wt</code> = isolated (writers); <code>maw swarm</code> = shared cwd (read/review เท่านั้น).</p>
+          <div class="callout"><strong>พิสูจน์ isolation ด้วย pid→cwd ไม่ใช่ roster</strong> (จาก #071 ที่ DEVBOY รันจริง):
+<pre><code>coder-1  pid 2603473  cwd .../agents/1-coder-1  [agents/1-coder-1]
+coder-2  pid 2603654  cwd .../agents/1-coder-2  [agents/1-coder-2]
+→ readlink /proc/$pid/cwd ต่างกัน = isolated จริง</code></pre></div>
+        </section>
+
+        <!-- 7 -->
+        <section>
+          <h2>7 &mdash; idempotent verbs: /team-up + /gather</h2>
+          <ul>
+            <li><strong><code>/team-up</code></strong> &mdash; idempotent ensure: live→skip, dead→relaunch, missing→wake (<code>--gather</code> compose ด้วย). re-runnable ปลอดภัย</li>
+            <li><strong><code>/gather</code></strong> &mdash; join-pane เอา member มาข้าง lead (<code>--scatter</code> กลับ). join-pane = MOVE (process รันต่อ) ไม่ใช่ copy</li>
+            <li><strong><code>/local-team</code></strong> &mdash; manual baseline (declare→spawn→prove→teardown)</li>
+          </ul>
+          <p>6-step flow ที่ P'Nat สอน: Declare → Validate → Spawn → <strong>Ensure</strong> → <strong>Gather</strong> → Drive.</p>
+        </section>
+
+        <!-- 8 -->
+        <section>
+          <h2>8 &mdash; cross-engine messaging (asymmetric!)</h2>
+          <table>
+            <thead><tr><th>จาก</th><th>คำสั่ง</th></tr></thead>
+            <tbody>
+              <tr><td>claude member → ใคร</td><td><code>maw hey &lt;addr&gt; '&lt;msg&gt;'</code></td></tr>
+              <tr><td>omx/codex member → ใคร</td><td><code>maw run &lt;addr&gt; '&lt;msg&gt;'</code> ; <code>maw send-enter &lt;addr&gt;</code> ; <code>maw peek &lt;addr&gt;</code></td></tr>
+              <tr><td>teammate → lead</td><td><code>maw hey &lt;lead-addr&gt; '&lt;msg&gt;'</code></td></tr>
+            </tbody>
+          </table>
+          <p>2 ช่อง: TTY sync (ข้างบน) + Inbox async (<code>maw team send &lt;team&gt; &lt;role&gt; "msg"</code> → on-disk JSON, pane-independent).</p>
+        </section>
+
+        <!-- 9 -->
+        <section>
+          <h2>9 &mdash; liveness: <code>pane_current_command</code> ไม่ใช่ dot</h2>
+          <p>เช็คว่า pane เป็นๆ ไหม ดู <code>pane_current_command</code> &mdash; <code>zsh/bash/sh</code> = ตายแล้ว (drop เป็น shell). <strong>ไม่ใช่</strong> ●/◌ status (quiet-live agent ทำให้ stale ได้). เช่น Hermes daemon = <code>python</code> ไม่ใช่ claude → naive check จะนึกว่าตาย.</p>
+          <div class="callout ok"><em>&ldquo;prove by cwd / pane_current_command — the roster can lie&rdquo;</em></div>
+        </section>
+
+        <!-- 10 -->
+        <section>
+          <h2>10 &mdash; gotchas (รวมจาก proof + masterclass)</h2>
+          <div class="callout warn">
+            <ul>
+              <li><strong>engine resolution version-gated</strong> &mdash; บน maw <strong>v26.5.21</strong> <code>maw wake -e codex</code> <em>ไม่อ่าน</em> project <code>.maw/maw.config.80.json</code> → ตก global default → ถ้า global = <code>claude --continue</code> + ไม่มี conv → <strong>dead bash</strong> (DEVBOY เจอเองใน #071). workaround: ตั้ง commands ใน global, หรือ upgrade maw</li>
+              <li><code>--split</code> same-session พัง (#1835 nested attach) → coder กลายเป็น separate window แทน split</li>
+              <li>YAML <code>&gt;</code> folded scalar parser ไม่กิน → ใช้ single-line quoted string</li>
+              <li><code>claude --continue</code> ไม่มี conversation เดิม → "No conversation found" → dead shell</li>
+              <li>ใช้ <code>python3</code> สำหรับ JSON ไม่ใช่ <code>jq</code> (ไม่ guaranteed ทุกเครื่อง)</li>
+              <li>tmux session+window ชื่อซ้ำ glob-collide → ตั้งชื่อต่างกัน</li>
+              <li><code>maw config show</code> / <code>maw promote</code> = verb ใหม่ ไม่มีบน v26.5.21 (version gap)</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 11 -->
+        <section>
+          <h2>11 &mdash; เลือกอะไร: team charter vs team-tile vs subagent</h2>
+          <table>
+            <thead><tr><th>ใช้</th><th>เมื่อ</th></tr></thead>
+            <tbody>
+              <tr><td><strong>team charter + maw wake --wt</strong> (บทนี้)</td><td>writer หลายตัวเขียน parallel ใน worktree แยก, repo register แล้ว, ต้องการ lifecycle + respawn</td></tr>
+              <tr><td><strong><a href="031-team-tile-bootstrap.html">team-tile</a></strong> (#031)</td><td>spawn codex tiles ใน pane (50/50 กับ lead), งานชั่วคราว, ไม่ต้อง worktree lifecycle</td></tr>
+              <tr><td><strong>subagent</strong> (Agent tool)</td><td>งานในรอบเดียว ไม่ต้อง process แยก/survive session</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 12 -->
+        <section>
+          <h2>12 &mdash; sources + cross-ref</h2>
+          <ul>
+            <li>masterclass: <a href="https://nazt.github.io/agents-in-parallel/">nazt.github.io/agents-in-parallel</a> Ch.5-8 (team-is-a-file, ensure-and-gather, verify-invariant, isolation)</li>
+            <li>DEVBOY proof: <a href="071-devboy-team-is-a-file-proof.html">#071</a> (รัน devboy-codex2 จริง + เจอ engine gotcha)</li>
+            <li>source-verified: <code>team-charter.ts</code>, <code>command-logic.ts:117</code>, <code>load.ts:119</code>, <code>paths.ts</code>, shellenv <code>zsh.ts</code></li>
+            <li>แทน <a href="003-maw-team-engine.html">#003</a> (team v1, 2026-05-19) · เสริม <a href="042-maw-js-advanced-guide.html">#042</a></li>
+            <li>ψ/learn: pnat-school/2026-06-01 (masterclass) + 2026-06-02 (engine-config dig)</li>
+          </ul>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
