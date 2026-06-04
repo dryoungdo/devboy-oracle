@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARRA ORACLE — 3D</title>
+<meta name="description" content="ARRA Oracle Terminal · Tesla × Porsche tech-luxury genome · interactive 3D">
+<style>
+  :root{ --ice:#5fd8ff; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:#050506;overflow:hidden;
+    font-family:'Helvetica Neue',Arial,'Segoe UI',sans-serif;color:#e7ebf0;-webkit-font-smoothing:antialiased;}
+  #app{position:fixed;inset:0;
+    background:radial-gradient(58% 48% at 50% 42%, #15171b 0%, #0c0d10 48%, #060607 80%, #050506 100%);}
+  canvas{display:block;}
+  /* chrome */
+  #mark{position:fixed;top:30px;left:0;right:0;text-align:center;z-index:5;
+    font-size:18px;letter-spacing:14px;font-weight:300;color:#aeb6c0;padding-left:14px;pointer-events:none;}
+  #lower{position:fixed;bottom:42px;left:0;right:0;text-align:center;z-index:5;pointer-events:none;}
+  #lower h1{font-size:40px;font-weight:200;letter-spacing:9px;padding-left:9px;color:#f3f6fa;}
+  #lower .sub{margin-top:12px;font-size:15px;font-style:italic;font-weight:300;color:#9aa3ad;}
+  #lower .spec{margin-top:16px;font-size:10.5px;letter-spacing:4px;text-transform:uppercase;color:#5f6b78;}
+  #hint{position:fixed;bottom:14px;right:18px;z-index:5;font-size:10px;letter-spacing:3px;
+    text-transform:uppercase;color:#3f4753;pointer-events:none;}
+  #badge{position:fixed;top:26px;right:22px;z-index:5;font-size:10px;letter-spacing:3px;
+    text-transform:uppercase;color:#46505c;pointer-events:none;}
+  #load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9;
+    background:#050506;color:#5f6b78;font-size:12px;letter-spacing:5px;text-transform:uppercase;transition:opacity .6s;}
+  #load.gone{opacity:0;pointer-events:none;}
+  .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ice);
+    margin:0 3px;animation:p 1.1s infinite ease-in-out;}
+  .dot:nth-child(2){animation-delay:.18s;} .dot:nth-child(3){animation-delay:.36s;}
+  @keyframes p{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="mark">A R R A</div>
+<div id="badge">Tesla × Porsche genome</div>
+<div id="lower">
+  <h1>ARRA ORACLE</h1>
+  <div class="sub">The model upgrades. The object stays.</div>
+  <div class="spec">CNC-milled 6061 &middot; single-billet monolith &middot; 4&Prime; OLED &middot; socketed compute</div>
+</div>
+<div id="hint">drag to orbit &middot; scroll to zoom</div>
+<div id="load"><span>loading</span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+const app = document.getElementById('app');
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, 0.1, 4000);
+camera.position.set(150, 95, 230);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1.1;
+controls.minDistance = 120;
+controls.maxDistance = 520;
+controls.enablePan = false;
+
+// key + rim lights to read the machined edges (env handles fill)
+const key = new THREE.DirectionalLight(0xdfeaff, 1.5); key.position.set(-120, 180, 120); scene.add(key);
+const rim = new THREE.DirectionalLight(0x8fb8ff, 0.8); rim.position.set(140, 60, -150); scene.add(rim);
+scene.add(new THREE.AmbientLight(0x202632, 0.5));
+
+const ICE = new THREE.Color(0x5fd8ff);
+const mats = {
+  body:  new THREE.MeshStandardMaterial({ color:0x1b1d21, metalness:0.78, roughness:0.36, envMapIntensity:1.1 }),
+  glass: new THREE.MeshStandardMaterial({ color:0x05070a, metalness:0.35, roughness:0.08, envMapIntensity:1.4 }),
+  ui:    new THREE.MeshStandardMaterial({ color:0x0a2230, emissive:ICE, emissiveIntensity:2.4, metalness:0, roughness:0.5 }),
+  glow:  new THREE.MeshStandardMaterial({ color:0x0a2230, emissive:ICE, emissiveIntensity:2.0, metalness:0, roughness:0.6 }),
+};
+
+const group = new THREE.Group();
+group.rotation.x = -Math.PI/2;        // OpenSCAD Z-up -> Three Y-up
+scene.add(group);
+
+const loader = new STLLoader();
+const parts = ['body','glass','ui','glow'];
+Promise.all(parts.map(p => loader.loadAsync(`models/arra-${p}.stl`).then(g => ({p,g}))))
+  .then(list => {
+    list.forEach(({p,g}) => { g.computeVertexNormals(); group.add(new THREE.Mesh(g, mats[p])); });
+    // center the group on the body bbox
+    const box = new THREE.Box3().setFromObject(group);
+    const c = box.getCenter(new THREE.Vector3());
+    group.position.sub(c);
+    controls.target.set(0,0,0);
+    document.getElementById('load').classList.add('gone');
+  })
+  .catch(err => { document.getElementById('load').innerHTML =
+    '<span style="color:#b05">load failed — '+err.message+'</span>'; });
+
+// post: bloom so the ice screen + base glow bleed light
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.65, 0.7, 0.82);
+composer.addPass(bloom);
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+});
+
+(function loop(){ requestAnimationFrame(loop); controls.update(); composer.render(); })();
+</script>
+</body>
+</html>
