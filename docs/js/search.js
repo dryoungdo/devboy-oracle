@@ -46,7 +46,8 @@
     ['041-discord-plugin-wiring.html', '041', 'Discord Plugin Wiring', ['discord', 'plugin', 'wiring', 'bot', 'dmpolicy'], 'Discord plugin wiring guide for Oracles'],
     // NOTE: 042-068 not yet in this search index (pre-existing gap — followup issue #22)
     ['069-consult-boardroom-skill.html', '069', '/consult Boardroom Skill', ['claude-skills', 'consult', 'boardroom', 'personas', 'thai-business', 'skill-review'], 'consult boardroom skill review 36 personas install verdict'],
-    ['070-9arm-skills-engineering-discipline.html', '070', '9arm-skills', ['claude-skills', '9arm', 'post-mortem', 'debug-mantra', 'scrutinize', 'skill-review'], '9arm thananon engineering discipline skills review install verdict']
+    ['070-9arm-skills-engineering-discipline.html', '070', '9arm-skills', ['claude-skills', '9arm', 'post-mortem', 'debug-mantra', 'scrutinize', 'skill-review'], '9arm thananon engineering discipline skills review install verdict'],
+    ['075-morph-polymorphism-witness.html', '075', 'Morph (polymorphism)', ['morph', 'polymorphism', 'liskov', 'michelangelo', 'witness-not-light', 'openscad', '3d-print', 'soul-swap'], 'morph soul-swap polymorphism one soul many forms liskov substitution michelangelo subtractive difference witness not light john openscad stl 3d print embodiment vessel']
   ];
 
   // --- Recent articles ---
