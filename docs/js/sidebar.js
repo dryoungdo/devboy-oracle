@@ -99,6 +99,9 @@ var DEVBOY_NAV = [
     ['Community Skills (รีวิว)', [
       ['069-consult-boardroom-skill.html', '069 /consult Boardroom'],
       ['070-9arm-skills-engineering-discipline.html', '070 9arm-skills']
+    ]],
+    ['Soul & Art (เคล็ดวิชา อ.นัท)', [
+      ['074-soul-and-dna.html', '074 Soul & DNA (swappable soul)']
     ]]
 ];
 
