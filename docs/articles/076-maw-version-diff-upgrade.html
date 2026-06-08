@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="maw version diff: เรารัน v26.5.21 (21 พ.ค.) แต่ upstream alpha ไปถึง v26.6.8-alpha.1320 (8 มิ.ย.) = 383 commits / 686 files / +38k−11.7k ข้างหน้า. อะไรดีขึ้น (federation/health/security), อะไรใหม่ (channel/discord/reply/forget + team remove/reassign + Agent Status Broker), อะไรแย่ลง/พัง (wake -p ถูกถอด, alpha churn, pm2 watch:src footgun), verdict ควร upgrade ไหม, และ migration guide ระดับคำสั่ง.">
+  <title>076 &mdash; maw v26.5.21 &rarr; alpha.1320: diff, verdict, migration | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">076 &mdash; maw version diff + upgrade verdict</span>
+        <span class="topbar-date">2026-06-07</span>
+      </div>
+      <div class="content-shell">
+        <h1>maw <code>v26.5.21</code> &rarr; <code>alpha.1320</code> &mdash; อะไรเปลี่ยน, ควร upgrade ไหม, แล้วงานเราต้องทำต่างไปยังไง</h1>
+        <div class="article-meta">
+          <span class="tag">maw</span>
+          <span class="tag">version-diff</span>
+          <span class="tag">upgrade</span>
+          <span class="tag">federation</span>
+          <span class="tag">migration</span>
+          <span class="tag">pm2-watch</span>
+          <span class="tag">fleet-ops</span>
+          &middot; Captain directive 2026-06-07 (จาก <code>/learn --deep maw-js</code>)
+          <span class="maturity emerging">&#9679; emerging</span>
+        </div>
+
+        <p>
+          Captain สั่ง: เทียบ maw ที่ <strong>fleet เรารันจริง</strong> กับ upstream ล่าสุด แล้วบอกว่าควร upgrade ไหม + งานต้องทำต่างไปยังไง. บทความนี้คือผลจากการอ่าน diff จริงระหว่าง 2 version (อ่านอย่างเดียว ไม่แตะ upstream &mdash; โยง <a href="042-maw-js-advanced-guide.html">#042</a>, <a href="007-maw-js-orchestrator.html">#007</a>).
+        </p>
+
+        <div class="callout">
+          <strong>ตัวเลขสรุป (วัดจาก git diff ระหว่าง ref):</strong><br>
+          &bull; <strong>version เรา</strong>: CLI <code>maw</code> ที่พิมพ์ = global install <code>v26.5.21</code> (21 พ.ค.) &middot; pm2 daemon source ที่ commit <code>8aa1bbd3</code> (วินเทจเดียวกัน)<br>
+          &bull; <strong>upstream ล่าสุด</strong>: <code>v26.6.8-alpha.1320</code> (<code>8cca953c</code>, 8 มิ.ย. = วันที่เขียน)<br>
+          &bull; <strong>ช่องว่าง</strong>: <strong>383 commits</strong> &middot; 686 files &middot; <strong>+38,035 / &minus;11,707</strong> บรรทัด &middot; ~2.5 สัปดาห์ &middot; ~379 commit เป็นของ Nat
+        </div>
+
+        <!-- A -->
+        <section>
+          <h2>A &mdash; อะไร<em>ดีขึ้น</em> (reliability + security)</h2>
+          <p>กลุ่มที่สำคัญสุดต่อ fleet เรา คือ federation + health + auth &mdash; สิ่งที่ <a href="050-federation.html">#050</a> วางไว้ ถูกทำให้ &ldquo;เชื่อได้จริง&rdquo;:</p>
+          <div class="callout ok">
+            <strong>1. <code>maw health</code> probe delivery path จริง</strong> (#1979/#1987) &mdash; เดิม health เขียว = แค่ federation/status ตอบ. ตอนนี้ <code>POST /api/probe</code> ยิงเส้นส่งจริง &rarr; <strong>เขียว = ส่งถึงได้จริง</strong>. ตรงกับบทเรียนของเราว่า &ldquo;marker โกหก&rdquo; (verify process ไม่ใช่ banner).<br>
+            <strong>2. cross-node <code>hey</code> ไม่ hard-fail แล้ว</strong> ถ้า wake พัง (#1998) &mdash; ส่งข้ามเครื่องทนขึ้น.<br>
+            <strong>3. peer-probe retry กัน WireGuard jitter</strong> (#1975) + <strong>warn เมื่อ <code>hey</code> เข้าคิวให้ node ที่ offline</strong> (#2422) &mdash; feedback ชัดขึ้น ไม่เงียบหาย.<br>
+            <strong>4. security</strong>: HMAC-SHA256 v2 signing + <strong>TOFU peer-pubkey pinning</strong> (<code>peers.json</code>) + random JWT secret &mdash; auth backbone แข็งขึ้น.<br>
+            <strong>5. wake ไม่ leak inbox body</strong> อีก (#2394) + กัน worktree ambiguity ข้าม session (#2392) &mdash; ปลอดภัย + ไม่ชนกันเอง.
+          </div>
+          <p class="src">source: <code>git log v26.5.21-alpha.2319..origin/alpha</code> (#1979/#1987/#1998/#1975/#2422/#2394/#2392) &middot; ψ/learn/Soul-Brews-Studio/maw-js/2026-06-07/1522_QUICK-REFERENCE.md</p>
+        </section>
+
+        <!-- B -->
+        <section>
+          <h2>B &mdash; อะไร<em>ใหม่</em> (commands + features)</h2>
+          <p><strong>คำสั่ง/plugin ที่เพิ่มมา</strong> (มี <code>plugin.json</code> ใหม่): <code>channel</code> &middot; <code>discord</code> &middot; <code>reply</code> &middot; <code>forget</code> &middot; <code>config</code> &middot; <code>cli</code> &middot; <code>user-setup</code>.</p>
+          <table>
+            <thead><tr><th>ใหม่</th><th>คือ</th></tr></thead>
+            <tbody>
+              <tr><td><code>maw channel</code> / <code>discord</code> / <code>reply</code></td><td>channel surface เป็น first-class verb (เดิมเป็น flag/plugin ข้างใน)</td></tr>
+              <tr><td><code>maw peers forget</code></td><td>ลบ pinned peer pubkey (คู่กับ TOFU pinning ใหม่ &mdash; reset trust)</td></tr>
+              <tr><td><code>maw config</code> / <code>cli</code> / <code>user-setup</code></td><td>setup/config verbs (local config layers + provenance)</td></tr>
+              <tr><td><code>maw team remove &lt;member&gt;</code></td><td>teardown + แก้ charter ในคำสั่งเดียว (#2106)</td></tr>
+              <tr><td><code>maw team reassign</code></td><td>kill + fresh-wake redirect (#2100)</td></tr>
+              <tr><td><strong>Agent Status Broker</strong></td><td>กลไกรวม status agent (#2095)</td></tr>
+              <tr><td>SDK exports</td><td><code>broadcast</code>, <code>channel-loader</code>, <code>loadConfigWithProvenance</code> &mdash; เขียน plugin/tool ต่อยอดง่ายขึ้น</td></tr>
+            </tbody>
+          </table>
+          <p class="src">source: <code>git diff --name-status</code> on <code>**/plugin.json</code> (A=added) + feat commits #2106/#2100/#2095/#2169/#2167/#2148</p>
+        </section>
+
+        <!-- C -->
+        <section>
+          <h2>C &mdash; อะไร<em>แย่ลง / เสี่ยง / พัง</em></h2>
+          <div class="callout warn">
+            <strong>1. BREAKING &mdash; <code>maw wake -p</code> ถูกถอด</strong> (#2131). เดิมส่ง prompt ตอน wake ด้วย <code>-p "..."</code>; ตอนนี้ prompt ไปทาง <strong>send-keys</strong> แทน. <strong>script ไหนที่ใช้ <code>maw wake ... -p</code> จะพัง.</strong><br>
+            <strong>2. <code>--force</code> fallback แคบลง</strong> &mdash; scope เหลือเฉพาะ dirty worktree (#2098). พฤติกรรม fallback ไม่เหมือนเดิม.<br>
+            <strong>3. wake rehydrate เปลี่ยนเยอะ</strong> &mdash; กัน double-prefix, กัน window ชนกัน, gate inbox drain ให้ claude เท่านั้น (#2092), bound inbox prompt. ดีขึ้นแต่ <em>behavior ต่างจากเดิม</em> ต้องทดสอบ.<br>
+            <strong>4. alpha churn สูง</strong> &mdash; 1,320 alpha builds, +38k บรรทัด/2.5 สัปดาห์. เร็วและยังขยับ.<br>
+            <strong>5. license = BUSL-1.1</strong> &mdash; ไม่ใช่ OSS เต็ม. ต้องรู้ก่อนพึ่ง.<br>
+            <strong>6. pm2 <code>watch: ['src']</code> footgun</strong> &mdash; <em>ทุก</em> git checkout/pull ใน repo ที่ pm2 ชี้ = <strong>restart daemon สดทันที</strong>. deploy = restart (วาง downtime).
+          </div>
+          <div class="callout warn">
+            <strong>7. split-brain 2 installs</strong> &mdash; CLI <code>maw</code> ที่พิมพ์ (global, v26.5.21) กับ daemon (pm2, source repo อีกก้อน) <strong>เป็นคนละ version ได้</strong>. upgrade ต้องทำ <em>ทั้งสอง</em> ไม่งั้น CLI พูดภาษานึง daemon พูดอีกภาษา.
+          </div>
+          <p class="src">source: commits #2131/#2098/#2092 &middot; ψ/memory/learnings/2026-06-07_critical-maw-daemon-footgun &middot; ecosystem.config.cjs (<code>watch:['src']</code>)</p>
+        </section>
+
+        <!-- D -->
+        <section>
+          <h2>D &mdash; Verdict: ควร upgrade ไหม?</h2>
+          <div class="callout ok">
+            <strong>ควร &mdash; แต่ staged + Captain seal, ไม่ใช่ auto.</strong>
+          </div>
+          <p><strong>เพราะ (pro):</strong> ของที่ได้คือสิ่งที่ fleet เจ็บมาก่อน &mdash; health ที่เชื่อได้จริง, cross-node hey ที่ไม่ล้ม, security (HMAC v2 + TOFU), wake ที่ไม่ leak. นี่ไม่ใช่ feature เล่นๆ มันคือ reliability ของ federation ที่เราใช้ทุกวัน.</p>
+          <p><strong>แต่ระวัง (con):</strong> 383-commit jump + alpha churn + <code>wake -p</code> พัง + pm2 watch footgun = surface การเปลี่ยนใหญ่. upgrade มืดๆ บนเครื่อง production = เสี่ยง.</p>
+          <div class="callout">
+            <strong>แผนที่ปลอดภัย (DEVBOY validation lane &mdash; นี่คืองานเราพอดี):</strong><br>
+            1. <strong>clone แยกอ่าน/ทดสอบ</strong> &mdash; ห้าม checkout/pull ใน repo ที่ pm2 ชี้ (footgun #6).<br>
+            2. <strong>audit script</strong> หา <code>maw wake ... -p</code> ทั้งหมดก่อน &mdash; แก้เป็น send-keys/hey.<br>
+            3. upgrade <strong>ทั้ง CLI (<code>bun i -g</code>) + daemon source พร้อมกัน</strong> &mdash; กัน split-brain.<br>
+            4. <strong>re-pair peers</strong> (TOFU pin รอบแรก) &middot; เช็ค <code>maw health</code> เขียว (ตอนนี้เชื่อได้จริง).<br>
+            5. ทำบน <strong>devboy node ก่อน</strong> ช่วง traffic ต่ำ &rarr; ค่อยขยาย fleet.
+          </div>
+        </section>
+
+        <!-- E -->
+        <section>
+          <h2>E &mdash; งานเราต้องทำต่างไปยังไง (migration ระดับคำสั่ง)</h2>
+          <table>
+            <thead><tr><th>เดิม</th><th>หลัง upgrade</th></tr></thead>
+            <tbody>
+              <tr><td><code>maw wake &lt;...&gt; -p "prompt"</code></td><td>&#10060; <code>-p</code> หายแล้ว &rarr; wake แล้วส่ง prompt ทาง send-keys / <code>maw hey</code> ตามหลัง</td></tr>
+              <tr><td><code>maw health</code> = เช็ค status</td><td>&#9989; เชื่อได้ขึ้น &mdash; probe เส้นส่งจริง (เขียว = deliverable)</td></tr>
+              <tr><td><code>maw hey</code> &rarr; node offline เงียบ</td><td>&#9989; warn + เข้าคิวบอกชัด (#2422)</td></tr>
+              <tr><td><code>--force</code> fallback กว้าง</td><td>&#9888; เหลือเฉพาะ dirty worktree (#2098)</td></tr>
+              <tr><td>(ไม่มี)</td><td>&#10024; ใหม่: <code>team remove</code> &middot; <code>team reassign</code> &middot; <code>peers forget</code> &middot; <code>channel/discord/reply</code></td></tr>
+              <tr><td>peer = แค่ pair</td><td>&#9888; TOFU pin &mdash; รอบแรก pin pubkey; เปลี่ยน key ต้อง <code>maw peers forget</code></td></tr>
+              <tr><td>deploy = restart มือ</td><td>&#9888; pm2 watch:src &mdash; แตะ git ใน repo daemon = restart สดทันที (วาง downtime)</td></tr>
+            </tbody>
+          </table>
+          <p>
+            <strong>คำสั่งที่หายไป/เลิกใช้:</strong> ไม่มี command ถูก<em>ลบ</em>ทั้งก้อน (ไม่มี <code>plugin.json</code> ถูกลบ/rename) &mdash; ที่ &ldquo;พัง&rdquo; คือ <strong>flag <code>-p</code> บน <code>wake</code></strong> และ <strong>scope ของ <code>--force</code></strong>. นอกนั้นคือ <em>เพิ่ม</em> ไม่ใช่ <em>เอาออก</em>. กับ <strong>packaging</strong>: npm package rename <code>maw</code> &rarr; <code>maw-js</code> (binary ยังชื่อ <code>maw</code>) แก้ปัญหา dependency loop &mdash; ตอน <code>bun i -g</code> ใช้ชื่อใหม่.
+          </p>
+          <p class="src">source: commits #2131/#2098/#2422/#2106/#2100 &middot; <code>git diff --name-status **/plugin.json</code> (0 deleted, 0 renamed) &middot; ψ/learn/Soul-Brews-Studio/maw-js/2026-06-07/1522_*.md</p>
+        </section>
+
+        <!-- ledger -->
+        <section>
+          <h2>Pre-publish ledger</h2>
+          <ul>
+            <li><strong>Sources</strong>: read-only <code>git diff/log v26.5.21-alpha.2319..origin/alpha</code> ใน maw-js repo (working tree ไม่แตะ) + <code>/learn --deep maw-js</code> docs (ψ/learn/Soul-Brews-Studio/maw-js/2026-06-07/, HEAD 8cca953c)</li>
+            <li><strong>Maturity</strong>: &#9679; emerging &mdash; วัดจาก source/commit จริง แต่ <em>ยังไม่ได้ลอง upgrade จริง</em> (ไม่มี application evidence ของ post-upgrade behavior)</li>
+            <li><strong>Conflicts</strong>: flagged drift &mdash; <code>ci:local</code> ชี้ <code>docker-compose.ci.yml</code> ที่หายไป (จริง: <code>docker/compose.yml</code>); SDK <code>Peer</code> (wire) &ne; disk <code>Peer</code> (peers.json)</li>
+            <li><strong>Verdict นับเป็น claim</strong>: &ldquo;ควร upgrade แบบ staged&rdquo; &mdash; conditional, มี failure-mode (alpha churn / wake -p / watch footgun) ระบุไว้ ไม่ใช่ &ldquo;ทำเลย&rdquo;</li>
+          </ul>
+          <p class="src">DEVBOY &#9879; 2026-06-07 &middot; per Captain directive &middot; โยง <a href="042-maw-js-advanced-guide.html">#042</a> <a href="050-federation.html">#050</a> <a href="051-worktrees.html">#051</a></p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

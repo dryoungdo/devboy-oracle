@@ -16,7 +16,8 @@ var DEVBOY_NAV = [
       ['013-maw-ui-arra-office.html', '013 maw-ui ARRA Office'],
       ['014-maw-plugin-registry.html', '014 Plugin Registry'],
       ['039-maw-rs.html', '039 maw-rs (Rust Port)'],
-      ['042-maw-js-advanced-guide.html', '042 maw-js Advanced']
+      ['042-maw-js-advanced-guide.html', '042 maw-js Advanced'],
+      ['076-maw-version-diff-upgrade.html', '076 maw Version Diff + Upgrade']
     ]],
     ['Oracle Tools', [
       ['009-arra-oracle-v3.html', '009 Arra Oracle v3'],
