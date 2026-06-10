@@ -103,6 +103,9 @@ var DEVBOY_NAV = [
     ]],
     ['Soul & Art (เคล็ดวิชา อ.นัท)', [
       ['075-morph-polymorphism-witness.html', '075 Morph (polymorphism)']
+    ]],
+    ['Developer Workflow', [
+      ['077-commit-signing.html', '077 Commit Signing']
     ]]
 ];
 
