@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Claude Fable 5 + Mythos 5 (Anthropic, GA 9 มิ.ย. 2026): Fable 5 = Mythos-class ที่ทำให้ปลอดภัยพอ general use, SOTA เกือบทุก benchmark. คู่มือใช้งาน — model id claude-fable-5, access (API/Bedrock/Vertex/Foundry/Claude Code), เลือกด้วย /model, ราคา $10/$50, adaptive-thinking-only → effort param, safety reroute ไป Opus 4.8, และ policy 23 มิ.ย. (subscription → usage credits). + gotcha จริง: alias 'fable' not found บน build เก่า ใช้ full id แทน.">
+  <title>077 &mdash; Claude Fable 5 + Mythos 5: คู่มือใช้งาน | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">077 &mdash; Claude Fable 5 + Mythos 5: คู่มือใช้งาน</span>
+        <span class="topbar-date">2026-06-10</span>
+      </div>
+      <div class="content-shell">
+        <h1>Claude <code>Fable 5</code> + <code>Mythos 5</code> &mdash; มันคืออะไร, ใช้ยังไง, แล้ว fleet เราต้องรู้อะไร</h1>
+        <div class="article-meta">
+          <span class="tag">claude</span>
+          <span class="tag">anthropic</span>
+          <span class="tag">fable-5</span>
+          <span class="tag">mythos-5</span>
+          <span class="tag">model-guide</span>
+          <span class="tag">claude-code</span>
+          <span class="tag">fleet-ops</span>
+          &middot; Captain directive 2026-06-10
+          <span class="maturity solid">&#9679; solid</span>
+        </div>
+
+        <p>
+          Captain สั่ง: ทำคู่มือ Claude Fable 5 / Mythos 5 จาก <a href="https://www.anthropic.com/news/claude-fable-5-mythos-5">หน้า announcement ของ Anthropic</a> เอง. ทุก fact ในบทความนี้มาจาก primary source (anthropic.com + docs.claude.com) &mdash; โยงกับ <a href="076-maw-version-diff-upgrade.html">#076</a> (fleet ops). gotcha ตอนท้ายมาจากการลองสลับ glueboy ไป Fable จริงกับ Captain.
+        </p>
+
+        <div class="callout">
+          <strong>TL;DR:</strong><br>
+          &bull; <strong>Fable 5</strong> = โมเดลใหม่สุดของ Anthropic (GA <strong>9 มิ.ย. 2026</strong>), &ldquo;Mythos-class ที่ทำให้ปลอดภัยพอ general use&rdquo; &mdash; SOTA เกือบทุก benchmark<br>
+          &bull; <strong>Mythos 5</strong> = โมเดลตัวเดียวกันแต่ถอด cyber-safeguard ออก, ให้เฉพาะ partner/researcher ใน trusted-access เท่านั้น<br>
+          &bull; <strong>Model id</strong>: <code>claude-fable-5</code> &middot; <strong>ราคา</strong>: $10/$50 ต่อ M token (in/out)<br>
+          &bull; <strong>policy 23 มิ.ย.</strong>: ฟรีบน Pro/Max/Team/Enterprise ถึง <strong>22 มิ.ย.</strong> &rarr; หลังนั้นต้อง <strong>usage credits</strong>
+        </div>
+
+        <!-- A -->
+        <section>
+          <h2>A &mdash; Fable 5 vs Mythos 5 คืออะไร</h2>
+          <table>
+            <thead><tr><th></th><th>Claude Fable 5</th><th>Claude Mythos 5</th></tr></thead>
+            <tbody>
+              <tr><td>โมเดลฐาน</td><td colspan="2"><strong>ตัวเดียวกัน</strong> (Mythos-class)</td></tr>
+              <tr><td>Safeguard</td><td>cyber/bio classifier เปิด (ปลอดภัยพอ general use)</td><td>ถอด cyber-safeguard ออก</td></tr>
+              <tr><td>ใครใช้ได้</td><td>ทุกคน (GA)</td><td>เฉพาะ Project Glasswing cyber partner + biomedical researcher ใน trusted-access</td></tr>
+            </tbody>
+          </table>
+          <p>Anthropic ระบุเอง: <em>&ldquo;Fable 5's capabilities exceed those of any model we've ever made generally available.&rdquo;</em></p>
+          <p class="src">source: <a href="https://www.anthropic.com/news/claude-fable-5-mythos-5">anthropic.com/news/claude-fable-5-mythos-5</a></p>
+        </section>
+
+        <!-- B -->
+        <section>
+          <h2>B &mdash; เก่งแค่ไหน (benchmark ที่ Anthropic โชว์)</h2>
+          <div class="callout ok">
+            &bull; <strong>Software eng</strong>: Stripe บอก Fable &ldquo;บีบงานเป็นเดือนเหลือเป็นวัน&rdquo; บน migration Ruby <strong>50 ล้านบรรทัด</strong><br>
+            &bull; <strong>Finance</strong>: บน benchmark ของ Hebbia &mdash; <strong>คะแนนสูงสุดในบรรดาทุกโมเดล</strong> (senior-level reasoning)<br>
+            &bull; <strong>Vision</strong>: เล่น Pok&eacute;mon FireRed จบ <strong>ด้วย vision อย่างเดียว</strong> (scaffolding น้อยสุด)<br>
+            &bull; <strong>Coding</strong>: คะแนนสูงสุดบน FrontierCode ของ Cognition <strong>แม้ที่ medium effort</strong><br>
+            &bull; <strong>Drug design</strong>: เร่งงาน protein expert ~<strong>10 เท่า</strong>; 9 จาก 14 protein target ได้ candidate ยาที่ดี
+          </div>
+          <p class="src">source: anthropic.com announcement (เลขเป็นคำกล่าวอ้างของ Anthropic/พาร์ทเนอร์ ไม่ใช่ผมวัดเอง)</p>
+        </section>
+
+        <!-- C -->
+        <section>
+          <h2>C &mdash; ใช้ยังไง (access + model id + เลือกโมเดล)</h2>
+          <p><strong>ใช้ได้ที่ไหน</strong> (GA 9 มิ.ย.): claude.ai web &middot; Claude API &middot; <strong>Claude Code</strong> &middot; AWS Bedrock &middot; Google Vertex AI &middot; Microsoft Foundry &middot; Managed Agents.</p>
+          <table>
+            <thead><tr><th>platform</th><th>model id</th></tr></thead>
+            <tbody>
+              <tr><td>Claude API</td><td><code>claude-fable-5</code></td></tr>
+              <tr><td>AWS Bedrock</td><td><code>anthropic.claude-fable-5</code></td></tr>
+              <tr><td>Vertex AI</td><td><code>claude-fable-5</code></td></tr>
+            </tbody>
+          </table>
+          <p><strong>Claude Code</strong> &mdash; default ไม่ใช่ Fable, ต้องเลือกเอง:</p>
+          <div class="callout">
+            ในเซสชัน: <code>/model claude-fable-5</code> &rarr; เช็คด้วย <code>/model</code> (ต้องขึ้น <code>claude-fable-5</code>)<br>
+            ถาวร (เลือกอันเดียว): <code>claude --model claude-fable-5</code> &middot; <code>export ANTHROPIC_MODEL=claude-fable-5</code> &middot; <code>settings.json: "model": "claude-fable-5"</code><br>
+            กลับ: <code>/model opus</code> (= <code>claude-opus-4-8</code>)
+          </div>
+          <p><strong>ราคา:</strong> $10 ต่อ M input token &middot; $50 ต่อ M output token &middot; ลด <strong>90%</strong> สำหรับ prompt caching (US-only inference 1.1x). &mdash; ถูกกว่าครึ่งของ Mythos Preview.</p>
+          <p class="src">source: <a href="https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5">docs.claude.com</a> &middot; <a href="https://code.claude.com/docs/en/model-config">code.claude.com/model-config</a></p>
+        </section>
+
+        <!-- D -->
+        <section>
+          <h2>D &mdash; behavior เปลี่ยน &mdash; สิ่งที่ทำให้ script พังได้</h2>
+          <div class="callout warn">
+            <strong>1. Adaptive thinking เป็นโหมดเดียว.</strong> <code>thinking: {"type": "disabled"}</code> <strong>ไม่รองรับแล้ว</strong> &mdash; call ไหน/hook ไหนที่ set ไว้จะ error. คุมความลึกด้วย param <code>effort</code> แทน (low/medium/high &mdash; เหมือน xhigh ที่ fleet ตั้ง).<br>
+            <strong>2. Safety reroute.</strong> Fable มี 3 classifier &mdash; query แนว <strong>cybersecurity</strong> (exploit/offensive), <strong>biology/chemistry</strong> ส่วนใหญ่, และ <strong>distillation</strong> (พยายามดูดโมเดล) จะ <strong>fallback ไป Opus 4.8 อัตโนมัติ</strong> (ไม่คิดเงิน Fable). Anthropic บอก &gt;95% ของ session ไม่มี fallback. <em>นัยกับ fleet:</em> งาน security ที่สั่ง Fable อาจรันบน Opus 4.8 จริง ไม่ใช่ Fable.
+          </div>
+          <div class="callout warn">
+            <strong>3. gotcha จริง (เจอตอนสลับ glueboy 10 มิ.ย.):</strong> <code>/model fable</code> (alias สั้น) ขึ้น <strong>&ldquo;Model 'fable' not found&rdquo;</strong> บน build เก่า แล้วคงเป็น Opus 4.8. แก้: ใช้ <strong>full id <code>/model claude-fable-5</code></strong>. ถ้ายัง not found = Claude Code เก่าเกิน (model registry ยังไม่รู้จัก Fable ที่เพิ่งออก 9 มิ.ย.) &rarr; <code>claude update</code> แล้วลองใหม่. ถ้ายัง = API key/plan นั้นไม่มี Fable access (เช็ค console).
+          </div>
+          <p class="src">source: docs.claude.com (adaptive thinking / safety routing) &middot; live debug glueboy 2026-06-10</p>
+        </section>
+
+        <!-- E -->
+        <section>
+          <h2>E &mdash; Policy รอบ 23 มิ.ย.: subscription &rarr; usage credits</h2>
+          <table>
+            <thead><tr><th>ช่วง</th><th>สถานะ</th></tr></thead>
+            <tbody>
+              <tr><td>9&ndash;22 มิ.ย.</td><td>Fable 5 แถม <strong>ฟรี</strong> บน Pro / Max / Team / seat-Enterprise</td></tr>
+              <tr><td><strong>23 มิ.ย. เป็นต้นไป</strong></td><td>ถูกถอดจาก subscription &mdash; ใช้ต่อต้อง <strong>usage credits</strong> (เมื่อ capacity เอื้อ)</td></tr>
+              <tr><td>API / consumption-Enterprise</td><td>ใช้ได้ปกติตลอด (ไม่ใช่ subscription)</td></tr>
+              <tr><td>อนาคต</td><td>Anthropic ตั้งใจคืนเป็น standard subscription feature &ldquo;เร็วที่สุดเท่าที่ทำได้&rdquo;</td></tr>
+            </tbody>
+          </table>
+          <p>แปลตรงๆ สำหรับคนใช้ Max: ถ้าพึ่ง Fable 5 อยู่ &mdash; <strong>23 มิ.ย. มันหายจากแพลน ต้องเติม credit</strong>.</p>
+          <p class="src">source: <a href="https://www.anthropic.com/claude/fable">anthropic.com/claude/fable</a></p>
+        </section>
+
+        <!-- F -->
+        <section>
+          <h2>F &mdash; เมื่อไหร่ใช้ Fable 5 vs Opus 4.8</h2>
+          <table>
+            <thead><tr><th>งาน</th><th>เลือก</th></tr></thead>
+            <tbody>
+              <tr><td>migration โค้ดใหญ่ / autonomous หลายวัน / multi-stage knowledge-work / วิเคราะห์เอกสารหนัก (chart/diagram/table)</td><td><strong>Fable 5</strong> &mdash; นั่งงานยาว, verify ตัวเองบ่อย</td></tr>
+              <tr><td>งานสั้น, ถาม-ตอบเร็ว, edit เล็ก</td><td><strong>Opus 4.8</strong> &mdash; คุ้มกว่า ($50/M output ของ Fable แพง)</td></tr>
+              <tr><td>งาน security / bio</td><td>จะถูก reroute ไป <strong>Opus 4.8</strong> อยู่แล้ว &mdash; สั่ง Fable ไปก็ไม่ได้ Fable</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>fleet stance:</strong> default fleet model ยังเป็น <strong>Opus 4.8</strong> (Captain decision 29 พ.ค.) &mdash; เปลี่ยนต้อง Captain seal. Fable 5 = เครื่องมือสำหรับงานยาว/หนักเป็นรอบๆ ไม่ใช่ daily driver.
+          </div>
+        </section>
+
+        <!-- ledger -->
+        <section>
+          <h2>Pre-publish ledger</h2>
+          <ul>
+            <li><strong>Sources</strong>: primary &mdash; <a href="https://www.anthropic.com/news/claude-fable-5-mythos-5">anthropic.com announcement</a>, <a href="https://www.anthropic.com/claude/fable">claude/fable</a>, <a href="https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5">platform docs</a>, <a href="https://code.claude.com/docs/en/model-config">Claude Code model-config</a></li>
+            <li><strong>Maturity</strong>: &#9679; solid &mdash; ทุก fact จาก primary source; application evidence = ลองสลับ glueboy จริง (เจอ alias gotcha &rarr; captured ใน section D)</li>
+            <li><strong>Conflicts resolved</strong>: ข่าวรอง (gate.com crypto-news) อ้าง Fable &ldquo;chain zero-day exploits&rdquo; &mdash; <strong>ไม่อยู่ใน Anthropic official, low-trust, ไม่ยืนยัน</strong> ตัดออก. &ldquo;Fable&rdquo; ยังชนชื่อ <strong>Fable Studio</strong> (Showrunner, gen-AI TV) ซึ่งเป็นคนละบริษัท &mdash; บทความนี้ = Claude Fable เท่านั้น</li>
+            <li><strong>Claim ที่ระวัง</strong>: benchmark เลข (Stripe 50M-line, Hebbia top, 10&times; drug) = คำกล่าวอ้างของ Anthropic/partner ไม่ใช่ผม reproduce</li>
+          </ul>
+          <p class="src">DEVBOY &#9879; 2026-06-10 &middot; per Captain directive &middot; โยง <a href="076-maw-version-diff-upgrade.html">#076</a></p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

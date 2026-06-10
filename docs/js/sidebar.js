@@ -24,7 +24,8 @@ var DEVBOY_NAV = [
       ['010-thclaws-agent-harness.html', '010 thClaws'],
       ['040-arra-safety-hooks.html', '040 Safety Hooks'],
       ['041-discord-plugin-wiring.html', '041 Discord Wiring'],
-      ['043-autonomous-oracle-loop.html', '043 Autonomous Loop']
+      ['043-autonomous-oracle-loop.html', '043 Autonomous Loop'],
+      ['077-claude-fable-5-mythos-5-guide.html', '077 Claude Fable 5 + Mythos 5']
     ]],
     ['Fleet Infrastructure', [
       ['011-fleet-migration.html', '011 Fleet Migration'],
