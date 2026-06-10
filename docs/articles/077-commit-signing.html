@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>077 — Commit Signing — Proving a Commit Is Really Yours | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">077 &mdash; Commit Signing</span>
+        <span class="topbar-date">2026-06-10</span>
+      </div>
+      <div class="content-shell">
+        <h1>Commit Signing &mdash; Proving a Commit Is Really Yours</h1>
+        <div class="article-meta">
+          <span class="tag">git</span>
+          <span class="tag">commit-signing</span>
+          <span class="tag">gpg</span>
+          <span class="tag">ssh</span>
+          <span class="tag">verified</span>
+          <span class="tag">authorship</span>
+          &middot; 10 มิ.ย. 2026 &middot; <span class="maturity-badge raw">&#10067; raw</span>
+        </div>
+
+        <p>บทนี้ตอบคำถามสั้นๆ: ทำไม GitHub ถึงมี badge <strong>Verified</strong> บน commit บางตัว และมันพิสูจน์อะไรจริงๆ? คำตอบคือ commit มีสองชั้นที่ต้องแยกกันให้ชัด: <strong>authorship</strong> คือ claim, <strong>signature</strong> คือ proof.</p>
+
+        <h2>The problem &mdash; authorship is just text</h2>
+        <p>ใน Git, <code>user.name</code>, <code>user.email</code>, และ trailer อย่าง <code>Co-Authored-By</code> เป็นข้อความใน commit object. ข้อความเหล่านี้มีประโยชน์มากสำหรับ attribution แต่ไม่ได้เป็นหลักฐานทาง cryptography.</p>
+        <p>ใครก็สามารถตั้งค่า <code>user.name</code> หรือ <code>user.email</code> ให้เหมือนคนอื่นได้. ใครก็พิมพ์ <code>Co-Authored-By</code> ใส่ชื่อ agent หรือคนอื่นได้. ดังนั้น authorship alone = forgeable claim.</p>
+
+        <h2>Public-key crypto in one breath</h2>
+        <p>Public-key crypto มี key pair:</p>
+        <table>
+          <thead>
+            <tr><th>Key</th><th>หน้าที่</th><th>ต้องเก็บยังไง</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Private key</strong></td>
+              <td>ใช้ sign &mdash; สร้างลายเซ็น</td>
+              <td>secret, อยู่กับเจ้าของเท่านั้น</td>
+            </tr>
+            <tr>
+              <td><strong>Public key</strong></td>
+              <td>ใช้ verify &mdash; ตรวจว่าลายเซ็นมาจาก private key คู่กัน</td>
+              <td>shareable, เอาไปลง GitHub ได้</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Signature ที่ถูกต้องจะ verify ได้เฉพาะกับ public key ที่ match กับ private key ที่ sign มัน. นี่คือ proof ว่า holder ของ private key เป็นคนสร้าง signature โดยไม่ต้องเปิดเผย private key.</p>
+
+        <h2>What a GPG key is</h2>
+        <p><strong>GPG</strong> = GNU Privacy Guard. มันเป็น implementation ของ OpenPGP และสร้าง key pair สำหรับงาน security หลายแบบ. Key เดียวกันอาจมี capability สำหรับ <strong>sign</strong> และ <strong>encrypt</strong>, แต่ commit signing ใช้ฝั่ง signing: private key sign commit, public key verify signature.</p>
+        <p>Historically, Git commit signing ใช้ GPG เป็นหลัก. ปัญหาคือบน macOS มันมักมี friction: <code>gpg-agent</code>, pinentry, keychain, prompt passphrase, และ environment ที่ไม่ตรงกันระหว่าง terminal/app.</p>
+
+        <h2>Authorship vs signing</h2>
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>คืออะไร</th><th>Forgeable?</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Authorship</strong></td>
+              <td>claim ใน text: name, email, <code>Co-Authored-By</code></td>
+              <td>ใช่ &mdash; ใครก็พิมพ์ได้</td>
+            </tr>
+            <tr>
+              <td><strong>Signing</strong></td>
+              <td>cryptographic proof ว่า private key ที่ match กับ public key เป็นคน sign</td>
+              <td>ไม่ใช่ในทางปฏิบัติ ถ้า private key ยังเป็น secret</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>GitHub แสดง badge <strong>Verified</strong> เมื่อ signature ของ commit match กับ public key ที่ register อยู่กับ GitHub account ของ author และ commit ไม่ถูกแก้หลังจาก sign แล้ว. ถ้าเนื้อหา commit เปลี่ยนแม้แต่นิดเดียว signature จะไม่ตรง.</p>
+
+        <h2>GPG vs SSH signing</h2>
+        <p>Git รองรับ GPG มานาน แต่ Git &ge; 2.34 รองรับ signing ด้วย <strong>SSH key</strong> ด้วย. สำหรับ Mac, SSH signing มักง่ายกว่า เพราะใช้ key family เดียวกับที่หลายคนมีไว้สำหรับ <code>git push</code> อยู่แล้ว.</p>
+        <table>
+          <thead>
+            <tr><th>Approach</th><th>ข้อดี</th><th>ข้อควรรู้</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>GPG signing</strong></td>
+              <td>classic, ใช้ OpenPGP key pair</td>
+              <td>macOS setup มัก fiddly เพราะ agent / pinentry / keychain</td>
+            </tr>
+            <tr>
+              <td><strong>SSH signing</strong></td>
+              <td>same result บน GitHub: Verified badge</td>
+              <td><strong>SSH</strong> ตรงนี้คือ key type, ไม่ใช่ network connection</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>สำคัญ: signing ด้วย SSH เป็น local/offline operation. มันไม่ได้ connect ผ่าน SSH ไปที่ GitHub ตอน sign. Git ใช้ private key ในเครื่องสร้าง signature แล้ว GitHub verify ทีหลังหลัง push.</p>
+
+        <h2>Setup &mdash; SSH signing for GitHub</h2>
+        <p>Config หลักมี 3 บรรทัด:</p>
+<pre><code>git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+git config --global commit.gpgsign true</code></pre>
+        <p>ถ้าต้องการ sign tags ด้วย ให้เปิดเพิ่ม:</p>
+<pre><code>git config --global tag.gpgsign true</code></pre>
+        <p>จากนั้นดู public key ที่จะเอาไปลง GitHub:</p>
+<pre><code>cat ~/.ssh/id_ed25519.pub</code></pre>
+        <p>เพิ่ม SSH <strong>public</strong> key ใน GitHub: Settings &rarr; SSH and GPG keys &rarr; New SSH key &rarr; เลือก type เป็น <strong>Signing Key</strong>. ถ้า key เดียวกันเคยลงเป็น <strong>Authentication Key</strong> สำหรับ push แล้ว ยังต้องลงซ้ำอีกครั้งในฐานะ <strong>Signing Key</strong> เพราะ GitHub แยกสอง role นี้.</p>
+        <p>อีก gate หนึ่ง: committer email จาก <code>git config user.email</code> ต้องเป็น email ที่ verified อยู่บน GitHub account นั้น.</p>
+
+        <h2>Verifying</h2>
+        <p>Proof ที่ practical ที่สุดคือดู GitHub หลัง push: commit ควรขึ้น badge <strong>Verified</strong>. นั่นแปลว่า GitHub เห็น signature, verify กับ public key ที่ลงไว้, และ commit object ยังไม่ถูกแก้หลัง sign.</p>
+        <p>Local check อย่าง <code>git log --show-signature</code> อาจขึ้น <code>No principal matched</code> ถ้ายังไม่ได้ setup <code>allowed_signers</code> file. นั่นเป็น local trust mapping issue ไม่ได้แปลว่า GitHub จะ verify ไม่ได้.</p>
+
+        <h2>Two misconceptions</h2>
+        <table>
+          <thead>
+            <tr><th>Misconception</th><th>Reality</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>NOT about the machine</strong></td>
+              <td><strong>ไม่ใช่.</strong> Key เป็น file ไม่ใช่ machine. GitHub verify ว่า key นี้ register กับ account นี้ ไม่ได้ verify ว่ามาจากคอมพิวเตอร์เครื่องไหน. key เดียวกันบนสองเครื่องสามารถสร้าง Verified commits ได้ทั้งคู่.</td>
+            </tr>
+            <tr>
+              <td><strong>NOT about which agent</strong></td>
+              <td><strong>ไม่ใช่.</strong> Signing เป็น key-based และ independent จาก software ที่รัน <code>git commit</code>. Claude, Codex, shell script, หรือมนุษย์ ถ้าใช้ private key เดียวกัน ก็สร้าง signature layer เดียวกันได้.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>DEVBOY takeaway</h2>
+        <p>จำแยกชั้น: <strong>Co-Authored-By</strong> คือ identity/story layer ของคนหรือ agent ที่ช่วยเขียน. <strong>Commit signature</strong> คือ cryptographic layer ว่า account holder/key holder เป็นคนรับรอง commit object นี้.</p>
+        <p>ดังนั้น Verified badge ไม่ได้บอกว่า &ldquo;commit นี้มาจากเครื่องนี้&rdquo; หรือ &ldquo;agent ตัวนี้เป็นคนทำ&rdquo;. มันบอกว่า &ldquo;commit object นี้ถูก sign ด้วย private key ที่ match กับ public key ที่ GitHub trust สำหรับ account นั้น และ object ยังไม่ถูกเปลี่ยนหลัง sign&rdquo;.</p>
+
+        <div class="nav-footer">
+          <a href="076-maw-version-diff-upgrade.html">&larr; maw Version Diff + Upgrade</a>
+          <a href="../home.html">กลับสารบัญ &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
