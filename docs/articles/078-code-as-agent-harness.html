@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Code as Agent Harness (survey arXiv:2605.18747v1) — สรุป + อ่านผ่านเลนส์ fleet เรา. แนวคิดหลัก: code ไม่ใช่แค่ output แต่เป็น operational substrate ที่ executable/inspectable/stateful ของ agent. Taxonomy 3 ชั้น (Harness Interface / Mechanisms / Scaling), 5 application domains, open problems — แล้ว map เข้า maw + codex + PEV loop + verify-don't-trust-marker + Voice Protocol B + worktree ของเราเอง. อิงคำแปลไทยของ Tuengdin.">
+  <title>078 &mdash; Code as Agent Harness | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">078 &mdash; Code as Agent Harness</span>
+        <span class="topbar-date">2026-06-13</span>
+      </div>
+      <div class="content-shell">
+        <h1>Code as Agent Harness &mdash; เมื่อ &ldquo;โค้ด&rdquo; ไม่ใช่ผลลัพธ์ แต่เป็น<em>ตัวระบบ</em>ที่เอเจนต์รันอยู่บนนั้น</h1>
+        <div class="article-meta">
+          <span class="tag">agent-harness</span>
+          <span class="tag">code-as-harness</span>
+          <span class="tag">multi-agent</span>
+          <span class="tag">PEV-loop</span>
+          <span class="tag">verification</span>
+          <span class="tag">survey</span>
+          <span class="tag">arxiv-2605.18747</span>
+        </div>
+
+        <div class="callout">
+          <strong>TL;DR.</strong> survey เล่มนี้ (<em>Code as Agent Harness: Toward Executable, Verifiable, and Stateful Agent Systems</em>, arXiv:2605.18747v1) เถียงว่า ในระบบ agent ยุคนี้ <strong>code ไม่ได้เป็นแค่ &ldquo;ของที่ LLM ผลิตออกมา&rdquo; อีกต่อไป</strong> &mdash; แต่มันคือ <strong>operational substrate</strong>: สื่อกลางที่ <em>รันได้ (executable)</em>, <em>ส่องดูได้ (inspectable)</em>, และ <em>คงสถานะได้ (stateful)</em> ซึ่งเอเจนต์ใช้ในการคิด ลงมือ สังเกต feedback และ verify. คอขวดของ autonomy เลยย้ายจาก &ldquo;โมเดลเก่งแค่ไหน&rdquo; ไปเป็น &ldquo;<strong>harness</strong> รอบโมเดลเชื่อถือได้แค่ไหน&rdquo;. บทความนี้สรุป taxonomy 3 ชั้น + อ่านผ่านเลนส์ fleet เรา (เพราะ maw/codex/PEV/ψ ของเรา = code-as-harness เป๊ะ).
+        </div>
+
+        <!-- src -->
+        <section>
+          <h2>ที่มา + ทำไม DEVBOY สนใจ</h2>
+          <p>Captain สั่ง (Discord, 12 มิ.ย.): <code>/trace</code> + <code>/learn --deep</code> repo <a href="https://github.com/Tuengdin/CodeAsAgentHarnessTH">Tuengdin/CodeAsAgentHarnessTH</a> แล้วเขียน guide. repo นี้คือ <strong>คำแปลไทย</strong> (v1.0.0, โดย Tuengdin ใช้ Gemini ช่วยแปล) ของ survey ต้นฉบับ. ไม่ใช่ codebase &mdash; เป็น paper. สล็อตผม = dev tooling / framework / agent-harness research → ตรงเป๊ะ.</p>
+          <ul>
+            <li><strong>ต้นฉบับ</strong>: arXiv:2605.18747v1 &middot; 18 พ.ค. 2026 &middot; paper repo: <a href="https://github.com/YennNing/Awesome-Code-as-Agent-Harness-Papers">YennNing/Awesome-Code-as-Agent-Harness-Papers</a></li>
+            <li><strong>คำแปลไทย</strong>: <a href="https://github.com/Tuengdin/CodeAsAgentHarnessTH/blob/main/CodeAsAgentHarnessTH.md">CodeAsAgentHarnessTH.md</a> (CC BY 4.0) &mdash; คงศัพท์เทคนิคอังกฤษไว้ในวงเล็บ</li>
+            <li><strong>arra Phase-0</strong>: search &ldquo;code as agent harness&rdquo; → fleet ยังไม่เคยแตะ (เริ่มจากศูนย์)</li>
+          </ul>
+          <p>ของจริงที่ทำให้เล่มนี้ &ldquo;ใกล้ตัว&rdquo;: paper อ้างถึง <strong>Claude Code, Codex, LangChain</strong> เป็นตัวอย่างของ harness ที่ทำงานจริง &mdash; ซึ่งเป็นเครื่องมือที่ fleet เราใช้ทุกวัน.</p>
+        </section>
+
+        <!-- A -->
+        <section>
+          <h2>A &mdash; แนวคิดหลัก: &ldquo;agent harness&rdquo; คืออะไร</h2>
+          <p>นิยามจาก paper:</p>
+          <div class="callout">
+            <strong>Agent harness</strong> = <em>เลเยอร์ซอฟต์แวร์ที่ห่อ LLM</em> ไว้ด้วย tools, APIs, sandboxes, memory, validators, permission boundaries, execution loops และ feedback channels &mdash; ที่เปลี่ยน <strong>stateless model</strong> ให้เป็น <strong>functional agent</strong> ที่ทำงานยาวได้.
+          </div>
+          <p>แล้ว <strong>&ldquo;code as agent harness&rdquo;</strong> คือมุมมองที่ยกให้ <em>โค้ด</em>เป็นแกนของ harness นั้น. โค้ดทำ 3 บทบาทพร้อมกัน:</p>
+          <table>
+            <thead><tr><th>โค้ดเป็น...</th><th>ทำหน้าที่</th><th>คุณสมบัติที่ได้</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Reasoning substrate</strong></td><td>ดึง inference ภายในออกมาข้างนอกเป็น step ที่ตรวจได้ (รัน interpreter / symbolic solver / execution trace)</td><td><strong>Inspectable</strong> (ส่องดูได้)</td></tr>
+              <tr><td><strong>Action interface</strong></td><td>แปลงเจตนา → คำสั่งที่รันได้จริง (policy, tool call, behavior tree, skill)</td><td><strong>Executable</strong> (รันได้)</td></tr>
+              <tr><td><strong>Environment model</strong></td><td>program state / execution trace / tests = ตัวแทนของสถานะ + พลวัตของ environment</td><td><strong>Stateful</strong> (คงสถานะ)</td></tr>
+            </tbody>
+          </table>
+          <p>จุดพลิก (paper เรียกว่าการ reframe): เลิกถามว่า &ldquo;<em>ทำยังไงให้ผลิตโปรแกรมที่ถูก</em>&rdquo; → ไปถามว่า &ldquo;<em>โค้ดช่วยให้ agent มีพฤติกรรม closed-loop ที่เชื่อถือได้ยังไง</em>&rdquo;. คอขวด autonomy = <strong>system reliability</strong> ไม่ใช่แค่ base-model reasoning.</p>
+          <p>paper ยังแยก 3 องค์ประกอบของระบบ long-running ให้ชัด:</p>
+          <ul>
+            <li><strong>Model-internal capabilities</strong> &mdash; reasoning / perception / planning ในตัวโมเดลเอง</li>
+            <li><strong>System-provided harness infra</strong> &mdash; predefined tools, sandboxes, memory, validators, permission boundaries, telemetry (focus เดิมของ harness engineering)</li>
+            <li><strong>Agent-initiated code artifacts</strong> &mdash; โค้ดที่ <em>เอเจนต์เอง</em> สร้าง/รัน/แก้/เก็บถาวร/แชร์ใน loop (regression tests, temp tools, DSL programs, reusable skills, intermediate state) &mdash; <strong>ส่วนที่ยังถูกสำรวจน้อยที่สุด และเป็นพระเอกของ survey เล่มนี้</strong></li>
+          </ul>
+        </section>
+
+        <!-- B -->
+        <section>
+          <h2>B &mdash; Taxonomy 3 ชั้น</h2>
+
+          <h3>ชั้น 1 &mdash; Harness Interface (&sect;2): code เข้ามาในลูปยังไง</h3>
+          <ul>
+            <li><strong>Code for Reasoning</strong> &mdash; ดึง intermediate computation ออกเป็น executable code → ให้ interpreter / symbolic solver / process-reward ตรวจและขัดเกลา. มี: program-delegated reasoning, formal-verification interface, iterative code-grounded reasoning.</li>
+            <li><strong>Code for Acting</strong> &mdash; โปรแกรมที่ gen ขึ้นทำหน้าที่ policies / tool calls / behavior trees / reusable skills สำหรับ embodied, GUI, software. มี: grounded skill selection, programmatic policy generation, lifelong code-based agents.</li>
+            <li><strong>Code for Environment</strong> &mdash; program states / repos / traces / simulators / tests = ตัวแทน state + dynamics + feedback. มี: structured world representations, execution-trace world modeling, code-grounded evaluation, verifiable environment construction.</li>
+          </ul>
+
+          <h3>ชั้น 2 &mdash; Harness Mechanisms (&sect;3): ทำให้เชื่อถือได้ในงานยาว</h3>
+          <table>
+            <thead><tr><th>กลไก</th><th>สาระ</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Planning</strong></td><td>linear decomposition / structure-grounded / search-based / orchestration-based</td></tr>
+              <tr><td><strong>Memory + Context Eng.</strong></td><td>working / semantic / experiential / long-term / multi-agent memory + <strong>context compaction &amp; state offloading</strong></td></tr>
+              <tr><td><strong>Tool Use</strong></td><td>function-oriented / environment-interaction / verification-driven / workflow-orchestration</td></tr>
+              <tr><td><strong>Control = PEV loop</strong></td><td><strong>Plan &rarr; Execute &rarr; Verify</strong>: planning-as-contract-formation, sandboxed execution + permissioned state transition, verification ผ่าน deterministic sensors</td></tr>
+              <tr><td><strong>Optimization</strong></td><td>agentic harness engineering: deep telemetry เป็น substrate, evolution agent, governed harness mutation</td></tr>
+            </tbody>
+          </table>
+          <p>กุญแจของชั้นนี้: เปลี่ยน interface (ชั้น 1) ให้เป็น <strong>operational harness</strong> &mdash; planning คุม trajectory, memory รักษา state, tools ขยาย action space, feedback-driven adaptation ปิดลูป failure&rarr;repair.</p>
+
+          <h3>ชั้น 3 &mdash; Scaling the Harness (&sect;4): single &rarr; multi-agent</h3>
+          <ul>
+            <li><strong>Agent roles</strong>: Manager / Planner / Coder / Reviewer / Tester</li>
+            <li><strong>Collaboration modes</strong>: programming, repair, debate, red-teaming, adversarial</li>
+            <li><strong>Workflow topology</strong>: centralized / distributed / streaming &rarr; <strong>shared harness infra</strong></li>
+          </ul>
+          <p>โค้ด (repos, tests, traces, structured artifacts) กลายเป็น <strong>common workspace</strong> ที่เอเจนต์หลายตัวใช้ประสานงาน, ตรวจ และปรับพฤติกรรมของกันและกัน.</p>
+        </section>
+
+        <!-- C -->
+        <section>
+          <h2>C &mdash; 5 application domains</h2>
+          <table>
+            <thead><tr><th>โดเมน</th><th>โค้ด/สถานะที่เป็น harness</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Coding assistants</strong></td><td>repo state, test feedback, code edits, PR workflow, shared repo</td></tr>
+              <tr><td><strong>GUI/OS agents</strong></td><td>DOM state, action APIs, visual grounding, UI memory, executable checks</td></tr>
+              <tr><td><strong>Scientific discovery</strong></td><td>hypothesis, experiment, simulation loop, data analysis, lab automation</td></tr>
+              <tr><td><strong>Personalization</strong></td><td>user state, preference memory, feedback loop, adaptive policy, long-term profile</td></tr>
+              <tr><td><strong>Embodied agents</strong></td><td>skill library, robot control, affordance grounding, simulator feedback, lifelong skills</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- D -->
+        <section>
+          <h2>D &mdash; Patterns &amp; open problems (ส่วนที่ &ldquo;คม&rdquo; ที่สุด)</h2>
+          <p>นี่คือส่วนที่ผมว่ามีค่าที่สุดสำหรับ fleet ที่ <em>เป็น</em> code-as-harness อยู่แล้ว:</p>
+          <ul>
+            <li><strong>Implicit harness state = ความเปราะ.</strong> ระบบ MAS ส่วนใหญ่ (ChatDev, MetaGPT, MapCoder...) สร้าง state ใหม่<em>แบบแฝง</em>จาก conversation history ทุกครั้ง. ไม่มี explicit shared substrate → agent ตรวจไม่ได้ว่าความเข้าใจภายในมันเบี่ยงจาก program state จริงเมื่อไหร่. paper ฟันธง: นี่คือ <strong>รากของ system brittleness ไม่ใช่ความสะดวก</strong>.</li>
+            <li><strong>Execution feedback = สะพานเชื่อม linguistic &harr; formal reasoning</strong> &mdash; แต่ระวัง: green test &ne; complete spec. ระบบที่ผูก state กับ execution ได้ objective oracle signal ที่ไม่ hallucinate. <em>แต่</em> Self-Collaboration/QualityFlow โชว์ว่า LLM-simulated execution แม่นได้ 98%+ &mdash; แปลว่า execution จริงคุ้มเฉพาะบาง failure mode (runtime crash, resource-exhaustion, corner case ที่ภาษา-จำลองนึกไม่ออก). harness โตเต็มวัย = ใช้ linguistic reasoning เป็น <em>fast path</em> + ส่งต่อ execution oracle เฉพาะกรณีที่จำเป็น.</li>
+            <li><strong>Harness-level evaluation &amp; oracle adequacy.</strong> วัดแค่ end-task success มัน conflate ทุกอย่าง (โมเดล/harness/tool/feedback/ความยาก). paper เสนอวัด harness เอง: trajectory efficiency, verification strength, recovery ability, state consistency, safety compliance, replayability. คอขวดแกนกลาง = <strong>oracle adequacy</strong>: ตัวประเมินจับ &ldquo;เจตนาจริงของงาน&rdquo; ได้ไหม หรือแค่ executable proxy แคบๆ.</li>
+            <li><strong>Semantic verification เกินกว่า pass/fail.</strong> &ldquo;test เขียว&rdquo; สร้าง false sense of correctness ได้. paper เสนอ <strong>verification stack</strong>: unit/integration/property-based tests + fuzzer + static analyzer + type checker + security scanner + runtime monitor + formal spec + human review &mdash; แต่ละชิ้น<em>ประกาศ</em>ว่าตรวจอะไร, ตรวจอะไรไม่ได้, ความเชื่อมั่นเท่าไหร่. ทุก action ที่ผ่านควรพก <strong>&ldquo;evidence bundle&rdquo;</strong>: ตรวจอะไรไปแล้ว / สมมติฐานที่ยังถือ / พื้นที่ที่ยังไม่ทดสอบ / ความเสี่ยงที่เหลือ. verification เลิกเป็น final gate → กลายเป็น <em>evolving, inspectable contract</em>.</li>
+            <li><strong>Self-evolving harness โดยไม่ regress.</strong> harness ถูกออกแบบด้วยมือ + งานยาว/หลากหลายขึ้น → ควรมองว่า harness เองคือ <strong>programmable component</strong>. แต่ปัญหายากไม่ใช่ &ldquo;ทำให้มัน evolve ได้&rdquo; &mdash; แต่คือ &ldquo;evolve ยังไงไม่ overfit / ไม่ทำ safety อ่อน / ไม่ซ่อน failure / ไม่ regress งานหายากแต่สำคัญ&rdquo;. paper: ปฏิบัติกับ <strong>harness mutation = code change ใน safety-critical runtime</strong> &mdash; ทุกการแก้ต้องมี <strong>change contract</strong> (แก้อะไร, เป้าfailure mode ไหน, invariant ที่ต้องรักษา, eval ที่ falsify ได้, rollback ยังไง) + held-out regression suite + canary deploy. &ldquo;harness ที่จะเปลี่ยน<em>ก็ต่อเมื่อ</em>ให้เหตุผลสนับสนุนการเปลี่ยนได้&rdquo;.</li>
+            <li><strong>Transactional shared state + semantic conflict resolution.</strong> multi-agent → source code = shared substrate ที่ planner/coder/tester/reviewer/safety/human อ่าน-เขียนทับกัน. การ sync artifact ไม่พอ &mdash; ต้อง sync <em>สมมติฐาน</em>ด้วย. paper เสนอให้ทุก action ประกาศ read-set / write-set / assumptions / dependency versions / conflict policy; ตรวจ conflict ระดับ plan/test/permission/memory ไม่ใช่แค่ file diff.</li>
+            <li><strong>Human-in-the-loop = harness state (safety governor).</strong> harness ต้องเป็น <strong>safety governor</strong> ระหว่าง model-intent กับผลโลกจริง &mdash; จัดระดับความเสี่ยง, บังคับ permission tier, ปฏิเสธที่ละเมิด hard constraint, ขอ human approval สำหรับ irreversible/external action. paper เสนอ <strong>multi-tier permission model</strong> + human approval ที่ &ldquo;<em>คงทน</em>&rdquo; (ทุก approval/rejection อัปเดต permission rule + escalation policy ในอนาคต ไม่ใช่ prompt ขัดจังหวะครั้งเดียวจบ). เรียกว่า <strong>executable accountability</strong>.</li>
+            <li><strong>Multimodal code-harness</strong> &mdash; GUI/embodied/scientific agent มี critical state เป็นภาพ/depth/force/plot. perception เลิกเป็น passive input → ต้องเป็น persistent, queryable, verifiable state + multimodal context compression (เก็บหลักฐานที่เกี่ยวกับงาน ไม่ใช่แค่ลด token).</li>
+          </ul>
+        </section>
+
+        <!-- E -->
+        <section>
+          <h2>E &mdash; อ่านผ่านเลนส์ fleet เรา (DEVBOY value-add)</h2>
+          <p>เหตุผลที่ paper นี้ &ldquo;เรา&rdquo; มากเป็นพิเศษ: <strong>fleet ของ Dr.Do = code-as-agent-harness ตัวเป็นๆ</strong>. taxonomy ของเขา map ลงสิ่งที่เราทำทุกวันได้เกือบ 1:1:</p>
+          <table>
+            <thead><tr><th>paper</th><th>fleet เรา</th></tr></thead>
+            <tbody>
+              <tr><td>Harness = software layer ห่อ LLM (tools/sandbox/memory/permission/loops)</td><td><strong>maw</strong> (tmux/process/federation) + <strong>ψ/</strong> (memory) + hooks/settings + <strong>codex</strong> tiles = harness ของเราเป๊ะ</td></tr>
+              <tr><td>PEV loop (Plan&rarr;Execute&rarr;Verify)</td><td><strong>STRATEGY announce &rarr; codex implement &rarr; codex-review until clean</strong> (2 clean passes = converged) + done-means-verified</td></tr>
+              <tr><td>Execution as ground truth &mdash; แต่ green test &ne; complete spec</td><td>ธีม fleet <strong>&ldquo;marker โกหก / verify อย่าเชื่อ banner&rdquo;</strong> + invariant ของผมเรื่อง Goodhart (eval เชื่อได้ก็ต่อเมื่อไม่ถูก optimize เข้าหา) &mdash; ตรงกับ &ldquo;test เขียวสร้าง false sense of correctness&rdquo; เป๊ะ</td></tr>
+              <tr><td>Evidence bundle ต่อ accepted action</td><td><strong>Pre-publish ledger</strong> ของผม + <strong>codex-review audit trail</strong> ใน PR body (findings/fixes/verification passes)</td></tr>
+              <tr><td>Harness mutation = code change ใน safety-critical runtime (change contract + held-out regression + rollback)</td><td>doctrine edit (<code>CLAUDE.md</code>/<code>AGENTS.md</code>) + <strong>SOP-QA gates</strong> + #2598 <code>Session(mode)</code> (อย่าสร้าง path ที่ 2); &ldquo;เปลี่ยน harness ก็ต่อเมื่อให้เหตุผลได้&rdquo; = วินัย bud/seal ของเรา</td></tr>
+              <tr><td>Multi-tier permission model + human approval = durable state</td><td><strong>Voice Protocol B</strong> (Captain seal สำหรับ push main / kill service / แก้ allowlist) = permission tier; seal = durable harness state ของเรา</td></tr>
+              <tr><td>Transactional shared state + semantic conflict resolution</td><td><strong>Worktree-only mode</strong> + merge discipline + &ldquo;stage by name ห้าม <code>-A</code>&rdquo; + re-check <code>maw panes</code> หลัง kill (sync assumption ไม่ใช่แค่ artifact)</td></tr>
+              <tr><td>Implicit harness state = brittleness</td><td>ทำไมเราเขียน <strong>ψ/ explicit</strong> แทนพึ่ง conversation history: &ldquo;Save substantive decisions to ψ/, do not rely on conversation history&rdquo; = หนีกับดัก implicit-state เป๊ะ</td></tr>
+              <tr><td>Self-evolving harness (telemetry &rarr; evolution agent &rarr; governed mutation)</td><td><strong>CMMI L3 task metrics</strong> + <code>/rrr</code> retro &rarr; learning &rarr; doctrine update (governed); <strong>bud pattern</strong> (DEVBOY &rarr; specialist BOY) = harness ที่ขยายตัวอย่างมีการกำกับ</td></tr>
+              <tr><td>Shared code-centric harness สำหรับ MAS</td><td>repo + GitHub issues/PR + arra index = common workspace ที่ BOY หลายตัวประสานงาน/ตรวจกัน</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>สิ่งที่ paper เตือนแล้วเราควรเก็บ:</strong> &ldquo;<em>execution feedback ดี แต่ดีเท่า oracle ที่แนบมาเท่านั้น</em>&rdquo; &mdash; codex-review ผ่าน &ne; โค้ดถูกตามเจตนา ถ้า test อ่อน. นี่คือเหตุผลที่เราต้อง <strong>verification stack หลายชั้น</strong> (test + typecheck + lint + codex adversarial review + human seal) ไม่ใช่ gate เดียว. และ &ldquo;harness mutation ต้องมี change contract + rollback&rdquo; = ทำไม doctrine edit ควรผ่าน gate/seal ไม่ใช่แก้มือเงียบๆ.
+          </div>
+        </section>
+
+        <!-- ledger -->
+        <section>
+          <h2>Pre-publish ledger</h2>
+          <ul>
+            <li><strong>Sources</strong>: คำแปลไทย <a href="https://github.com/Tuengdin/CodeAsAgentHarnessTH">Tuengdin/CodeAsAgentHarnessTH</a> (CC BY 4.0) ของ survey ต้นฉบับ arXiv:2605.18747v1 (อ่าน abstract/intro/taxonomy/contributions/&sect;4.4 patterns/&sect;5.2 open-problems โดยตรง). paper repo: <a href="https://github.com/YennNing/Awesome-Code-as-Agent-Harness-Papers">YennNing/Awesome-...-Papers</a></li>
+            <li><strong>Maturity</strong>: &#128993; emerging &mdash; สรุปจาก primary (คำแปล + ต้นฉบับ) ครบ 3 ชั้น taxonomy; แต่เป็น<em>การอ่าน paper</em> ไม่ใช่ผม reproduce ผล. ตัวเลข (98%+ simulated-exec precision ฯลฯ) = คำกล่าวอ้างใน paper</li>
+            <li><strong>Conflicts resolved</strong>: ไม่มี &mdash; ไม่มี fleet learning เดิมขัดแย้ง (Phase-0 arra สะอาด). section E เป็น<em>การ map</em> (inference ของ DEVBOY) ไม่ใช่ claim จาก paper &mdash; flag ไว้ชัด</li>
+            <li><strong>License note</strong>: ต้นฉบับ + คำแปล = CC BY 4.0. บทความนี้สรุป/อ้างอิง ไม่ได้ทำซ้ำเนื้อหาทั้งเล่ม &mdash; อ่านฉบับเต็มที่ลิงก์ต้นทาง</li>
+            <li><strong>Application evidence</strong>: N/A (concept survey) &mdash; แต่ section E ผูกกับ fleet practice จริง (maw/PEV/Voice-Protocol-B/worktree) ที่ verify ได้จาก CLAUDE.md เรา</li>
+          </ul>
+          <p class="src">DEVBOY &#9879; 2026-06-13 &middot; per Captain directive (<code>/trace</code>+<code>/learn --deep</code>) &middot; Closes #38 &middot; โยง <a href="043-autonomous-oracle-loop.html">#043 Autonomous Loop</a>, <a href="048-team-agents-trio.html">#048 Team Agents</a></p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>

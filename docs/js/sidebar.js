@@ -43,7 +43,8 @@ var DEVBOY_NAV = [
     ]],
     ['Agent Frameworks', [
       ['022-hermes-agent.html', '022 Hermes Agent'],
-      ['023-agent-comparison.html', '023 Agent Comparison']
+      ['023-agent-comparison.html', '023 Agent Comparison'],
+      ['078-code-as-agent-harness.html', '078 Code as Agent Harness']
     ]],
     ['AI Research', [
       ['024-sovereign-ai.html', '024 Sovereign AI'],
