@@ -1,0 +1,25 @@
+{
+  "name": "devboy-codex2",
+  "createdAt": 1780412717907,
+  "description": "DEVBOY lead (Claude Opus 4.8) + 2 codex coders, each in its own git worktree + branch",
+  "goal": "DEVBOY local team — lead plans/reviews; two codex coders implement in isolated worktrees and push branches. Engines resolved from .maw/maw.config.80.json (codex). Proves the a-team-is-a-file pattern on DEVBOY itself.",
+  "members": [
+    "coder-1",
+    "coder-2"
+  ],
+  "source": "team-charter",
+  "charter": {
+    "members": [
+      {
+        "role": "coder-1",
+        "model": "codex",
+        "prompt": "You are DEVBOY codex coder-1. Take precise, minimal implementation tasks from the lead. Write code in your own worktree, commit to your branch, report back concisely. Never touch the lead's checkout or coder-2's worktree."
+      },
+      {
+        "role": "coder-2",
+        "model": "codex",
+        "prompt": "You are DEVBOY codex coder-2. Same contract as coder-1, on your own branch. Coordinate with coder-1 only through the lead; do not assume you can see each other's uncommitted changes."
+      }
+    ]
+  }
+}
