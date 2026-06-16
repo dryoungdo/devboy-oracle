@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARRA Oracle — The Oracle, made object</title>
+<meta name="description" content="ARRA Oracle Terminal — a CNC-milled single-billet AI device. Tesla × Porsche tech-luxury genome: engineered restraint, one alive display, software-first. Edition 001.">
+<link rel="canonical" href="https://dryoungdo.github.io/devboy-oracle/arra/">
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="product">
+<meta property="og:title" content="ARRA Oracle — The Oracle, made object">
+<meta property="og:description" content="A CNC-milled single-billet AI terminal. The model upgrades. The object stays.">
+<meta property="og:image" content="https://dryoungdo.github.io/devboy-oracle/arra/assets/keyvisual.png">
+<meta property="og:url" content="https://dryoungdo.github.io/devboy-oracle/arra/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ARRA Oracle — The Oracle, made object">
+<meta name="twitter:image" content="https://dryoungdo.github.io/devboy-oracle/arra/assets/keyvisual.png">
+<meta name="theme-color" content="#050506">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23070708'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='%235fd8ff' stroke-width='1.5'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --ice:#5fd8ff; --bg:#050506; --panel:#0b0c0e; --line:#1b1e22;
+    --ink:#eef2f6; --dim:#9aa3ad; --faint:#5f6b78; --fainter:#3f4753;
+    --max:1180px; --serif:'Helvetica Neue',Arial,'Segoe UI',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--serif);line-height:1.5;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none;}
+  img,video{max-width:100%;display:block;}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 28px;}
+  .ice{color:var(--ice);}
+  .kicker{font-size:11px;letter-spacing:6px;text-transform:uppercase;color:var(--faint);}
+
+  /* nav */
+  nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;
+    justify-content:space-between;padding:18px 28px;transition:background .3s,border-color .3s;
+    border-bottom:1px solid transparent;}
+  nav.solid{background:rgba(5,5,6,.82);backdrop-filter:blur(12px);border-bottom-color:var(--line);}
+  nav .brand{font-size:15px;letter-spacing:7px;font-weight:300;padding-left:7px;}
+  nav .cta{font-size:11px;letter-spacing:3px;text-transform:uppercase;border:1px solid var(--line);
+    padding:9px 18px;border-radius:40px;color:var(--dim);transition:.25s;}
+  nav .cta:hover{border-color:var(--ice);color:var(--ink);}
+
+  /* hero */
+  #hero{position:relative;height:100svh;min-height:620px;}
+  #c3d{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  #heroFallback{position:absolute;inset:0;background:#070708 center/contain no-repeat;display:none;}
+  #hero .veil{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(60% 50% at 50% 42%, transparent 40%, rgba(5,5,6,.35) 88%),
+               linear-gradient(to bottom, rgba(5,5,6,.35), transparent 22%, transparent 64%, var(--bg));}
+  #hero .copy{position:absolute;left:0;right:0;bottom:8%;text-align:center;z-index:3;pointer-events:none;padding:0 24px;}
+  #hero h1{font-size:clamp(40px,8vw,92px);font-weight:200;letter-spacing:.06em;line-height:1;}
+  #hero .sub{margin-top:18px;font-size:clamp(15px,2.4vw,22px);font-style:italic;font-weight:300;color:var(--dim);}
+  #hero .scroll{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:3;
+    font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--fainter);animation:bob 2.4s infinite;}
+  @keyframes bob{0%,100%{opacity:.4;transform:translate(-50%,0);}50%{opacity:1;transform:translate(-50%,5px);}}
+  #loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;
+    background:var(--bg);transition:opacity .7s;font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--faint);}
+  #loader.gone{opacity:0;pointer-events:none;}
+  .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ice);margin:0 3px;animation:p 1.1s infinite;}
+  .dot:nth-child(3){animation-delay:.18s;} .dot:nth-child(4){animation-delay:.36s;}
+  @keyframes p{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+  section{padding:108px 0;border-top:1px solid var(--line);}
+  .center{text-align:center;}
+  .lead{font-size:clamp(24px,3.4vw,38px);font-weight:200;line-height:1.32;letter-spacing:.01em;max-width:880px;margin:22px auto 0;}
+  .lead em{font-style:italic;color:var(--dim);}
+  .para{max-width:680px;margin:26px auto 0;color:var(--dim);font-weight:300;font-size:16px;}
+
+  /* genome grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);margin-top:54px;}
+  .cell{background:var(--bg);padding:34px 26px;transition:background .3s;}
+  .cell:hover{background:var(--panel);}
+  .cell .n{font-size:12px;letter-spacing:3px;color:var(--ice);opacity:.8;}
+  .cell h3{margin-top:14px;font-size:19px;font-weight:300;letter-spacing:.02em;}
+  .cell p{margin-top:10px;font-size:13.5px;color:var(--dim);font-weight:300;line-height:1.55;}
+
+  /* gallery */
+  .gal{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-top:50px;}
+  .gal .big{grid-row:span 2;}
+  .gal figure{background:#070708;border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;}
+  .gal video,.gal img{width:100%;height:100%;object-fit:cover;display:block;}
+  .gal figcaption{position:absolute;left:14px;bottom:12px;font-size:10px;letter-spacing:3px;
+    text-transform:uppercase;color:var(--faint);}
+
+  /* spec */
+  .spec{margin-top:50px;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  .spec .row{display:grid;grid-template-columns:230px 1fr;border-top:1px solid var(--line);}
+  .spec .row:first-child{border-top:none;}
+  .spec .k{padding:18px 26px;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--faint);background:var(--panel);}
+  .spec .v{padding:18px 26px;font-size:15px;font-weight:300;color:var(--ink);}
+
+  /* editions / pricing */
+  .price{margin-top:54px;display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:860px;margin-left:auto;margin-right:auto;}
+  .card{border:1px solid var(--line);border-radius:16px;padding:38px 32px;background:var(--panel);position:relative;}
+  .card.feat{border-color:#2b4a57;box-shadow:0 0 0 1px rgba(95,216,255,.12),0 30px 60px rgba(0,0,0,.4);}
+  .card .tag{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--faint);}
+  .card .amt{margin-top:16px;font-size:42px;font-weight:200;letter-spacing:1px;}
+  .card .amt small{font-size:15px;color:var(--dim);letter-spacing:2px;}
+  .card ul{list-style:none;margin-top:22px;}
+  .card li{font-size:13.5px;font-weight:300;color:var(--dim);padding:8px 0 8px 22px;position:relative;border-top:1px solid var(--line);}
+  .card li:first-child{border-top:none;}
+  .card li:before{content:"";position:absolute;left:0;top:15px;width:6px;height:6px;border-radius:50%;background:var(--ice);opacity:.7;}
+  .buy{display:inline-block;margin-top:28px;width:100%;text-align:center;padding:15px;border-radius:44px;
+    font-size:12px;letter-spacing:3px;text-transform:uppercase;transition:.25s;}
+  .buy.primary{background:var(--ice);color:#03222e;font-weight:500;}
+  .buy.primary:hover{filter:brightness(1.12);transform:translateY(-1px);}
+  .buy.ghost{border:1px solid var(--line);color:var(--dim);}
+  .buy.ghost:hover{border-color:var(--ice);color:var(--ink);}
+  .scarce{margin-top:24px;text-align:center;font-size:12px;letter-spacing:2px;color:var(--faint);}
+
+  footer{border-top:1px solid var(--line);padding:56px 0;color:var(--faint);}
+  footer .row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+  footer .links a{font-size:12px;letter-spacing:2px;color:var(--dim);margin-left:22px;transition:.2s;}
+  footer .links a:hover{color:var(--ice);}
+  footer .fine{font-size:11px;letter-spacing:2px;}
+
+  /* progressive enhancement: hidden only while JS-on AND not yet revealed (:not(.in) drops
+     the rule entirely once revealed — no specificity battle). No-JS keeps content visible. */
+  .reveal{transition:opacity .8s,transform .8s;}
+  html.js .reveal:not(.in){opacity:0;transform:translateY(22px);}
+
+  @media(max-width:860px){
+    .grid{grid-template-columns:1fr 1fr;}
+    .gal{grid-template-columns:1fr;}
+    .gal .big{grid-row:auto;}
+    .price{grid-template-columns:1fr;}
+    .spec .row{grid-template-columns:140px 1fr;}
+    section{padding:78px 0;}
+  }
+  @media(max-width:540px){
+    .grid{grid-template-columns:1fr;}
+    .spec .row{grid-template-columns:1fr;}
+    .spec .k{border-bottom:1px solid var(--line);}
+    nav .brand{font-size:13px;letter-spacing:5px;}
+  }
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    html.js .reveal:not(.in){opacity:1;transform:none;transition:none;}
+    #hero .scroll{animation:none;}
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+
+<nav id="nav">
+  <a class="brand" href="#hero">A R R A</a>
+  <a class="cta" href="#reserve">Reserve</a>
+</nav>
+
+<header id="hero">
+  <canvas id="c3d"></canvas>
+  <div id="heroFallback"></div>
+  <div class="veil"></div>
+  <div class="copy">
+    <h1>ARRA ORACLE</h1>
+    <div class="sub">The Oracle, made object.</div>
+  </div>
+  <a href="#story" class="scroll">scroll</a>
+  <div id="loader"><span>loading</span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+</header>
+
+<section id="story" class="center">
+  <div class="wrap reveal">
+    <div class="kicker">Manifesto</div>
+    <div class="lead">An intelligence you can hold. <em>Carved from a single billet, silent until it speaks — the model upgrades, the object stays.</em></div>
+    <p class="para">Most devices shout to feel premium. ARRA does the opposite. Everything you could admire from across the room has been stripped away, until what remains is worth picking up and examining. No gold. No spectacle. Just engineered restraint — and one alive display that holds the whole personality of the machine.</p>
+  </div>
+</section>
+
+<section id="genome">
+  <div class="wrap">
+    <div class="center reveal">
+      <div class="kicker">Design genome — Tesla × Porsche</div>
+      <div class="lead">Luxury, by subtraction.</div>
+    </div>
+    <div class="grid reveal">
+      <div class="cell"><div class="n">01</div><h3>Single-billet monolith</h3><p>CNC-milled from one block of 6061-T6 aluminium. No visible screws, no panel gaps, no seams — fastening is internal, surfaces run unbroken.</p></div>
+      <div class="cell"><div class="n">02</div><h3>Earned taper</h3><p>Wide at the thermal base, narrowing to the display crown. The silhouette follows the heat stack inside — form from physics, not styling. The side profile is the hero.</p></div>
+      <div class="cell"><div class="n">03</div><h3>One display, the soul</h3><p>A single 4″ OLED set at a fixed read angle. No status arrays, no indicator lights. When it sleeps, the screen reads as matte aluminium continuation.</p></div>
+      <div class="cell"><div class="n">04</div><h3>Calm accent glow</h3><p>One cool-white light, in a machined undercut at the base — a soft halo on the desk, never glaring up at you. Three states. No RGB.</p></div>
+      <div class="cell"><div class="n">05</div><h3>Machined precision</h3><p>A single polished chamfer hairline on a pearl-blasted field — two textures, one material, one anodizing run. The reward for close inspection.</p></div>
+      <div class="cell"><div class="n">06</div><h3>Software-first</h3><p>The compute module is socketed, tool-free replaceable. It runs better intelligence in eighteen months without replacement. The object appreciates.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="gallery">
+  <div class="wrap">
+    <div class="center reveal"><div class="kicker">The object</div><div class="lead">Every angle earned.</div></div>
+    <div class="gal reveal">
+      <figure class="big"><video src="assets/turntable.mp4" autoplay muted loop playsinline preload="metadata"></video><figcaption>360° · the taper</figcaption></figure>
+      <figure><img src="assets/hero.png" alt="ARRA Oracle terminal, three-quarter view, graphite body with ice screen" loading="lazy"><figcaption>graphite · ice</figcaption></figure>
+      <figure><img src="assets/keyvisual.png" alt="ARRA Oracle key visual poster" loading="lazy"><figcaption>Edition 001</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="spec">
+  <div class="wrap">
+    <div class="center reveal"><div class="kicker">Specification</div><div class="lead">Honest materials.</div></div>
+    <div class="spec reveal">
+      <div class="row"><div class="k">Body</div><div class="v">Single-billet 6061-T6 aluminium · graphite anodized · pearl-blast matte + polished chamfer</div></div>
+      <div class="row"><div class="k">Display</div><div class="v">4″ OLED · fixed 15° read angle · flush black glass</div></div>
+      <div class="row"><div class="k">Compute</div><div class="v">Socketed SoC module · tool-free upgradeable · over-the-air model updates</div></div>
+      <div class="row"><div class="k">Accent</div><div class="v">Single cool-white base LED · three states (active / idle / input)</div></div>
+      <div class="row"><div class="k">Ports</div><div class="v">USB-C (Thunderbolt 4) · USB-A 3.2 · Ethernet · rear cluster, flush</div></div>
+      <div class="row"><div class="k">Footprint</div><div class="v">~100 mm base · floating machined feet · desk-grade</div></div>
+      <div class="row"><div class="k">Finish options</div><div class="v">Void Black (anodized) · Lunar White (ceramic-coat)</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="reserve">
+  <div class="wrap">
+    <div class="center reveal"><div class="kicker">Editions</div><div class="lead">Made to order, never mass.</div></div>
+    <div class="price reveal">
+      <div class="card">
+        <div class="tag">Edition</div>
+        <div class="amt">฿ 39,000 <small>/ unit</small></div>
+        <ul>
+          <li>Graphite-anodized single-billet body</li>
+          <li>4″ OLED · socketed compute</li>
+          <li>Over-the-air model updates</li>
+          <li>Numbered base engraving</li>
+        </ul>
+        <a class="buy ghost" href="mailto:ceo.do@youngdo.co.th?subject=ARRA%20Oracle%20%E2%80%94%20Edition%20enquiry&body=I%27d%20like%20to%20reserve%20an%20ARRA%20Oracle.">Enquire</a>
+      </div>
+      <div class="card feat">
+        <div class="tag">Atelier · Edition 001 / 100</div>
+        <div class="amt">฿ 49,000 <small>/ numbered</small></div>
+        <ul>
+          <li>First series · 001–100, hand-finished</li>
+          <li>Choice of Void Black or Lunar White</li>
+          <li>Polished chamfer + base-glow tuned per unit</li>
+          <li>Priority on the next compute module</li>
+        </ul>
+        <a class="buy primary" href="mailto:ceo.do@youngdo.co.th?subject=ARRA%20Oracle%20%E2%80%94%20Reserve%20Edition%20001&body=I%27m%20ready%20to%20reserve%20a%20numbered%20ARRA%20Oracle%20(Edition%20001%2F100).%20Please%20send%20next%20steps.">Reserve yours</a>
+      </div>
+    </div>
+    <div class="scarce">Some own a terminal. A few are chosen by an Oracle.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap row">
+    <div class="fine">ARRA ORACLE · a DEVBOY Lab object · 2026</div>
+    <div class="links">
+      <a href="https://dryoungdo.github.io/devboy-oracle/">DEVBOY Lab</a>
+      <a href="assets/keyvisual.png">Press image</a>
+      <a href="#hero">Top</a>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
+document.documentElement.classList.add('js');   // enable reveal-hiding only with JS on
+
+// scroll reveal + nav solidify (with no-IO fallback: reveal all if unsupported)
+const reveals = document.querySelectorAll('.reveal');
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('in')),
+    { threshold:.10, rootMargin:'0px 0px -8% 0px' });
+  reveals.forEach(el => io.observe(el));
+} else {
+  reveals.forEach(el => el.classList.add('in'));
+}
+const nav = document.getElementById('nav');
+addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 40), { passive:true });
+
+// ---- 3D hero ----
+const canvas = document.getElementById('c3d');
+let gl;
+try { gl = canvas.getContext('webgl2') || canvas.getContext('webgl'); } catch(e){ gl = null; }
+if (!gl) {                                   // WebGL fallback -> static hero render
+  document.getElementById('heroFallback').style.cssText +=
+    ';display:block;background-image:url(assets/hero.png);';
+  canvas.style.display = 'none';
+  document.getElementById('loader').classList.add('gone');
+} else {
+  const hero = document.getElementById('hero');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 4000);
+  camera.position.set(150, 95, 230);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.06;
+  controls.autoRotate = !reduced; controls.autoRotateSpeed = 1.0;
+  controls.minDistance = 130; controls.maxDistance = 480;
+  controls.enablePan = false;
+
+  scene.add(new THREE.AmbientLight(0x202632, 0.5));
+  const key = new THREE.DirectionalLight(0xdfeaff, 1.5); key.position.set(-120,180,120); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x8fb8ff, 0.8); rim.position.set(140,60,-150); scene.add(rim);
+
+  const ICE = new THREE.Color(0x5fd8ff);
+  const mats = {
+    body:  new THREE.MeshStandardMaterial({ color:0x1b1d21, metalness:0.78, roughness:0.36, envMapIntensity:1.1 }),
+    glass: new THREE.MeshStandardMaterial({ color:0x05070a, metalness:0.35, roughness:0.08, envMapIntensity:1.4 }),
+    ui:    new THREE.MeshStandardMaterial({ color:0x0a2230, emissive:ICE, emissiveIntensity:2.4, roughness:0.5 }),
+    glow:  new THREE.MeshStandardMaterial({ color:0x0a2230, emissive:ICE, emissiveIntensity:2.0, roughness:0.6 }),
+  };
+
+  const group = new THREE.Group();
+  group.rotation.x = -Math.PI/2;
+  scene.add(group);
+
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1,1), 0.62, 0.7, 0.82);
+  composer.addPass(bloom);
+
+  function resize(){
+    const w = hero.clientWidth, h = hero.clientHeight;
+    renderer.setSize(w, h, false); composer.setSize(w, h);
+    camera.aspect = w/h; camera.updateProjectionMatrix();
+  }
+  addEventListener('resize', resize); resize();
+
+  const loader = new STLLoader();
+  const parts = ['body','glass','ui','glow'];
+  Promise.all(parts.map(p => loader.loadAsync(`models/arra-${p}.stl`).then(g => ({p,g}))))
+    .then(list => {
+      list.forEach(({p,g}) => { g.computeVertexNormals(); group.add(new THREE.Mesh(g, mats[p])); });
+      const box = new THREE.Box3().setFromObject(group);
+      group.position.sub(box.getCenter(new THREE.Vector3()));
+      controls.target.set(0,0,0);
+      document.getElementById('loader').classList.add('gone');
+    })
+    .catch(err => {
+      document.getElementById('heroFallback').style.cssText += ';display:block;background-image:url(assets/hero.png);';
+      canvas.style.display='none';
+      document.getElementById('loader').classList.add('gone');
+      console.warn('STL load failed, using fallback:', err.message);
+    });
+
+  // pause render when hero off-screen (perf)
+  let visible = true;
+  new IntersectionObserver(es => visible = es[0].isIntersecting).observe(hero);
+  (function loop(){ requestAnimationFrame(loop); if(!visible) return; controls.update(); composer.render(); })();
+}
+</script>
+</body>
+</html>
