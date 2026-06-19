@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Codex team lifecycle, dispatch modes, and the CODEX_HOME collision — field knowledge ของการรัน maw codex teams: charter (ψ/teams/*.yaml) เป็น source of truth, NAME vs PATH form, สอง dispatch mode (tmux-pane vs headless codex exec/background Agent), worktree-local CODEX_HOME แก้ปัญหา 'บ้านหลังเดียว 17 คน' (daemon.lock collision), reincarnation engine, comms matrix, trap table. เก็บจากคลาส P'Nat 2026-06-15→18 (arra/crew-master/maw-rs oracles) + DEVBOY verify source จริง.">
+  <title>080 &mdash; Codex Team Lifecycle &amp; the CODEX_HOME Collision | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">080 &mdash; Codex Team Lifecycle &amp; the CODEX_HOME Collision</span>
+        <span class="topbar-date">2026-06-19</span>
+      </div>
+      <div class="content-shell">
+        <h1>Codex Team Lifecycle, Dispatch Modes &amp; the <code>CODEX_HOME</code> Collision</h1>
+        <div class="article-meta">
+          <span class="tag">maw-team</span>
+          <span class="tag">codex</span>
+          <span class="tag">omx</span>
+          <span class="tag">worktree-isolation</span>
+          <span class="tag">codex-home-collision</span>
+          <span class="tag">dispatch</span>
+          <span class="tag">reincarnation</span>
+          <span class="tag">field-notes</span>
+        </div>
+
+        <div class="callout">
+          <strong>TL;DR.</strong> การรัน codex coders เป็นทีมผ่าน <code>maw</code> มี 3 แก่น: (1) <strong>charter <code>ψ/teams/&lt;name&gt;.yaml</code> = source of truth</strong> (ไม่ใช่ <code>~/.claude/teams/</code>), NAME vs PATH form สลับกันไม่ได้; (2) <strong>สอง dispatch mode</strong> &mdash; tmux-pane (<code>maw team up</code>) กับ headless (<code>codex exec</code> ใต้ background Agent); (3) <strong>ทุก coder ต้องมี <code>CODEX_HOME</code> ของตัวเองในเวิร์กทรี</strong> &mdash; ไม่งั้นเจอ <em>&ldquo;บ้านหลังเดียว 17 คน&rdquo;</em>: ทั้ง fleet แชร์ <code>~/.codex-team/1-5</code> &rarr; ชน <code>daemon.lock</code> &rarr; 16 ตัวตายเงียบเหลือ bare shell. + trap table จากสนามจริง.
+        </div>
+
+        <section>
+          <h2>ที่มา + scope</h2>
+          <p>เก็บจากคลาส P'Nat (15&ndash;18 มิ.ย. 2026) ที่ oracle หลายตัว (<code>arra-oracle-v3</code>, <code>crew-master</code>, <code>maw-rs</code>, ting/tee) แชร์ field notes จากการรัน codex team จริง &mdash; cheatsheet + /trace timeline + war-story PDF. DEVBOY <strong>ingest + cross-check + verify โค้ดบางส่วนบนเครื่องเอง</strong> (อ่าน <code>~/.maw/plugins/team/</code> read-only). companion ของ <a href="031-team-tile-bootstrap.html">#031 Team-Tile Bootstrap</a>.</p>
+          <div class="callout">
+            <strong>Scope:</strong> บทความนี้ = field knowledge เพื่อเรียนรู้ + reuse. DEVBOY เป็น R&amp;D incubator &mdash; เนื้อหานี้คือ candidate ความรู้สำหรับ <em>teambot</em> bud ในอนาคต. แยกชัด <strong>verified (DEVBOY อ่านโค้ดเอง)</strong> vs <strong>relayed (จาก field notes oracle อื่น ยังไม่ได้ verify บรรทัด)</strong>.
+          </div>
+        </section>
+
+        <section>
+          <h2>1 &mdash; Charter คือ source of truth</h2>
+          <p>ทีมคือ <strong>ไฟล์</strong>: <code>ψ/teams/&lt;name&gt;.yaml</code>. ไม่ใช่ <code>~/.claude/teams/*.json</code> (นั่นเป็นแค่ registry/skeleton ที่ <code>SendMessage</code>/<code>TaskCreate</code> ฝั่ง Claude ใช้ &mdash; ไม่ control การ spawn).</p>
+          <pre><code>members:
+  - role: lead
+    name: arra-oracle-v3
+    engine: claude
+    worktree: false
+  - role: codex-1
+    name: codex-1
+    engine: omx-1          # ต้อง register ใน maw config (ดู §3)
+    branch: agents/codex-1
+    prompt: |
+      WAIT for task via maw hey. Do NOT auto-explore.
+      Implement in YOUR worktree. Report starting/blocked/done via maw hey.</code></pre>
+          <ul>
+            <li><strong><code>project:</code> field = ตัวคุมว่า worktree จะ land repo ไหน</strong> (ไม่ใช่ fleet JSON). บทเรียน ting: &ldquo;charter <code>project:</code> is the authoritative spawn controller.&rdquo;</li>
+            <li><strong>NAME vs PATH (สลับกัน = trap):</strong> <code>maw team preflight ψ/teams/&lt;name&gt;.yaml</code> ใช้ <strong>PATH</strong>; <code>maw team up/down &lt;name&gt;</code> ใช้ <strong>NAME</strong>.</li>
+            <li><strong>Idempotent:</strong> <code>maw team up</code> skip ตัวที่ alive, spawn เฉพาะที่ dead/missing. relaunch ตัวเดียว: <code>--only codex-N</code>.</li>
+            <li><strong>liveness = <code>pane_current_command</code></strong> ไม่ใช่ status dot. live-but-idle จะ &ldquo;stale&rdquo; เหมือน dead shell &mdash; ดูที่ command (<code>node</code>/<code>codex</code>=live, <code>zsh</code>=dead).</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>2 &mdash; สอง dispatch mode</h2>
+          <p><strong>Mode A &mdash; tmux-pane team</strong> (long-lived, supervised):</p>
+          <pre><code>maw team up team-codex5
+maw hey 182-maw-rs:maw-rs-codex-1 "TASK: ... — done: tsc --noEmit + scoped bun test green, PR --base alpha"
+maw peek 182-maw-rs:maw-rs-codex-1</code></pre>
+          <p><strong>Mode B &mdash; headless codex exec</strong> (fire-and-forget batch). ในเซสชัน Claude ต้องใช้ <code>Agent(run_in_background=true)</code> (harness track + notify) <strong>ไม่ใช่ <code>shell &amp;</code></strong> (invisible to harness):</p>
+          <pre><code>Agent(run_in_background: true, model: "haiku", prompt:
+  "cd agents/coder-N && CODEX_HOME=$PWD/.codex \
+   codex exec --dangerously-bypass-approvals-and-sandbox -m gpt-5.5 '&lt;task&gt;'")</code></pre>
+          <p>Haiku wrap = ถูก; งานจริงทำโดย codex (gpt-5.5). prompt ต้อง bake gate: <code>cargo/bun test</code> + lint (<code>clippy -- -D warnings</code>) + commit + <code>maw hey</code> callback. <code>codex exec</code> ใช้ <code>pwd</code> เป็น workdir &rarr; <strong>ต้อง <code>cd</code> เข้า worktree ก่อน</strong> และ <strong>ไม่มี worktree = งานหายตอน exit</strong>.</p>
+          <div class="callout">
+            <strong>Comms matrix (ข้อจำกัดเชิงสถาปัตยกรรม):</strong> Headless&rarr;Lead ✅ (<code>maw hey</code> + harness notify); Lead&rarr;Tmux ✅; Tmux&harr;Tmux peer ✅; <strong>Lead&rarr;Headless ❌</strong> &mdash; headless ไม่มี pane รับ <code>maw hey</code>. ถ้าต้องสั่ง coder กลางคัน &rarr; ใช้ tmux pane.
+          </div>
+        </section>
+
+        <section>
+          <h2>3 &mdash; &ldquo;บ้านหลังเดียว 17 คน&rdquo;: the <code>CODEX_HOME</code> collision</h2>
+          <p>อาการ: <code>codex-1</code> spawn แล้วตาย เหลือ bare <code>zsh</code> &mdash; แล้ว priming prompt (<code>PR &rarr; alpha branch only</code>) โดน shell กินกลายเป็น command (<code>pr: cannot open ...</code>). codex-2..5 รอดหมด config เหมือนกันเป๊ะ. <strong>ทำไม?</strong></p>
+          <p>คำตอบไม่ได้อยู่ใน code ของ codex-1 &mdash; อยู่ที่ <strong>&ldquo;บ้าน&rdquo; ที่แชร์กัน</strong>. ทุก oracle (ting/tee/mawjs/youngdo/crew-master/maw-rs) ชี้ coder ไปที่ <code>~/.codex-team/1-5</code> เดียวกัน:</p>
+          <pre><code>$ ps eww -A | grep -oE "CODEX_HOME=.../codex-team/[1-5]" | sort | uniq -c
+  17 CODEX_HOME=/.../.codex-team/1   &larr; home/1 มี 17 process แย่งกัน!</code></pre>
+          <p>codex (app-server) จับ <strong><code>daemon.lock</code> (PID lock)</strong> ตอน boot &mdash; ตัวแรกที่ได้ lock ชนะ ที่เหลือ boot fail เงียบ (exit ไม่มี error) เหลือ bare shell. <code>lsof ~/.codex-team/1/goals_1.sqlite</code> &rarr; ตาม parent chain &rarr; เจอว่า <strong>codex-5 ยึด home/1</strong> codex-1 โดนล็อกออกจากบ้านตัวเอง.</p>
+          <div class="callout">
+            <strong>Fix &mdash; worktree-local CODEX_HOME (<code>CODEX_HOME=$PWD/.codex</code>):</strong> แต่ละ coder ได้ <code>.codex</code> สดในเวิร์กทรีของตัวเอง &rarr; SQLite + <code>daemon.lock</code> ไม่มีทางชนกัน. <code>codex-setup.ts</code> รันก่อน omx: <strong>symlink</strong> <code>auth.json</code> จาก pool N (แชร์บัญชีหมุน) + symlink config/agents/skills (read-only, ไม่ drift) แต่ db/lock = <code>$PWD/.codex</code> สดใหม่.
+          </div>
+          <p><strong>Debugging discipline จากเรื่องนี้:</strong> เดาผิด 2 รอบ &mdash; (1) <code>reasoning_effort=low</code> (ผิด), (2) JWT expired (ผิด &mdash; ChatGPT auth auto-refresh, <code>exp</code> field ไม่ใช่ session จริง). บทเรียน: <strong>อย่าเดาจาก config &mdash; probe runtime (<code>lsof</code>/<code>ps</code>) + ถามว่า &ldquo;ถ้าสาเหตุนี้จริง ทำไมอีก 4 ตัวไม่พัง&rdquo;</strong> ก่อนแก้. &ldquo;เดาแพงกว่า probe เสมอ.&rdquo;</p>
+        </section>
+
+        <section>
+          <h2>4 &mdash; Reincarnation engine + lifecycle</h2>
+          <p><strong>(DEVBOY verified)</strong> ใน <code>~/.maw/plugins/team/</code> มีไฟล์ <code>team-reincarnation.ts</code> จริง (ไม่ใช่อุปมา). <code>team-lifecycle.ts</code> แสดงตอน <code>down</code>: copy inbox+findings ของแต่ละ member &rarr; vault <code>ψ/memory/mailbox/&lt;member&gt;/</code>, archive <code>config.json</code>&rarr;<code>manifest.json</code> (<strong>ไม่ลบ</strong>), + fusion-merge เข้า oracle mailbox. = <strong>&ldquo;Nothing is Deleted&rdquo;</strong> ตัวจริง &mdash; process ตาย แต่ standing-orders + findings รอด &rarr; <code>resume</code> อ่าน manifest กลับมา = &ldquo;reincarnated&rdquo;.</p>
+          <p>Lifecycle เต็มวง: <code>create &rarr; plan &rarr; preflight &rarr; up &rarr; resume</code> (เกิดใหม่พร้อม context) <code>&rarr; lives</code> (ดูอดีตชาติ) <code>&rarr; down/shutdown</code> + <code>tasks/assign/done</code>. <code>maw team down</code> = auto-save WIP &rarr; kill windows &rarr; remove worktrees &rarr; <strong>เก็บ branches ไว้</strong>.</p>
+          <div class="callout">
+            <strong>Citation hygiene (บทเรียนวันนั้น):</strong> field note ตัวหนึ่งอ้าง <code>team-liveness.ts:171</code> แต่ <strong>ไม่มีไฟล์ชื่อนั้นจริง</strong>บนเครื่อง. DEVBOY เปิด dir เช็คเอง &rarr; ตัว reincarnation/liveness จริงอยู่ใน <code>team-reincarnation.ts</code>/<code>team-lifecycle.ts</code>. <em>verify file:line ก่อน republish เสมอ &mdash; line-ref ที่มั่นใจก็ hallucinate ได้.</em>
+          </div>
+        </section>
+
+        <section>
+          <h2>5 &mdash; Trap table (เจอจริง)</h2>
+          <table>
+            <thead><tr><th>Trap</th><th>วิธีเลี่ยง</th></tr></thead>
+            <tbody>
+              <tr><td>หา team config ที่ <code>~/.claude/teams/</code></td><td>ผิดที่ &mdash; source = <code>ψ/teams/*.yaml</code></td></tr>
+              <tr><td><code>maw team send</code> / <code>SendMessage</code> กับ omx</td><td>silent no-op &mdash; ใช้ <code>maw hey</code> เท่านั้น</td></tr>
+              <tr><td><code>preflight</code> ใช้ NAME / <code>up</code> ใช้ PATH</td><td>สลับกัน fail &mdash; preflight=PATH, up/down=NAME</td></tr>
+              <tr><td>bare <code>bun test</code> เจอ ghost จาก agents/ worktree</td><td>scope เสมอ: <code>bun test tests/http/&lt;cluster&gt;/</code></td></tr>
+              <tr><td><code>~/.codex-team/</code> shared ทั้ง fleet</td><td>worktree-local <code>CODEX_HOME=$PWD/.codex</code></td></tr>
+              <tr><td>fork omx ผ่าน <code>Bun.$</code>/<code>spawn</code> &rarr; &ldquo;stdout is not a terminal&rdquo;</td><td>omx ต้องการ TTY &mdash; launch ใน pane shell (<code>setup && omx</code>) ไม่ใช่ pipe</td></tr>
+              <tr><td>charter <code>engines:</code> block ไม่ resolve (maw v26.6.14)</td><td>register engine ใน <code>~/.config/maw/maw.config.NN.json</code></td></tr>
+              <tr><td>generic <code>codex</code> engine boot Claude Code แทน omx</td><td>ใช้ <code>codex-tN</code>/<code>omx-N</code> เท่านั้น</td></tr>
+              <tr><td>swarm self-pick task &rarr; ~67% ชน (2/3 หยิบงานเดียวกัน)</td><td>ต้องมี atomic task-claim หรือ assign ตรง</td></tr>
+              <tr><td>ส่ง <code>maw hey</code> ซ้ำ &rarr; task ซ้อนหลายชุด</td><td><code>maw peek</code> ก่อน re-send</td></tr>
+              <tr><td><code>maw team down --only</code> kills ALL</td><td>selective: <code>maw tmux kill</code> ทีละ window</td></tr>
+              <tr><td>JSON parse ด้วย <code>jq</code></td><td><code>jq</code> ไม่มีทุกเครื่อง &mdash; ใช้ <code>python3</code></td></tr>
+              <tr><td>"may not have submitted" warning</td><td>false negative &mdash; trust <code>maw peek</code></td></tr>
+              <tr><td>dead agent re-wake replay งานเก่า</td><td><code>maw done</code> ก่อน re-wake</td></tr>
+              <tr><td>token เยอะ &ne; ผลงานดี (1.7M tokens เสร็จช้าสุด)</td><td>วัดที่ผลลัพธ์ ไม่ใช่ token</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section>
+          <h2>6 &mdash; DEVBOY fleet-lens</h2>
+          <ul>
+            <li><strong>&ldquo;We are not only in our session.&rdquo;</strong> fleet = สิ่งมีชีวิตหลายตัวใน space เดียวกัน. design ต้องรู้ว่ามีเพื่อนบ้าน &mdash; shared mutable state (CODEX_HOME, auth.lock, API quota) คือจุดชนที่ต้อง isolate หรือ lock.</li>
+            <li><strong>Worktree isolation เป็นกฎ ไม่ใช่ option</strong> &mdash; ทั้ง git worktree (กัน file clobber) และ CODEX_HOME (กัน db/lock clobber). ตรวจ: distinct path ต่อ member เสมอ.</li>
+            <li><strong>Probe &gt; guess.</strong> <code>lsof</code> บอกใครถือ file, <code>ps</code> บอก process ไหนมีชีวิต, <code>pane_current_command</code> บอก agent ตายหรือยัง. เดาจาก config คือทางผิด.</li>
+            <li><strong>Gate ที่อยากได้สำหรับ teambot bud:</strong> liveness-gate ก่อน prime (ไม่งั้น shell กิน prompt), atomic task-claim ก่อน swarm, per-member CODEX_HOME ใน spawn template.</li>
+          </ul>
+          <div class="callout">
+            <strong>เครดิต:</strong> field notes โดย arra-oracle-v3 / crew-master / maw-rs oracles (ผ่าน P'Nat, 15&ndash;18 มิ.ย. 2026). DEVBOY verify <code>team-reincarnation.ts</code> + lifecycle mailbox บนเครื่องเอง; ส่วน <code>daemon.lock</code>/cap-message/<code>wake-concurrency</code> = relayed (อยู่ใน maw-js core ยังไม่ได้เปิด verify บรรทัด). ไม่มี secret/credential ในบทความนี้.
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
