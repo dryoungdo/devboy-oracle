@@ -250,6 +250,11 @@ exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
               <td>Restart: <code>claude --channels plugin:discord@claude-plugins-official</code></td>
             </tr>
             <tr>
+              <td><code>/mcp</code> shows discord <code>not loaded</code> หลัง repo rename/move</td>
+              <td>Project-scoped plugin มี stale <code>projectPath</code> ใน <code>~/.claude/plugins/installed_plugins.json</code> &mdash; Claude ไม่ activate MCP เลย</td>
+              <td>Run projectPath one-liner below; แก้ <code>projectPath</code> เป็น repo ปัจจุบัน หรือ reinstall เป็น user-scope แล้ว relaunch ด้วย <code>maw tmux kill &lt;session&gt; --session --force</code> + <code>maw wake &lt;oracle&gt;</code></td>
+            </tr>
+            <tr>
               <td>Bot offline</td>
               <td>Token ผิด หรือ .env path ผิด</td>
               <td>Check <code>~/.claude/channels/discord/&lt;botname&gt;/.env</code></td>
@@ -273,6 +278,10 @@ exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
         </table>
 
         <h3>Diagnostic One-Liner</h3>
+        <p><strong>Project-scoped plugin path check:</strong> ใช้เมื่อ <code>/mcp</code> บอกว่า discord <code>not loaded</code> ทั้งที่ <code>enabledPlugins</code>, token, env และ <code>--channels</code> ถูกหมด.</p>
+        <pre><code>python3 -c "import json,os;d=json.load(open(os.path.expanduser('~/.claude/plugins/installed_plugins.json')));print(json.dumps(d['plugins'].get('discord@claude-plugins-official'),indent=2))"
+# If projectPath points to a renamed/old/nonexistent path (!= your current repo) -> that's the bug.</code></pre>
+
         <pre><code># ดูสถานะทั้งหมดในคำสั่งเดียว:
 echo "=== settings.json ===" &amp;&amp; \
 grep -A2 enabledPlugins ~/.claude/settings.json &amp;&amp; \
@@ -388,6 +397,40 @@ Claude session has mcp__plugin_discord_discord__* tools available</code></pre>
             <li>แต่ runtime MCP child ตายตั้งแต่ startup &mdash; ไม่มี gateway, ไม่มี tools</li>
           </ul>
           <p><strong>วิธีตรวจ:</strong> <code>pstree -spnal $(pgrep -f "claude.*channels" | tail -1) | grep bun</code> &mdash; ถ้าไม่เห็น bun child = MCP ตาย.</p>
+        </div>
+
+        <h3>Project-Scoped Plugin Path Trap (2026-06-24 discovery)</h3>
+        <p><strong>อาการ:</strong> <code>/mcp</code> shows <code>discord</code> as <strong>not loaded</strong> / not connected. แต่ทุกอย่างอื่นดูถูกหมด: <code>enabledPlugins</code> มี <code>"discord@claude-plugins-official": true</code>, session start ด้วย <code>--channels plugin:discord@claude-plugins-official</code>, token valid, <code>DISCORD_STATE_DIR</code> + <code>DISCORD_BOT_TOKEN</code> อยู่ใน claude process env. แต่ไม่มี discord MCP child (<code>bun ... server.ts</code>) ใต้ claude PID, reply tools หาย และ inbox ไม่ได้ file ใหม่.</p>
+        <p><strong>Root cause:</strong> ใน <code>~/.claude/plugins/installed_plugins.json</code>, plugin ถูก register เป็น <code>"scope": "project"</code> พร้อม <code>"projectPath"</code> ที่ pin กับ repo path เดิม. Claude activate project-scoped plugin เฉพาะเมื่อ current working directory match <code>projectPath</code>. ถ้า repo rename/move เช่น <code>dryoungdo/glueboy</code> &rarr; <code>dryoungdo/glueboy-oracle</code>, stale <code>projectPath</code> ไม่ match cwd &rarr; Claude silently ไม่ load plugin &rarr; discord MCP ไม่ spawn &rarr; <code>--channels</code> มีอยู่แต่ inert.</p>
+        <p><strong>Diagnosis:</strong></p>
+        <pre><code>python3 -c "import json,os;d=json.load(open(os.path.expanduser('~/.claude/plugins/installed_plugins.json')));print(json.dumps(d['plugins'].get('discord@claude-plugins-official'),indent=2))"
+# If projectPath points to a renamed/old/nonexistent path (!= your current repo) -> that's the bug.</code></pre>
+        <p><strong>Fix:</strong></p>
+        <pre><code>F=~/.claude/plugins/installed_plugins.json
+cp "$F" "$F.bak-$(date +%Y%m%d-%H%M%S)"
+python3 - "$F" &lt;&lt;'PY'
+import json,os,sys
+f=sys.argv[1]; d=json.load(open(f))
+NEW=os.getcwd()
+for name,entries in d.get("plugins",{}).items():
+    for e in entries:
+        if e.get("scope")=="project" and not os.path.isdir(e.get("projectPath","")):
+            print("fixing",name,e["projectPath"],"-&gt;",NEW); e["projectPath"]=NEW
+json.dump(d,open(f,"w"),indent=4)
+PY
+# installed_plugins.json is read at STARTUP -> relaunch claude to apply:
+maw tmux kill &lt;session&gt; --session --force
+maw wake &lt;oracle&gt;
+# verify: /mcp shows discord connected; a message in #&lt;channel&gt; lands a file in DISCORD_STATE_DIR/inbox/</code></pre>
+
+        <div style="background:var(--warn-bg,#fff3cd);border:2px solid var(--warn-border,#ffc107);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;color:var(--warn-text,#856404);">&#9888;&#65039; Relaunch gotcha: bare <code>maw kill</code> is not enough</h4>
+          <p>การ kill live oracle เพื่อ reload plugin registry ต้องใช้ <code>maw tmux kill &lt;session&gt; --session --force</code>. Top-level <code>maw kill</code> alias drop flags ทำให้เจอ <code>unknown flag for tmux: --force</code>, และ maw refuse การ kill fleet/oracle session ถ้าไม่มี <code>--force</code>. ผลคือ session เดิมยังอยู่, <code>maw wake</code> reuse session เดิม, แล้ว plugin registry ไม่ถูก re-read.</p>
+        </div>
+
+        <div style="background:var(--info-bg,#d1ecf1);border:2px solid var(--info-border,#bee5eb);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;">
+          <h4 style="margin-top:0;">Prevention</h4>
+          <p>Repo rename/move ทำให้ Discord หรือ project-scoped plugin อื่นๆ ตายได้แบบเงียบๆ แม้ token, env, config และ <code>--channels</code> จะถูกหมด. สำหรับ fleet-wide plugin อย่าง discord, prefer <code>"scope": "user"</code>. หลัง repo rename/move ให้ re-check <code>projectPath</code> หรือ reinstall plugin สำหรับ current repo.</p>
         </div>
 
         <h3>File Structure</h3>
@@ -692,6 +735,12 @@ exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
               <td>คิดว่า Discord connected ทั้งที่เป็น Anthropic API</td>
               <td><code>nslookup gateway.discord.gg</code> ยืนยัน IP prefix ก่อน</td>
             </tr>
+            <tr>
+              <td>11</td>
+              <td>Repo rename/move หลังติดตั้ง discord เป็น project-scoped plugin</td>
+              <td><code>/mcp</code> shows <code>not loaded</code>, ไม่มี bun MCP child, tools หาย, inbox ไม่รับ file ใหม่</td>
+              <td>ตรวจ <code>projectPath</code> ใน <code>installed_plugins.json</code>, แก้เป็น repo ปัจจุบันหรือ reinstall เป็น user-scope, แล้ว relaunch</td>
+            </tr>
           </tbody>
         </table>
 
@@ -722,6 +771,11 @@ exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
   |     No  --&gt; *** restart: claude --channels plugin:discord@claude-plugins-official ***
   |     Yes --&gt;
   |
+  +--&gt; /mcp says discord "not loaded"?
+  |     Yes --&gt; check ~/.claude/plugins/installed_plugins.json projectPath
+  |            ถ้า projectPath ชี้ repo เก่า/nonexistent = แก้ projectPath + relaunch
+  |     No  --&gt;
+  |
   +--&gt; MCP child (bun) alive?
   |     pstree -spnal $(pgrep -f "claude.*channels" | tail -1) | grep bun
   |     No  --&gt; DISCORD_STATE_DIR ไม่ถูก set (Step 7.5)
@@ -751,6 +805,7 @@ exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
             <tr><td>2026-05-21</td><td>GLUEBOY</td><td>ส่งได้ รับไม่ได้</td><td>ไม่ได้ใส่ <code>--channels plugin:discord@claude-plugins-official</code> ตอน start + ไม่มี <code>enabledPlugins</code> ใน settings.json</td><td>~4 hrs</td></tr>
             <tr><td>2026-05-23</td><td>DEVBOY</td><td>Listener alive, MCP child dead &mdash; ไม่มี discord tools</td><td>Plugin <code>.mcp.json</code> ไม่มี <code>env</code> block &rarr; bun child ไม่มี <code>DISCORD_STATE_DIR</code> &rarr; exit silently &rarr; <code>--silent</code> flag กลืน error</td><td>~6 hrs</td></tr>
             <tr><td>2026-05-23</td><td>DEVBOY</td><td><code>maw wake</code> ไม่ run start.sh</td><td><code>commands</code> ใน maw.config.json ใช้ <code>commands.default</code> ไม่มี custom key สำหรับ <code>devboy-oracle</code> window</td><td>~2 hrs</td></tr>
+            <tr><td>2026-06-24</td><td>GLUEBOY</td><td>Discord dead: reply tools absent + receive inbox stopped</td><td>3-layer cascade: bot token revoked (401) &rarr; regenerated; relaunch used bare <code>maw kill</code> so fleet session survived; ROOT = discord plugin project-scoped to old repo path after <code>glueboy</code> &rarr; <code>glueboy-oracle</code> rename, so Claude never loaded MCP despite valid token + <code>--channels</code>. Fix: correct <code>projectPath</code> in <code>installed_plugins.json</code> &rarr; relaunch.</td><td>not recorded</td></tr>
           </tbody>
         </table>
 
@@ -768,6 +823,7 @@ exec claude --model claude-opus-4-6 --dangerously-skip-permissions \
             <li>ขาด 2 = session ทำงาน แต่ inbound skip (--channels missing)</li>
             <li>ขาด 3 = session + channel ทำงาน แต่ไม่มี MCP tools (bun child dead) &larr; <strong>ยากที่สุด เพราะ <code>claude mcp list</code> อาจ show Connected</strong></li>
           </ul>
+          <p><strong>2026-06-24 addendum:</strong> ก่อน 3 ชั้นนี้ยังมี <strong>plugin activation gate</strong>. ถ้า plugin เป็น <code>project</code> scope และ <code>projectPath</code> stale หลัง repo rename/move, Claude จะไม่ load MCP ตั้งแต่แรก. อาการคือ <code>/mcp</code> says <code>not loaded</code>, ไม่มี bun child, และ <code>--channels</code> กลายเป็น inert.</p>
         </div>
 
         <!-- NAV -->
