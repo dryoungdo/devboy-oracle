@@ -45,7 +45,8 @@ var DEVBOY_NAV = [
       ['022-hermes-agent.html', '022 Hermes Agent'],
       ['023-agent-comparison.html', '023 Agent Comparison'],
       ['078-code-as-agent-harness.html', '078 Code as Agent Harness'],
-      ['079-making-hermes-actually-work.html', '079 Making Hermes Work']
+      ['079-making-hermes-actually-work.html', '079 Making Hermes Work'],
+      ['080-codex-team-lifecycle-codex-home-collision.html', '080 Codex Team Lifecycle']
     ]],
     ['AI Research', [
       ['024-sovereign-ai.html', '024 Sovereign AI'],
