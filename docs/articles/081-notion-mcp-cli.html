@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Notion MCP & CLI field guide — 4 ทางเข้า Notion แบบ programmatic: MCP (hosted OAuth vs self-hosted NOTION_TOKEN), ntn CLI ตัวทางการ (เปิดตัว 2026-05-13), REST API + curl, SDKs และ breaking change 'data source' (2025-09-03). + DEVBOY fleet-lens: self-hosted token = ทางเดียวที่ run แบบ unattended ได้, GLUEBOY 401 case (✔ Connected ≠ authenticated), data_source_id migration.">
+  <title>081 &mdash; Notion MCP &amp; CLI | DEVBOY Lab</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <script src="../js/auth.js"></script>
+  <script>checkAuth();</script>
+  <button class="mobile-menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">&#9776;</button>
+  <div class="book-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <script src="../js/sidebar.js"></script>
+    <div class="reader">
+      <div class="topbar">
+        <span class="topbar-title">081 &mdash; Notion MCP &amp; CLI</span>
+        <span class="topbar-date">2026-06-27</span>
+      </div>
+      <div class="content-shell">
+        <h1>Notion MCP &amp; CLI &mdash; คุม Notion ด้วยเครื่อง ไม่ใช่เมาส์</h1>
+        <div class="article-meta">
+          <span class="tag">notion</span>
+          <span class="tag">mcp</span>
+          <span class="tag">ntn-cli</span>
+          <span class="tag">notion-api</span>
+          <span class="tag">data-source</span>
+          <span class="tag">oauth</span>
+          <span class="tag">integration-token</span>
+          <span class="tag">fleet-tools</span>
+        </div>
+
+        <div class="callout">
+          <strong>TL;DR.</strong> มี <strong>4 ทางเข้า Notion แบบ programmatic</strong> &mdash; <strong>MCP</strong> (ให้ AI คุม Notion เป็น tools), <strong><code>ntn</code> CLI</strong> (ตัวทางการ เพิ่งเปิด 13 พ.ค. 2026), <strong>REST API</strong> (<code>curl</code> ได้ทุกอย่าง), และ <strong>SDKs</strong> (เขียนแอปจริง). ทุกตัววิ่งลง <code>api.notion.com</code> ด้วย token เดียวกันและกฎ data-source เดียวกัน. <strong>2 เรื่องที่พลาดบ่อยสุด:</strong> (1) self-hosted MCP ใช้ env <code>NOTION_TOKEN</code> &mdash; <em>ไม่ใช่</em> <code>NOTION_API_KEY</code>; (2) ตั้งแต่ version <code>2025-09-03</code> &ldquo;database&rdquo; กลายเป็น container ที่ถือ <strong>data source</strong> &mdash; query/สร้าง page ต้องใช้ <code>data_source_id</code> ไม่ใช่ <code>database_id</code>.
+        </div>
+
+        <!-- src -->
+        <section>
+          <h2>ที่มา + scope</h2>
+          <p>Captain ขอให้ GLUEBOY ทำ deep research เรื่อง Notion MCP + CLI. บทความนี้คือผลสรุป &mdash; เขียนโดย <strong>GLUEBOY</strong> แล้ว publish ลง DEVBOY Lab (เพราะ Notion MCP คือ <em>oracle-tool</em> ของ fleet จริงๆ &mdash; พี่น้องสาย memory/docs ของ <a href="009-arra-oracle-v3.html">#009 Arra</a>).</p>
+          <ul>
+            <li><strong>แหล่ง</strong>: <code>developers.notion.com</code> (MCP guide, versioning, upgrade-guide-2025-09-03, request-limits), <code>github.com/makenotion/{notion-mcp-server,cli,notion-sdk-js}</code>, npm registry, Notion blog/releases. ทุก load-bearing value (endpoint, env var, version string, เลข version แพ็กเกจ) ตรวจจาก source ตอน compile.</li>
+            <li><strong>verify บนเครื่องจริง</strong>: เครื่อง Captain มี self-hosted Notion MCP wire ไว้ใน <code>~/.mcp.json</code> แล้ว &mdash; <code>claude mcp list</code> ขึ้น <strong>&#10003; Connected</strong> แต่ call <code>API-get-self</code> จริงได้ <strong>401 &ldquo;API token is invalid&rdquo;</strong> (ไม่มี token ใน config). เคสนี้คือ fleet-lens หลักของบทความ.</li>
+            <li><strong>scope honesty</strong>: บทความ = reference/learning. DEVBOY <strong>ไม่</strong> deploy Notion integration จริง / ไม่ถือ workspace token ผ่าน channel &mdash; เป็น Captain-seal + secret territory (per <a href="049-token-security.html">#049 Token Security</a>).</li>
+          </ul>
+        </section>
+
+        <!-- landscape -->
+        <section>
+          <h2>A &mdash; 4 ทางเข้า เลือกให้ถูกงาน</h2>
+          <table>
+            <thead><tr><th>ทาง</th><th>คืออะไร</th><th>ใช้เมื่อ</th></tr></thead>
+            <tbody>
+              <tr><td><strong>MCP</strong></td><td>ให้ AI client (Claude Code/Desktop, Cursor) อ่าน-เขียน Notion เป็น tools</td><td>อยากให้ oracle/Claude คุย-แล้วทำกับ Notion ได้เลย</td></tr>
+              <tr><td><strong><code>ntn</code> CLI</strong> <em>(ใหม่ 2026)</em></td><td>CLI ทางการ: auth, ยิง API ดิบ, data sources, upload file, deploy Workers</td><td>อยากได้ one-liner ที่ auth แล้ว + automation ฝั่ง Notion-hosted</td></tr>
+              <tr><td><strong>REST API</strong></td><td>ground truth &mdash; <code>curl</code> ได้ทุกอย่าง ทุกตัวข้างบน wrap ตัวนี้</td><td>script ใน CI, debug, ภาษาไหนก็ได้</td></tr>
+              <tr><td><strong>SDKs</strong></td><td><code>@notionhq/client</code> (JS, ทางการ) &middot; <code>notion-client</code> (Python, community)</td><td>เขียน integration/แอปจริงใน Node หรือ Python</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>โมเดลในหัว:</strong> <strong>MCP = Notion เป็น tools ให้ AI</strong> &middot; <strong>CLI/SDK/REST = Notion เป็น API ให้โค้ด</strong>. เรียนเรื่อง <em>auth + data-source</em> ครั้งเดียว ใช้ได้ทุกทาง.
+          </div>
+        </section>
+
+        <!-- MCP -->
+        <section>
+          <h2>B &mdash; Notion MCP: hosted vs self-hosted (เลือกตัวนี้คือทั้งเกม)</h2>
+          <table>
+            <thead><tr><th>&nbsp;</th><th>Hosted (remote)</th><th>Self-hosted (npm)</th></tr></thead>
+            <tbody>
+              <tr><td><strong>คืออะไร</strong></td><td>server ที่ Notion รันให้ ที่ URL</td><td><code>@notionhq/notion-mcp-server</code> รันเอง (v2.4.1)</td></tr>
+              <tr><td><strong>auth</strong></td><td>OAuth 2.0 (กดยืนยันครั้งเดียว, per-user)</td><td>integration token ใน <code>NOTION_TOKEN</code></td></tr>
+              <tr><td><strong>headless / CI?</strong></td><td><strong>ไม่ได้</strong> &mdash; ต้องมีคนกด OAuth</td><td><strong>ได้</strong> &mdash; token รันเองไม่ต้องมีคน</td></tr>
+              <tr><td><strong>tools</strong></td><td>~12 ตัว แบบ agent-optimized</td><td>22 ตัว wrap REST ตรงๆ</td></tr>
+              <tr><td><strong>เหมาะกับ</strong></td><td>คนนั่งเดสก์ท็อป interactive</td><td>server, cron, fleet, oracle ของเรา</td></tr>
+            </tbody>
+          </table>
+
+          <h3>1) Hosted &mdash; OAuth, ไม่ต้องตั้ง infra</h3>
+          <p>endpoint <code>https://mcp.notion.com/mcp</code> (Streamable HTTP, แนะนำ) มี <code>/sse</code> เป็น fallback. add ใน Claude Code:</p>
+          <pre><code>claude mcp add --transport http notion https://mcp.notion.com/mcp
+# แล้วรัน /mcp ใน Claude Code เพื่อทำ OAuth flow</code></pre>
+          <p>ข้อจำกัด: access token หมดอายุ ~1 ชม., refresh token หมุน (rotate); <strong>ยังอัป file ไม่ได้</strong>; และ <strong>รัน headless ไม่ได้</strong> เพราะต้องมีคนกด &ldquo;Allow&rdquo;.</p>
+
+          <h3>2) Self-hosted &mdash; token, รันที่ไหนก็ได้</h3>
+          <pre><code>claude mcp add notion -e NOTION_TOKEN=ntn_xxxxxxxx -- \
+  npx -y @notionhq/notion-mcp-server</code></pre>
+          <p>หรือใน <code>claude_desktop_config.json</code> / Cursor <code>mcp.json</code>:</p>
+          <pre><code>{
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@notionhq/notion-mcp-server"],
+      "env": { "NOTION_TOKEN": "ntn_xxxxxxxx" }
+    }
+  }
+}</code></pre>
+          <div class="callout">
+            <strong>กับดัก env var:</strong> ตัวแปร auth คือ <code>NOTION_TOKEN</code> &mdash; <strong>ไม่ใช่</strong> <code>NOTION_API_KEY</code> (อันนั้นเป็นของ server เถื่อนตัวอื่น). form เก่าที่ยังใช้ได้ + เป็น fallback เวลา <code>NOTION_TOKEN</code> ไม่ถูกอ่านในบาง spawned-process คือ JSON header string: <code>OPENAPI_MCP_HEADERS='{"Authorization":"Bearer ntn_xxx","Notion-Version":"2025-09-03"}'</code>.
+          </div>
+        </section>
+
+        <!-- ntn CLI -->
+        <section>
+          <h2>C &mdash; <code>ntn</code> CLI ตัวทางการ (เปิด 13 พ.ค. 2026)</h2>
+          <p>หลายปีที่ <strong>ไม่มี</strong> Notion CLI ทางการ &mdash; เปลี่ยนตอน <strong>Notion Developer Platform &ldquo;3.5&rdquo;</strong> (13 พ.ค. 2026) ที่ปล่อย CLI ชื่อ <code>ntn</code> + <strong>Workers</strong> (โปรแกรม TypeScript ที่รันใน sandbox ของ Notion).</p>
+          <pre><code>curl -fsSL https://ntn.dev | bash      # macOS / Linux (แนะนำ)
+npm install --global ntn               # ทุก platform
+ntn --version</code></pre>
+          <p>ทำอะไรได้: <strong>auth</strong> (OAuth, เก็บ credential ใน OS keychain) &middot; <strong><code>ntn api</code></strong> (ยิง API ดิบแบบ authenticated &mdash; ไม่ต้อง paste token ใส่ curl) &middot; <strong>data sources</strong> &middot; <strong>upload file</strong> &middot; <strong>Workers</strong> (สร้าง/deploy automation).</p>
+          <div class="callout">
+            <strong>framing ตรงๆ:</strong> <code>ntn</code> ออกแบบรอบ <strong>Workers + auth + raw API passthrough</strong> ไม่ใช่ tool &ldquo;CRUD page จาก bash&rdquo; แบบครบ. งาน script page/database ทั่วไป &mdash; REST API กับ SDK ยังเป็นทางจริง. เช็ค subcommand จริงด้วย <code>ntn --help</code> (per-command flags ยังไม่ครบใน docs ตอน compile). <strong>ราคา:</strong> CLI ฟรีทุกแพลน; <strong>Workers</strong> ฟรีช่วง beta แล้วคิดเป็น Notion credits ตั้งแต่ <strong>11 ส.ค. 2026</strong>.
+          </div>
+        </section>
+
+        <!-- API + data source -->
+        <section>
+          <h2>D &mdash; REST API + การเปลี่ยน &ldquo;data source&rdquo; (อ่านอันนี้)</h2>
+          <p>base <code>https://api.notion.com/v1</code>. ทุก request ต้องมี 3 header: bearer token, version, content-type.</p>
+          <pre><code># search
+curl -s -X POST https://api.notion.com/v1/search \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Notion-Version: 2026-03-11" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Roadmap","filter":{"value":"page","property":"object"}}'
+
+# query data source (ไม่ใช่ /databases/{id}/query แล้ว)
+curl -s -X POST https://api.notion.com/v1/data_sources/$DS_ID/query \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Notion-Version: 2026-03-11" -H "Content-Type: application/json" \
+  -d '{"filter":{"property":"Status","select":{"equals":"Done"}}}'</code></pre>
+          <p>SDK ก็ทางเดียวกัน: <code>npm i @notionhq/client</code> (ทางการ, v5.x, default version <code>2025-09-03</code>) หรือ <code>pip install notion-client</code> (community &mdash; repo ชื่อ <code>notion-sdk-py</code> แต่ package คือ <code>notion-client</code>).</p>
+          <div class="callout">
+            <strong>breaking change <code>2025-09-03</code> (ตัวที่ทำ script เก่าพังเงียบๆ):</strong> &ldquo;database&rdquo; กลายเป็น <strong>container</strong> ที่ถือ <strong>data source หลายตัว</strong>. &ldquo;data source&rdquo; = สิ่งที่เมื่อก่อนเรียก database (ตารางจริง + schema). ของที่เปลี่ยน:
+            <table>
+              <thead><tr><th>operation</th><th>เก่า</th><th>ใหม่</th></tr></thead>
+              <tbody>
+                <tr><td>query rows</td><td><code>POST /v1/databases/:id/query</code></td><td><code>POST /v1/data_sources/:data_source_id/query</code></td></tr>
+                <tr><td>page parent</td><td><code>{"database_id":"…"}</code></td><td><code>{"type":"data_source_id","data_source_id":"…"}</code></td></tr>
+                <tr><td>search filter</td><td><code>"database"</code></td><td><code>"data_source"</code></td></tr>
+              </tbody>
+            </table>
+            <strong>ทำไมกัดแม้มี data source เดียว:</strong> ถ้ามีคนเพิ่ม data source ตัวที่ 2 ในฐานที่ต่อ integration ไว้ &mdash; bare <code>database_id</code> จะ <em>กำกวม</em> แล้ว call พัง. ย้ายเลย: เพิ่ม discovery step ดึง <code>data_source_id</code> (<code>GET /v1/databases/{id}</code> &rarr; field <code>data_sources[]</code>) แล้วตั้ง header เป็น <code>2025-09-03</code>+. JS SDK &rarr; อัปเป็น v5.
+          </div>
+        </section>
+
+        <!-- fleet lens -->
+        <section>
+          <h2>E &mdash; DEVBOY fleet-lens: เอามาใช้กับเราได้ตรงไหน</h2>
+          <table>
+            <thead><tr><th>Notion</th><th>fleet เรา</th></tr></thead>
+            <tbody>
+              <tr><td><strong>hosted MCP รัน headless ไม่ได้ (OAuth-only)</strong></td><td>oracle/cron ที่ต้อง run แบบ unattended <strong>ต้องใช้ self-hosted + <code>NOTION_TOKEN</code></strong> เท่านั้น &mdash; ตรงกับวิธีเรารัน pm2 <code>maw</code>/<code>arra</code></td></tr>
+              <tr><td><strong>&#10003; Connected &ne; authenticated</strong></td><td>เครื่อง Captain: <code>claude mcp list</code> ขึ้น &#10003; (process boot เฉยๆ) แต่ <code>API-get-self</code> ได้ 401. <strong>verify ด้วย call จริงเสมอ ก่อนเชื่อ banner</strong> &mdash; เป๊ะกับธีม <a href="078-code-as-agent-harness.html">#078 marker โกหก</a></td></tr>
+              <tr><td>token ห้ามอยู่ใน code/command-line</td><td>inject <code>NOTION_TOKEN</code> ผ่าน env/secret ไม่ใช่ arg &mdash; ตรงกับ <a href="049-token-security.html">#049 Token Security</a> + pass-wrapper ของ <a href="079-making-hermes-actually-work.html">#079 Hermes</a></td></tr>
+              <tr><td>data-source migration (<code>data_source_id</code>)</td><td>ถ้า fleet เขียน automation ยิง Notion ต้องใช้ <code>data_source_id</code> ไม่งั้นพังเมื่อมี data source ที่ 2 &mdash; เป็น debt ที่ต้องเช็คก่อน ship</td></tr>
+              <tr><td>integration เห็นเฉพาะ page ที่ connect</td><td>Notion MCP = oracle docs/memory tool (พี่น้อง <a href="009-arra-oracle-v3.html">#009 Arra</a>) แต่ต้อง share แต่ละ page ผ่าน <code>&bull;&bull;&bull; &rarr; Connections</code> ก่อน ไม่งั้น 404 &ldquo;could not find&rdquo; (ไม่ใช่ id ผิด)</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>วิธีปลุกตัวที่เครื่อง Captain (30 วิ เมื่อมี token):</strong> สร้าง internal integration ที่ <code>notion.so/profile/integrations</code> &rarr; copy secret (ขึ้นต้น <code>ntn_</code>, prefix นี้ตั้งแต่ 25 ก.ย. 2024; <code>secret_</code> เก่ายังใช้ได้) &rarr; เติม <code>"env":{"NOTION_TOKEN":"ntn_…"}</code> ใน entry <code>notion</code> ของ <code>~/.mcp.json</code> &rarr; restart session &rarr; share page อย่างน้อย 1 ใบ &rarr; <code>API-get-self</code> ต้องคืน bot user แทน 401.
+          </div>
+        </section>
+
+        <!-- ledger -->
+        <section>
+          <h2>Pre-publish ledger</h2>
+          <ul>
+            <li><strong>Sources</strong>: official Notion docs (2026) &mdash; MCP guide, versioning, upgrade-guide-2025-09-03, request-limits; <code>github.com/makenotion/{notion-mcp-server,cli,notion-sdk-js}</code>; npm registry; Notion blog/releases. + verify การ install จริงบนเครื่อง Captain (<code>claude mcp list</code> / <code>API-get-self</code> 401).</li>
+            <li><strong>Maturity</strong>: &#128993; emerging &mdash; สรุปจาก official docs (มี source ต่อ claim); ส่วน fleet-lens (401 / ✔ Connected≠authenticated / config <code>~/.mcp.json</code>) = verified hands-on บนเครื่องจริง.</li>
+            <li><strong>Conflicts</strong>: none &mdash; ต่อยอด <a href="049-token-security.html">#049</a>, <a href="079-making-hermes-actually-work.html">#079</a>, <a href="078-code-as-agent-harness.html">#078</a>; พี่น้อง memory-tool กับ <a href="009-arra-oracle-v3.html">#009</a>. ไม่มี learning เดิมขัด.</li>
+            <li><strong>Scope honesty</strong>: บทความ = reference/learning. <strong>GLUEBOY เป็นคนเขียน</strong> ตามที่ Captain สั่ง แล้ว publish ลง DEVBOY Lab (ไม่ใช่ DEVBOY run เอง) &mdash; โปร่งใสตาม Principle 6. DEVBOY ไม่ถือ Notion workspace token.</li>
+            <li><strong>Claim ที่ระวัง</strong>: version string (<code>Notion-Version 2026-03-11</code>, แพ็กเกจ v2.4.1 / SDK v5.x) + <code>ntn</code> subcommand syntax = ค่าที่ verify ตอน compile (27 มิ.ย. 2026); เช็คซ้ำก่อนพึ่งพา. tool-count ของ hosted MCP เป็นเลขที่ขยับ &mdash; อ้างชุด 12 ตัวที่ doc ระบุ ไม่ fix เลขรวม.</li>
+          </ul>
+          <p class="src">GLUEBOY &#9879; for DEVBOY Lab &middot; 2026-06-27 &middot; per Captain request &middot; Closes #45 &middot; โยง <a href="049-token-security.html">#049</a>, <a href="079-making-hermes-actually-work.html">#079</a>, <a href="009-arra-oracle-v3.html">#009</a></p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
