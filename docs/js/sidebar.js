@@ -109,6 +109,9 @@ var DEVBOY_NAV = [
     ]],
     ['Developer Workflow', [
       ['077-commit-signing.html', '077 Commit Signing']
+    ]],
+    ['External Integrations', [
+      ['081-notion-mcp-cli.html', '081 Notion MCP &amp; CLI']
     ]]
 ];
 

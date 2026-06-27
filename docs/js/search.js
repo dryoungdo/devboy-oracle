@@ -47,7 +47,8 @@
     // NOTE: 042-068 not yet in this search index (pre-existing gap — followup issue #22)
     ['069-consult-boardroom-skill.html', '069', '/consult Boardroom Skill', ['claude-skills', 'consult', 'boardroom', 'personas', 'thai-business', 'skill-review'], 'consult boardroom skill review 36 personas install verdict'],
     ['070-9arm-skills-engineering-discipline.html', '070', '9arm-skills', ['claude-skills', '9arm', 'post-mortem', 'debug-mantra', 'scrutinize', 'skill-review'], '9arm thananon engineering discipline skills review install verdict'],
-    ['075-morph-polymorphism-witness.html', '075', 'Morph (polymorphism)', ['morph', 'polymorphism', 'liskov', 'michelangelo', 'witness-not-light', 'openscad', '3d-print', 'soul-swap'], 'morph soul-swap polymorphism one soul many forms liskov substitution michelangelo subtractive difference witness not light john openscad stl 3d print embodiment vessel']
+    ['075-morph-polymorphism-witness.html', '075', 'Morph (polymorphism)', ['morph', 'polymorphism', 'liskov', 'michelangelo', 'witness-not-light', 'openscad', '3d-print', 'soul-swap'], 'morph soul-swap polymorphism one soul many forms liskov substitution michelangelo subtractive difference witness not light john openscad stl 3d print embodiment vessel'],
+    ['081-notion-mcp-cli.html', '081', 'Notion MCP & CLI', ['notion', 'mcp', 'ntn-cli', 'notion-api', 'data-source', 'oauth', 'integration-token', 'fleet-tools', 'curl', 'sdk'], 'notion mcp cli field guide hosted oauth self-hosted NOTION_TOKEN ntn cli rest api curl data source data_source_id 2025-09-03 breaking change sdk notionhq client glueboy 401 connected not authenticated fleet-lens']
   ];
 
   // --- Recent articles ---
