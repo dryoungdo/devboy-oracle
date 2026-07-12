@@ -33,6 +33,6 @@
       }
     ]
   },
-  "model": "opus",
-  "effortLevel": "xhigh"
+  "model": "claude-fable-5",
+  "effortLevel": "high"
 }
